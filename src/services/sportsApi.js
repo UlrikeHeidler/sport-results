@@ -4,7 +4,11 @@ const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports';
 // API endpoints for different leagues
 const API_ENDPOINTS = {
   nfl: `${ESPN_BASE_URL}/football/nfl/scoreboard`,
-  nhl: `${ESPN_BASE_URL}/hockey/nhl/scoreboard`
+  nhl: `${ESPN_BASE_URL}/hockey/nhl/scoreboard`,
+  nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
+  mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
+  ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
+  mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
 };
 
 // Date utilities

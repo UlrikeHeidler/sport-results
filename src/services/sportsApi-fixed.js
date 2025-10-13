@@ -9,7 +9,10 @@ const API_ENDPOINTS = {
   fbs: `${ESPN_BASE_URL}/football/college-football/scoreboard?groups=80`,
   mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
   bundesliga1: `${ESPN_BASE_URL}/soccer/ger.1/scoreboard`,
-  bundesliga2: `${ESPN_BASE_URL}/soccer/ger.2/scoreboard`
+  bundesliga2: `${ESPN_BASE_URL}/soccer/ger.2/scoreboard`,
+  nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
+  ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
+  mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
 };
 
 /**
@@ -19,11 +22,18 @@ const API_ENDPOINTS = {
  */
 export const fetchGames = async (league) => {
   try {
-    const endpoint = API_ENDPOINTS[league.toLowerCase()];
-    if (!endpoint) {
+    const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
+    if (!baseEndpoint) {
       throw new Error(`Unsupported league: ${league}`);
     }
 
+    // Format today's date as YYYYMMDD
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+    // Append date parameter using existing URL params or adding new one
+    const separator = baseEndpoint.includes('?') ? '&' : '?';
+    const endpoint = `${baseEndpoint}${separator}dates=${dateStr}`;
+  
     console.log(`Fetching ${league} games from:`, endpoint);
     
     const response = await fetch(endpoint);
@@ -107,7 +117,7 @@ const parseGamesData = (data, league) => {
  * @param {Array} selectedLeagues - Array of league names to fetch
  * @returns {Promise<Object>} Object with games grouped by league
  */
-export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2']) => {
+export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw']) => {
   try {
     console.log('Fetching games for leagues:', selectedLeagues);
     
@@ -245,6 +255,24 @@ export const getLeagueColors = (league) => {
       secondary: '#FFFFFF',
       accent: '#E30613',
       background: '#f0f5ff'
+    },
+     nba: {
+      primary: '#002D72',
+      secondary: '#D50032',
+      accent: '#FFFFFF',
+      background: '#f0f8ff'
+    },
+    mls: {
+      primary: '#D20515',
+      secondary: '#000000',
+      accent: '#FFCC02',
+      background: '#fff0f0'
+    },
+    ncaaw: {
+      primary: '#005CA9',
+      secondary: '#FFFFFF',
+      accent: '#E30613',
+      background: '#f0f5ff'
     }
   };
   
@@ -316,10 +344,12 @@ export const extractTeams = (gamesData) => {
   Object.entries(gamesData).forEach(([league, games]) => {
     games.forEach(game => {
       [game.homeTeam, game.awayTeam].forEach(team => {
-        if (!teamIds.has(team.id)) {
-          teamIds.add(team.id);
+        var uniqueId = league + team.id;
+        console.log('####Processing team:', uniqueId);
+        if (!teamIds.has(uniqueId)) {
+          teamIds.add(uniqueId);
           teams.push({
-            id: team.id,
+            id: uniqueId,
             name: team.name,
             abbreviation: team.abbreviation,
             league: league.toUpperCase()

@@ -21,7 +21,7 @@ function App() {
   // Settings state
   const [settings, setSettings] = useState({
     refreshInterval: 30,
-    selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2'],
+    selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
     hiddenTeams: [],
     colorCoding: true
   });
@@ -32,7 +32,7 @@ function App() {
   // Sorting mode: 'custom' or 'startTime'
   const [sortMode, setSortMode] = useState('custom');
 
-  const availableLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2'];
+  const availableLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'];
 
   // Load settings from localStorage
   useEffect(() => {
@@ -139,8 +139,8 @@ function App() {
 
     // Filter out hidden teams
     const visibleGames = allGames.filter(game => {
-      const homeTeamHidden = settings.hiddenTeams.includes(game.homeTeam.id);
-      const awayTeamHidden = settings.hiddenTeams.includes(game.awayTeam.id);
+      const homeTeamHidden = settings.hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.homeTeam.id).toLowerCase());
+      const awayTeamHidden = settings.hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.awayTeam.id).toLowerCase());
       return !homeTeamHidden && !awayTeamHidden;
     });
 
@@ -427,9 +427,6 @@ function App() {
             {useIncrementalMode && liveGamesCount > 0 && (
               <p>🔴 {liveGamesCount} live game{liveGamesCount !== 1 ? 's' : ''} active</p>
             )}
-          </div>
-          <div className="drag-info">
-            <p>↕️ Drag and drop tiles to rearrange them</p>
           </div>
           {useIncrementalMode && (
             <div className="incremental-info">

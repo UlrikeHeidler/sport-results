@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Settings.css';
 
 const Settings = ({
   settings,
@@ -8,6 +9,7 @@ const Settings = ({
   availableTeams
 }) => {
   const [localSettings, setLocalSettings] = useState(settings);
+  const [searchFilter, setSearchFilter] = useState('');
 
   const handleSave = () => {
     onSettingsChange(localSettings);
@@ -17,7 +19,7 @@ const Settings = ({
   const handleReset = () => {
     const defaultSettings = {
       refreshInterval: 30,
-      selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2'],
+      selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
       hiddenTeams: [],
       colorCoding: true
     };
@@ -135,6 +137,30 @@ const Settings = ({
                 />
                 <span>🥅 BL2</span>
               </label>
+              <label className="league-option">
+                <input
+                  type="checkbox"
+                  checked={localSettings.selectedLeagues.includes('nba')}
+                  onChange={() => toggleLeague('nba')}
+                />
+                <span>🥅 NBA</span>
+              </label>
+              <label className="league-option">
+                <input
+                  type="checkbox"
+                  checked={localSettings.selectedLeagues.includes('mls')}
+                  onChange={() => toggleLeague('mls')}
+                />
+                <span>⚽ MLS</span>
+              </label>
+              <label className="league-option">
+                <input
+                  type="checkbox"
+                  checked={localSettings.selectedLeagues.includes('ncaaw')}
+                  onChange={() => toggleLeague('ncaaw')}
+                />
+                <span>🥅 NCAAW</span>
+              </label>
             </div>
           </div>
 
@@ -160,17 +186,34 @@ const Settings = ({
             <p className="setting-description">
               Select teams to hide from the results display
             </p>
+            {/* Search Filter */}
+            <div className="search-filter">
+              <input
+                type="text"
+                placeholder="Search teams..."
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="search-input"
+              />
+            </div>
             <div className="hidden-teams-list">
-              {availableTeams.map(team => (
-                <label key={team.id} className="team-option">
-                  <input
-                    type="checkbox"
-                    checked={localSettings.hiddenTeams.includes(team.id)}
-                    onChange={() => toggleHiddenTeam(team.id)}
-                  />
-                  <span>{team.name} ({team.league})</span>
-                </label>
-              ))}
+              {availableTeams
+                .filter(team => 
+                  searchFilter
+                    ? team.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                      team.league.toLowerCase().includes(searchFilter.toLowerCase())
+                    : true
+                )
+                .map(team => (
+                  <label key={team.id} className="team-option">
+                    <input
+                      type="checkbox"
+                      checked={localSettings.hiddenTeams.includes(team.id)}
+                      onChange={() => toggleHiddenTeam(team.id)}
+                    />
+                    <span>{team.name} ({team.league})</span>
+                  </label>
+                ))
+              }
             </div>
           </div>
         </div>

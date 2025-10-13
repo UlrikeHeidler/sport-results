@@ -158,7 +158,8 @@ const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, drag
               <div className={`team-name`}>
                 {game.awayTeam.name}
               </div>
-              <div className="team-abbreviation">{game.awayTeam.abbreviation}</div>
+              <div className="team-abbreviation">{game.awayTeam.abbreviation}    - 
+                {game.awayTeam.id}</div>
             </div>
           </div>
           <div className={`team-score ${animations.awayScore ? 'score-changed' : ''}`}>
@@ -184,7 +185,8 @@ const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, drag
               <div className={`team-name`}>
                 {game.homeTeam.name}
               </div>
-              <div className="team-abbreviation">{game.homeTeam.abbreviation}</div>
+              <div className="team-abbreviation">{game.homeTeam.abbreviation}    - 
+                {game.homeTeam.id}</div>
             </div>
           </div>
           <div className={`team-score ${animations.homeScore ? 'score-changed' : ''}`}>

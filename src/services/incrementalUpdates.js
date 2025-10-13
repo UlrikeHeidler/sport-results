@@ -399,8 +399,25 @@ class IncrementalUpdatesManager {
         
         // Check if cache is not expired
         if (Date.now() - cacheData.timestamp < this.config.cacheExpiry) {
-          this.cache = new Map(Object.entries(cacheData.games || {}));
-          this.lastFetch = new Map(Object.entries(cacheData.lastFetch || {}));
+          // Rehydrate games: JSON.stringify turns Date objects into ISO strings,
+          // so convert `date` and `finishedAt` back into Date objects here.
+          const gamesObj = cacheData.games || {};
+          const rehydratedGames = {};
+          Object.entries(gamesObj).forEach(([cacheKey, games]) => {
+            rehydratedGames[cacheKey] = (games || []).map(game => ({
+              // keep all properties but convert date-like fields back to Date
+              ...game,
+              date: game && game.date ? new Date(game.date) : null,
+              finishedAt: game && game.finishedAt ? new Date(game.finishedAt) : null
+            }));
+          });
+
+          this.cache = new Map(Object.entries(rehydratedGames));
+
+          // Ensure lastFetch values are numbers (they may be stored as strings)
+          const lastFetchObj = cacheData.lastFetch || {};
+          const lastFetchMap = new Map(Object.entries(lastFetchObj).map(([k, v]) => [k, Number(v)]));
+          this.lastFetch = lastFetchMap;
         }
       }
     } catch (error) {
