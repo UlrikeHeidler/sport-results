@@ -15,7 +15,7 @@ const getDisplayStatus = (status) => {
   return 'SCHEDULED';
 };
 
-const GameTile = ({ game, index, colorCoding = true, isDragDisabled = false }) => {
+const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, draggableId }) => {
   const statusClass = getStatusClass(game.status);
   const timeDisplay = formatGameTime(game.date, game.status);
   const leagueColors = getLeagueColors(game.league);
@@ -110,7 +110,7 @@ const GameTile = ({ game, index, colorCoding = true, isDragDisabled = false }) =
 
   return (
     <Draggable
-      draggableId={`${game.league}-${game.id}`}
+      draggableId={draggableId || `${game.league}-${game.id}`}
       index={index}
       isDragDisabled={isDragDisabled}
     >

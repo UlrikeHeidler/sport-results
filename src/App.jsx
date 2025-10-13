@@ -275,50 +275,57 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-        <div className="container">
-          <div className="header-content">
-            <div className="header-text">
-              <h1>🏆 Live Sports Results</h1>
-              <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
-              {currentLastUpdated && (
-                <div className="last-updated">
-                  Last updated: {currentLastUpdated.toLocaleTimeString()}
-                  {useIncrementalMode ? (
-                    <span className="refresh-interval">
-                      ({updateFrequency})
-                    </span>
-                  ) : (
-                    settings.refreshInterval && (
+        <div className="header-minimized">
+          <div className="header-menu-icon">
+            <span>🏆</span>
+          </div>
+        </div>
+        <div className="header-expanded">
+          <div className="container">
+            <div className="header-content">
+              <div className="header-text">
+                <h1>🏆 Live Sports Results</h1>
+                <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
+                {currentLastUpdated && (
+                  <div className="last-updated">
+                    Last updated: {currentLastUpdated.toLocaleTimeString()}
+                    {useIncrementalMode ? (
                       <span className="refresh-interval">
-                        (Updates every {settings.refreshInterval}s)
+                        ({updateFrequency})
                       </span>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="header-buttons">
-              <button
-                className="update-mode-button"
-                onClick={toggleUpdateMode}
-                title={`Switch to ${useIncrementalMode ? 'Traditional' : 'Incremental'} Updates`}
-              >
-                {useIncrementalMode ? '🔄' : '⏱️'}
-              </button>
-              <button
-                className="monitor-button"
-                onClick={() => setShowIncrementalMonitor(true)}
-                title="Incremental Updates Monitor"
-              >
-                📊
-              </button>
-              <button
-                className="settings-button"
-                onClick={() => setShowSettings(true)}
-                title="Settings"
-              >
-                ⚙️
-              </button>
+                    ) : (
+                      settings.refreshInterval && (
+                        <span className="refresh-interval">
+                          (Updates every {settings.refreshInterval}s)
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="header-buttons">
+                <button
+                  className="update-mode-button"
+                  onClick={toggleUpdateMode}
+                  title={`Switch to ${useIncrementalMode ? 'Traditional' : 'Incremental'} Updates`}
+                >
+                  {useIncrementalMode ? '🔄' : '⏱️'}
+                </button>
+                <button
+                  className="monitor-button"
+                  onClick={() => setShowIncrementalMonitor(true)}
+                  title="Incremental Updates Monitor"
+                >
+                  📊
+                </button>
+                <button
+                  className="settings-button"
+                  onClick={() => setShowSettings(true)}
+                  title="Settings"
+                >
+                  ⚙️
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -382,6 +389,7 @@ function App() {
                           index={index}
                           colorCoding={settings.colorCoding}
                           isDragDisabled={sortMode === 'startTime'}
+                          draggableId={`${game.league}-${game.id}`}
                         />
                       ))}
                       {provided.placeholder}
