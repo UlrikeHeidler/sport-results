@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import GameTile from './components/GameTile';
 import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
+import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
+import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
 import {
   fetchAllGames,
   sortGames,
@@ -10,13 +12,11 @@ import {
 } from './services/sportsApi-fixed';
 
 function App() {
-  const [games, setGames] = useState({});
   const [filteredGames, setFilteredGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showIncrementalMonitor, setShowIncrementalMonitor] = useState(false);
   const [availableTeams, setAvailableTeams] = useState([]);
+  const [useIncrementalMode, setUseIncrementalMode] = useState(true);
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -28,6 +28,9 @@ function App() {
 
   // Custom game order (for drag and drop)
   const [gameOrder, setGameOrder] = useState([]);
+  
+  // Sorting mode: 'custom' or 'startTime'
+  const [sortMode, setSortMode] = useState('custom');
 
   const availableLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2'];
 
@@ -50,7 +53,28 @@ function App() {
     localStorage.setItem('sportsAppSettings', JSON.stringify(newSettings));
   };
 
-  // Fetch games data
+  // Incremental updates hook
+  const {
+    games: incrementalGames,
+    loading: incrementalLoading,
+    error: incrementalError,
+    lastUpdated: incrementalLastUpdated,
+    loadGames: incrementalLoadGames,
+    forceRefresh: incrementalForceRefresh,
+    updateStats,
+    recentChanges,
+    changeSummary,
+    liveGamesCount,
+    updateFrequency
+  } = useIncrementalUpdates(settings.selectedLeagues);
+
+  // Fallback to traditional loading
+  const [games, setGames] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Traditional fetch games data (fallback)
   const loadGames = useCallback(async () => {
     try {
       setLoading(true);
@@ -70,28 +94,46 @@ function App() {
     }
   }, [settings.selectedLeagues]);
 
-  // Initial load
-  useEffect(() => {
-    loadGames();
-  }, [loadGames]);
+  // Use incremental or traditional mode
+  const currentGames = useIncrementalMode ? incrementalGames : games;
+  const currentLoading = useIncrementalMode ? incrementalLoading : loading;
+  const currentError = useIncrementalMode ? incrementalError : error;
+  const currentLastUpdated = useIncrementalMode ? incrementalLastUpdated : lastUpdated;
 
-  // Auto-refresh based on settings
+  // Extract teams when games change
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (Object.keys(currentGames).length > 0) {
+      const teams = extractTeams(currentGames);
+      setAvailableTeams(teams);
+    }
+  }, [currentGames]);
+
+  // Initial load for traditional mode
+  useEffect(() => {
+    if (!useIncrementalMode) {
       loadGames();
-    }, settings.refreshInterval * 1000);
+    }
+  }, [loadGames, useIncrementalMode]);
 
-    return () => clearInterval(interval);
-  }, [loadGames, settings.refreshInterval]);
-
-  // Filter and sort games
+  // Auto-refresh for traditional mode
   useEffect(() => {
+    if (!useIncrementalMode) {
+      const interval = setInterval(() => {
+        loadGames();
+      }, settings.refreshInterval * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [loadGames, settings.refreshInterval, useIncrementalMode]);
+
+  // Memoized filtered and sorted games to prevent unnecessary recalculations
+  const filteredAndSortedGames = useMemo(() => {
     const allGames = [];
     
     // Combine all games from selected leagues
     settings.selectedLeagues.forEach(league => {
-      if (games[league]) {
-        allGames.push(...games[league]);
+      if (currentGames[league]) {
+        allGames.push(...currentGames[league]);
       }
     });
 
@@ -102,30 +144,77 @@ function App() {
       return !homeTeamHidden && !awayTeamHidden;
     });
 
-    // Sort games with smart ordering
-    const sortedGames = sortGames(visibleGames);
+    let finalGames = [];
     
-    // Apply custom order if it exists and is valid
-    if (gameOrder.length > 0) {
-      const orderedGames = [];
-      const gameMap = new Map(sortedGames.map(game => [`${game.league}-${game.id}`, game]));
-      
-      // Add games in custom order
-      gameOrder.forEach(gameId => {
-        if (gameMap.has(gameId)) {
-          orderedGames.push(gameMap.get(gameId));
-          gameMap.delete(gameId);
+    if (sortMode === 'startTime') {
+      // Sort by game status: Ongoing (live/intermission), Scheduled, Final
+      finalGames = visibleGames.sort((a, b) => {
+        // Define game status categories
+        const getGameCategory = (game) => {
+          // Ongoing games (live or in intermission)
+          if (game.status.type === 'STATUS_IN_PROGRESS' ||
+              game.status.type === 'STATUS_HALFTIME' ||
+              game.status.type === 'STATUS_BREAK' ||
+              game.status.type === 'STATUS_INTERMISSION' ||
+              game.status.type === 'STATUS_END_PERIOD') {
+            return 1; // Ongoing - highest priority
+          }
+          // Final games
+          else if (game.status.type === 'STATUS_FINAL' ||
+                   game.status.type === 'STATUS_FINAL_OT' ||
+                   game.status.type === 'STATUS_FINAL_SO') {
+            return 3; // Final - lowest priority
+          }
+          // Scheduled games (not started yet)
+          else {
+            return 2; // Scheduled - middle priority
+          }
+        };
+        
+        const aCat = getGameCategory(a);
+        const bCat = getGameCategory(b);
+        
+        // Sort by category first
+        if (aCat !== bCat) {
+          return aCat - bCat;
         }
+        
+        // Within same category, sort by start time
+        return new Date(a.date) - new Date(b.date);
       });
-      
-      // Add any remaining games that weren't in the custom order
-      orderedGames.push(...Array.from(gameMap.values()));
-      
-      setFilteredGames(orderedGames);
     } else {
-      setFilteredGames(sortedGames);
+      // Custom sort mode - use smart ordering and custom order
+      const sortedGames = sortGames(visibleGames);
+      
+      // Apply custom order if it exists and is valid
+      if (gameOrder.length > 0) {
+        const orderedGames = [];
+        const gameMap = new Map(sortedGames.map(game => [`${game.league}-${game.id}`, game]));
+        
+        // Add games in custom order
+        gameOrder.forEach(gameId => {
+          if (gameMap.has(gameId)) {
+            orderedGames.push(gameMap.get(gameId));
+            gameMap.delete(gameId);
+          }
+        });
+        
+        // Add any remaining games that weren't in the custom order
+        orderedGames.push(...Array.from(gameMap.values()));
+        
+        finalGames = orderedGames;
+      } else {
+        finalGames = sortedGames;
+      }
     }
-  }, [games, settings.selectedLeagues, settings.hiddenTeams, gameOrder]);
+    
+    return finalGames;
+  }, [currentGames, settings.selectedLeagues, settings.hiddenTeams, gameOrder, sortMode]);
+
+  // Update filteredGames when the memoized value changes
+  useEffect(() => {
+    setFilteredGames(filteredAndSortedGames);
+  }, [filteredAndSortedGames]);
 
   // Handle league selection toggle
   const handleLeagueToggle = (league) => {
@@ -142,6 +231,11 @@ function App() {
   // Handle drag and drop
   const handleDragEnd = (result) => {
     if (!result.destination) return;
+    
+    // Only allow drag and drop in custom sort mode
+    if (sortMode !== 'custom') {
+      return;
+    }
 
     const items = Array.from(filteredGames);
     const [reorderedItem] = items.splice(result.source.index, 1);
@@ -153,6 +247,31 @@ function App() {
     setFilteredGames(items);
   };
 
+  // Handle sort mode toggle
+  const handleSortModeToggle = () => {
+    const newMode = sortMode === 'startTime' ? 'custom' : 'startTime';
+    setSortMode(newMode);
+    
+    // Clear custom order when switching to start time mode
+    if (newMode === 'startTime') {
+      setGameOrder([]);
+    }
+  };
+
+  // Toggle between incremental and traditional mode
+  const toggleUpdateMode = () => {
+    setUseIncrementalMode(prev => !prev);
+  };
+
+  // Handle force refresh
+  const handleForceRefresh = () => {
+    if (useIncrementalMode) {
+      incrementalForceRefresh();
+    } else {
+      loadGames();
+    }
+  };
+
   return (
     <div className="App">
       <header className="header">
@@ -161,24 +280,46 @@ function App() {
             <div className="header-text">
               <h1>🏆 Live Sports Results</h1>
               <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
-              {lastUpdated && (
+              {currentLastUpdated && (
                 <div className="last-updated">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
-                  {settings.refreshInterval && (
+                  Last updated: {currentLastUpdated.toLocaleTimeString()}
+                  {useIncrementalMode ? (
                     <span className="refresh-interval">
-                      (Updates every {settings.refreshInterval}s)
+                      ({updateFrequency})
                     </span>
+                  ) : (
+                    settings.refreshInterval && (
+                      <span className="refresh-interval">
+                        (Updates every {settings.refreshInterval}s)
+                      </span>
+                    )
                   )}
                 </div>
               )}
             </div>
-            <button 
-              className="settings-button"
-              onClick={() => setShowSettings(true)}
-              title="Settings"
-            >
-              ⚙️
-            </button>
+            <div className="header-buttons">
+              <button
+                className="update-mode-button"
+                onClick={toggleUpdateMode}
+                title={`Switch to ${useIncrementalMode ? 'Traditional' : 'Incremental'} Updates`}
+              >
+                {useIncrementalMode ? '🔄' : '⏱️'}
+              </button>
+              <button
+                className="monitor-button"
+                onClick={() => setShowIncrementalMonitor(true)}
+                title="Incremental Updates Monitor"
+              >
+                📊
+              </button>
+              <button
+                className="settings-button"
+                onClick={() => setShowSettings(true)}
+                title="Settings"
+              >
+                ⚙️
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -190,24 +331,40 @@ function App() {
           availableLeagues={availableLeagues}
         />
 
-        {loading && (
+        {/* Sorting Toggle */}
+        <div className="sort-controls">
+          <div className="sort-toggle">
+            <span className="sort-label">Sort by:</span>
+            <button
+              className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
+              onClick={handleSortModeToggle}
+            >
+              {sortMode === 'startTime' ? '🕐 Start Time' : '🎯 Custom Order'}
+            </button>
+            {sortMode === 'custom' && (
+              <span className="sort-hint">Drag tiles to reorder</span>
+            )}
+          </div>
+        </div>
+
+        {currentLoading && (
           <div className="loading">
             <div className="loading-spinner">⏳</div>
-            Loading games...
+            Loading games... {useIncrementalMode ? '(Incremental Mode)' : '(Traditional Mode)'}
           </div>
         )}
 
-        {error && (
+        {currentError && (
           <div className="error">
             <div className="error-icon">❌</div>
-            {error}
-            <button onClick={loadGames} className="retry-button">
+            {currentError}
+            <button onClick={handleForceRefresh} className="retry-button">
               Try Again
             </button>
           </div>
         )}
 
-        {!loading && !error && (
+        {!currentLoading && !currentError && (
           <>
             {filteredGames.length > 0 ? (
               <DragDropContext onDragEnd={handleDragEnd}>
@@ -224,6 +381,7 @@ function App() {
                           game={game}
                           index={index}
                           colorCoding={settings.colorCoding}
+                          isDragDisabled={sortMode === 'startTime'}
                         />
                       ))}
                       {provided.placeholder}
@@ -253,11 +411,23 @@ function App() {
 
         <div className="app-info">
           <div className="refresh-info">
-            <p>🔄 Scores update automatically every {settings.refreshInterval} seconds</p>
+            <p>
+              🔄 {useIncrementalMode
+                ? `Smart updates: ${updateFrequency}`
+                : `Updates every ${settings.refreshInterval} seconds`}
+            </p>
+            {useIncrementalMode && liveGamesCount > 0 && (
+              <p>🔴 {liveGamesCount} live game{liveGamesCount !== 1 ? 's' : ''} active</p>
+            )}
           </div>
           <div className="drag-info">
             <p>↕️ Drag and drop tiles to rearrange them</p>
           </div>
+          {useIncrementalMode && (
+            <div className="incremental-info">
+              <p>⚡ Incremental updates enabled - Real-time score changes</p>
+            </div>
+          )}
         </div>
       </main>
 
@@ -267,6 +437,16 @@ function App() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         availableTeams={availableTeams}
+      />
+
+      <IncrementalUpdatesMonitor
+        isVisible={showIncrementalMonitor}
+        onClose={() => setShowIncrementalMonitor(false)}
+        changeSummary={changeSummary}
+        updateStats={updateStats}
+        updateFrequency={updateFrequency}
+        liveGamesCount={liveGamesCount}
+        recentChanges={recentChanges}
       />
     </div>
   );

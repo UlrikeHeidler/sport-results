@@ -128,19 +128,18 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
       }
     });
 
-    // Filter games to only include today + next 3 days
+    // Filter games to only include today's games
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const maxDate = new Date(today);
-    maxDate.setDate(today.getDate() + 3);
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
 
     Object.keys(gamesData).forEach(league => {
       gamesData[league] = gamesData[league].filter(game => {
         const gameDate = new Date(game.date);
-        gameDate.setHours(0, 0, 0, 0);
-        return gameDate >= today && gameDate <= maxDate;
+        return gameDate >= today && gameDate <= endOfToday;
       });
-      console.log(`Filtered to ${gamesData[league].length} games for ${league} (today + 3 days)`);
+      console.log(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
     });
 
     return gamesData;
@@ -186,7 +185,12 @@ export const getStatusClass = (status) => {
     return 'final';
   }
   
-  if (status.type === 'STATUS_IN_PROGRESS') {
+  // Treat games in progress, halftime, intermission, etc. as live
+  if (status.type === 'STATUS_IN_PROGRESS' ||
+      status.type === 'STATUS_HALFTIME' ||
+      status.type === 'STATUS_BREAK' ||
+      status.type === 'STATUS_INTERMISSION' ||
+      status.type === 'STATUS_END_PERIOD') {
     return 'live';
   }
   
@@ -278,10 +282,21 @@ export const sortGames = (games) => {
     if (aToBottom && !bToBottom) return 1;
     if (!aToBottom && bToBottom) return -1;
     
-    // Live games first (among non-bottom games)
+    // Live games first (among non-bottom games) - including games in breaks
     if (!aToBottom && !bToBottom) {
-      if (a.status.type === 'STATUS_IN_PROGRESS' && b.status.type !== 'STATUS_IN_PROGRESS') return -1;
-      if (b.status.type === 'STATUS_IN_PROGRESS' && a.status.type !== 'STATUS_IN_PROGRESS') return 1;
+      const aIsLive = a.status.type === 'STATUS_IN_PROGRESS' ||
+                     a.status.type === 'STATUS_HALFTIME' ||
+                     a.status.type === 'STATUS_BREAK' ||
+                     a.status.type === 'STATUS_INTERMISSION' ||
+                     a.status.type === 'STATUS_END_PERIOD';
+      const bIsLive = b.status.type === 'STATUS_IN_PROGRESS' ||
+                     b.status.type === 'STATUS_HALFTIME' ||
+                     b.status.type === 'STATUS_BREAK' ||
+                     b.status.type === 'STATUS_INTERMISSION' ||
+                     b.status.type === 'STATUS_END_PERIOD';
+      
+      if (aIsLive && !bIsLive) return -1;
+      if (bIsLive && !aIsLive) return 1;
     }
     
     // Then by date
