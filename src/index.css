@@ -588,13 +588,49 @@ body {
 }
 
 .league-badge {
-  background: #667eea;
-  color: white;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Sport-specific badge icons */
+.league-badge::before {
+  font-size: 1.1rem;
+}
+
+/* Football */
+.game-tile[style*="5A4423"] .league-badge::before,
+.game-tile[style*="654321"] .league-badge::before,
+.game-tile[style*="704214"] .league-badge::before {
+  content: '🏈';
+}
+
+/* Baseball */
+.game-tile[style*="BE0000"] .league-badge::before {
+  content: '⚾';
+}
+
+/* Basketball */
+.game-tile[style*="F85800"] .league-badge::before,
+.game-tile[style*="FF6B1A"] .league-badge::before {
+  content: '🏀';
+}
+
+/* Hockey */
+.game-tile[style*="004C8E"] .league-badge::before {
+  content: '🏒';
+}
+
+/* Soccer */
+.game-tile[style*="006633"] .league-badge::before,
+.game-tile[style*="005C2F"] .league-badge::before,
+.game-tile[style*="007A3D"] .league-badge::before {
+  content: '⚽';
 }
 
 .game-venue {

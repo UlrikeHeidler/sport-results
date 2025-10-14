@@ -214,65 +214,70 @@ export const getStatusClass = (status) => {
  */
 export const getLeagueColors = (league) => {
   const themes = {
+    // Football themes with brown/gold tones
     nfl: {
-      primary: '#013369',
-      secondary: '#D50A0A',
-      accent: '#FFB612',
-      background: '#f8f9ff'
-    },
-    nhl: {
-      primary: '#000000',
-      secondary: '#C8102E',
-      accent: '#FCB514',
-      background: '#f5f5f5'
+      primary: '#5A4423',  // Rich brown
+      secondary: '#8B6B42',
+      accent: '#FFB612',  // Gold
+      background: '#FFF8E7' // Light warm beige
     },
     fcs: {
-      primary: '#8B0000',
-      secondary: '#FFD700',
-      accent: '#228B22',
-      background: '#fff8f0'
+      primary: '#654321',  // Dark brown
+      secondary: '#BA8C3C',
+      accent: '#FFD700',  // Gold
+      background: '#FFF6E6' // Light warm beige
     },
     fbs: {
-      primary: '#FF8C00',
-      secondary: '#4169E1',
-      accent: '#32CD32',
-      background: '#fff5ee'
+      primary: '#704214',  // Brown
+      secondary: '#9E7845',
+      accent: '#DAA520',  // Golden rod
+      background: '#FFF4E0' // Light warm beige
     },
+    // Baseball theme with classic red/white/blue
     mlb: {
-      primary: '#002D72',
-      secondary: '#D50032',
+      primary: '#BE0000',  // Classic baseball red
+      secondary: '#14387F',
       accent: '#FFFFFF',
-      background: '#f0f8ff'
+      background: '#F9F9FF' // Very light blue tint
     },
-    bundesliga1: {
-      primary: '#D20515',
-      secondary: '#000000',
-      accent: '#FFCC02',
-      background: '#fff0f0'
-    },
-    bundesliga2: {
-      primary: '#005CA9',
-      secondary: '#FFFFFF',
-      accent: '#E30613',
-      background: '#f0f5ff'
-    },
-     nba: {
-      primary: '#002D72',
-      secondary: '#D50032',
+    // Basketball themes with orange tones
+    nba: {
+      primary: '#F85800',  // Bright orange
+      secondary: '#2C2C2C',
       accent: '#FFFFFF',
-      background: '#f0f8ff'
-    },
-    mls: {
-      primary: '#D20515',
-      secondary: '#000000',
-      accent: '#FFCC02',
-      background: '#fff0f0'
+      background: '#FFF4EE' // Light orange tint
     },
     ncaaw: {
-      primary: '#005CA9',
-      secondary: '#FFFFFF',
-      accent: '#E30613',
-      background: '#f0f5ff'
+      primary: '#FF6B1A',  // Warm orange
+      secondary: '#1A1A1A',
+      accent: '#FFFFFF',
+      background: '#FFF2EB' // Light orange tint
+    },
+    // Hockey theme with icy blues
+    nhl: {
+      primary: '#004C8E',  // Deep ice blue
+      secondary: '#60B2FF',
+      accent: '#FFFFFF',
+      background: '#F0F8FF' // Alice blue
+    },
+    // Soccer themes with green/field colors
+    bundesliga1: {
+      primary: '#006633',  // Forest green
+      secondary: '#CCDD22', // Yellow-green
+      accent: '#FFFFFF',
+      background: '#F5FFE6' // Light green tint
+    },
+    bundesliga2: {
+      primary: '#005C2F',  // Deep green
+      secondary: '#B8D43C',
+      accent: '#FFFFFF',
+      background: '#F7FFE8' // Light green tint
+    },
+    mls: {
+      primary: '#007A3D',  // Soccer field green
+      secondary: '#B3D12A',
+      accent: '#FFFFFF',
+      background: '#F6FFEA' // Light green tint
     }
   };
   

@@ -1,103 +1,164 @@
 /* Sport-specific tile styles */
 
+/* Common styles for sport info sections */
+.baseball-info,
+.hockey-info,
+.football-info,
+.soccer-info,
+.basketball-info {
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
 /* Baseball */
 .baseball-info {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 4px;
+  background: linear-gradient(to bottom, #fff 0%, #f9f9ff 100%);
+  border: 1px solid rgba(190, 0, 0, 0.1);
 }
 
 .inning-info {
   text-align: center;
   font-weight: bold;
+  color: #BE0000;
 }
 
 .count-info {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  font-size: 1.1rem;
 }
 
 .bases-info {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .on-base {
-  background: #4CAF50;
+  background: #BE0000;
   color: white;
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
-  font-size: 0.8rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(190, 0, 0, 0.2);
 }
 
 /* Hockey */
 .hockey-info {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
+  background: linear-gradient(to bottom, #fff 0%, #f0f8ff 100%);
+  border: 1px solid rgba(0, 76, 142, 0.1);
 }
 
 .power-play {
   text-align: center;
-  color: #f44336;
+  color: #004C8E;
   font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
 }
 
 .shots-on-goal {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: #004C8E;
+  margin-top: 0.5rem;
+  background: rgba(96, 178, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 
 /* Football */
 .football-info {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
+  background: linear-gradient(to bottom, #fff 0%, #FFF8E7 100%);
+  border: 1px solid rgba(90, 68, 35, 0.1);
 }
 
 .possession-info {
   text-align: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  color: #5A4423;
 }
 
 .down-distance {
   text-align: center;
   font-weight: bold;
+  font-size: 1.1rem;
+  color: #5A4423;
+  background: rgba(255, 182, 18, 0.1);
+  padding: 0.4rem;
+  border-radius: 4px;
 }
 
 .red-zone-indicator {
   text-align: center;
-  color: #f44336;
-  margin-top: 0.25rem;
+  color: #5A4423;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
 }
 
 /* Soccer */
 .soccer-info {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
+  background: linear-gradient(to bottom, #fff 0%, #F5FFE6 100%);
+  border: 1px solid rgba(0, 102, 51, 0.1);
 }
 
 .match-time {
   text-align: center;
   font-weight: bold;
+  color: #006633;
+  font-size: 1.1rem;
 }
 
 .added-time {
-  color: #f44336;
-  margin-left: 0.25rem;
+  color: #006633;
+  margin-left: 0.5rem;
+  font-weight: normal;
+  background: rgba(204, 221, 34, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
 }
 
 .cards {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 0.25rem;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Basketball */
+.basketball-info {
+  background: linear-gradient(to bottom, #fff 0%, #FFF4EE 100%);
+  border: 1px solid rgba(248, 88, 0, 0.1);
+}
+
+.quarter-info {
+  text-align: center;
+  font-weight: bold;
+  color: #F85800;
+  font-size: 1.1rem;
+}
+
+.shot-clock {
+  text-align: center;
+  color: #F85800;
+  font-family: monospace;
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+  background: rgba(248, 88, 0, 0.1);
+  padding: 0.3rem;
+  border-radius: 4px;
+}
 }
 
 .penalties {
