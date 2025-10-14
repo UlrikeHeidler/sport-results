@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import GameTile from './components/GameTile';
+import GameTile from './components/game-tiles/GameTileFactory';
 import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
 import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
@@ -298,10 +298,31 @@ function App() {
                         <span className="refresh-interval">
                           (Updates every {settings.refreshInterval}s)
                         </span>
-                      )
-                    )}
+                    ))}
                   </div>
                 )}
+              </div>
+              
+              <div className="header-controls">
+                <LeagueSelector
+                  selectedLeagues={settings.selectedLeagues}
+                  onLeagueToggle={handleLeagueToggle}
+                  availableLeagues={availableLeagues}
+                />
+                <div className="sort-controls">
+                  <button 
+                    className={`sort-button ${sortMode === 'custom' ? 'active' : ''}`}
+                    onClick={() => setSortMode('custom')}
+                  >
+                    Custom Order
+                  </button>
+                  <button 
+                    className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
+                    onClick={() => setSortMode('startTime')}
+                  >
+                    By Start Time
+                  </button>
+                </div>
               </div>
               <div className="header-buttons">
                 <button
@@ -332,27 +353,6 @@ function App() {
       </header>
 
       <main className="container">
-        <LeagueSelector
-          selectedLeagues={settings.selectedLeagues}
-          onLeagueToggle={handleLeagueToggle}
-          availableLeagues={availableLeagues}
-        />
-
-        {/* Sorting Toggle */}
-        <div className="sort-controls">
-          <div className="sort-toggle">
-            <span className="sort-label">Sort by:</span>
-            <button
-              className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
-              onClick={handleSortModeToggle}
-            >
-              {sortMode === 'startTime' ? '🕐 Start Time' : '🎯 Custom Order'}
-            </button>
-            {sortMode === 'custom' && (
-              <span className="sort-hint">Drag tiles to reorder</span>
-            )}
-          </div>
-        </div>
 
         {currentLoading && (
           <div className="loading">

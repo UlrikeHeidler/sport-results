@@ -1,0 +1,152 @@
+/* Sport-specific tile styles */
+
+/* Baseball */
+.baseball-info {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.inning-info {
+  text-align: center;
+  font-weight: bold;
+}
+
+.count-info {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.bases-info {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.on-base {
+  background: #4CAF50;
+  color: white;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+/* Hockey */
+.hockey-info {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.power-play {
+  text-align: center;
+  color: #f44336;
+  font-weight: bold;
+}
+
+.shots-on-goal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+/* Football */
+.football-info {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.possession-info {
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.down-distance {
+  text-align: center;
+  font-weight: bold;
+}
+
+.red-zone-indicator {
+  text-align: center;
+  color: #f44336;
+  margin-top: 0.25rem;
+}
+
+/* Soccer */
+.soccer-info {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.match-time {
+  text-align: center;
+  font-weight: bold;
+}
+
+.added-time {
+  color: #f44336;
+  margin-left: 0.25rem;
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.penalties {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Basketball */
+.basketball-info {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.shot-clock {
+  text-align: center;
+  font-weight: bold;
+}
+
+.team-fouls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.bonus-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.bonus {
+  background: #FFC107;
+  color: black;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.quarter-scores {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.quarter-score {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+}
