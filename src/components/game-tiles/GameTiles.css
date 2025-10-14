@@ -15,6 +15,93 @@
   color: var(--text-color);
 }
 
+/* Football specific styles */
+.football-situation {
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+
+.game-situation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  padding: 8px;
+  background: var(--hover-bg);
+  border-radius: 6px;
+}
+
+.down-distance {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.field-position {
+  color: var(--text-secondary);
+}
+
+.red-zone-indicator {
+  color: #ff4444;
+  font-weight: bold;
+  text-align: center;
+  margin: 4px 0;
+  padding: 4px;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+.drive-info {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 8px 0;
+  padding: 8px;
+  background: var(--hover-bg);
+  border-radius: 4px;
+}
+
+.field-display {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(to right,
+    var(--field-dark) 0%, var(--field-dark) 20%,
+    var(--field-light) 20%, var(--field-light) 80%,
+    var(--field-dark) 80%, var(--field-dark) 100%
+  );
+  border-radius: 4px;
+  margin: 16px 0;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ball-marker {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background-color: #8B4513;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: left 0.3s ease-out;
+}
+
+:root {
+  --field-dark: #2E7D32;
+  --field-light: #4CAF50;
+}
+
+[data-theme="dark"] {
+  --field-dark: #1B5E20;
+  --field-light: #388E3C;
+}
+
+[data-theme="dark"] .ball-marker {
+  filter: brightness(0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border-color: #333;
+}
+
 /* Baseball */
 .baseball-info {
   background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
@@ -78,26 +165,332 @@
   border-radius: 4px;
 }
 
-/* Football */
+/* Football styles */
 .football-info {
-  background: linear-gradient(to bottom, #fff 0%, #FFF8E7 100%);
-  border: 1px solid rgba(90, 68, 35, 0.1);
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.possession-info {
-  text-align: center;
+.football-score {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.football-score .possession-indicator {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  font-size: 12px;
+  transform: rotate(-45deg);
+}
+
+.football-situation {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.game-situation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--hover-bg);
+  border-radius: 6px;
   margin-bottom: 0.5rem;
-  color: #5A4423;
 }
 
 .down-distance {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.down-distance sup {
+  font-size: 0.7em;
+  margin-left: 1px;
+}
+
+.field-position {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.red-zone-indicator {
+  text-align: center;
+  color: #E53935;
+  font-weight: bold;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background: rgba(229, 57, 53, 0.1);
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+.drive-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  background: var(--hover-bg);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.field-display {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.yard-markers {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.field-line {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(to right,
+    var(--field-dark) 0%, var(--field-dark) 20%,
+    var(--field-light) 20%, var(--field-light) 80%,
+    var(--field-dark) 80%, var(--field-dark) 100%
+  );
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ball-marker {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background-color: #8B4513;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: left 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+:root {
+  --field-dark: #2E7D32;
+  --field-light: #4CAF50;
+}
+
+[data-theme="dark"] {
+  --field-dark: #1B5E20;
+  --field-light: #388E3C;
+}
+
+[data-theme="dark"] .ball-marker {
+  filter: brightness(0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border-color: #333;
+}
+
+/* Possession styling */
+.possession-info {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+  font-weight: bold;
+  padding: 0.5rem;
+  background: var(--hover-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+/* Team possession indicators */
+.has-possession {
+  position: relative;
+  animation: possessionPulse 2s infinite;
+}
+
+.has-possession::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 70%;
+  background: #4CAF50;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.has-possession .team-name {
+  font-weight: 600;
+  color: #4CAF50;
+  text-shadow: 0 0 1px rgba(76, 175, 80, 0.2);
+}
+
+/* Possession animation */
+@keyframes possessionPulse {
+  0% {
+    text-shadow: 0 0 2px rgba(76, 175, 80, 0);
+  }
+  50% {
+    text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 2px rgba(76, 175, 80, 0);
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .has-possession::after {
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+}
+
+[data-theme="dark"] .has-possession .team-name {
+  color: #66BB6A;
+  text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+}
+
+.possession-indicator {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.has-possession .team-name {
+  text-decoration: underline;
+  text-decoration-color: #4CAF50;
+  text-decoration-thickness: 2px;
+}
+
+.down-distance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.down-info {
   text-align: center;
   font-weight: bold;
   font-size: 1.1rem;
-  color: #5A4423;
-  background: rgba(255, 182, 18, 0.1);
-  padding: 0.4rem;
+  color: var(--text-color);
+  background: var(--hover-bg);
+  padding: 0.6rem;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-position {
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.field-visualization {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.yard-markers {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.field-line {
+  height: 4px;
+  background: linear-gradient(to right, 
+    var(--field-dark) 0%, var(--field-dark) 20%,
+    var(--field-light) 20%, var(--field-light) 80%,
+    var(--field-dark) 80%, var(--field-dark) 100%
+  );
+  border-radius: 2px;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.ball-marker {
+  position: absolute;
+  top: -12px;
+  transform: translateX(-50%) rotate(90deg);
+  font-size: 1.2rem;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+  transition: left 0.3s ease;
+  animation: ballPulse 1.5s infinite;
+  z-index: 1;
+}
+
+@keyframes ballPulse {
+  0% {
+    transform: translateX(-50%) rotate(90deg) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) rotate(90deg) scale(1.1);
+  }
+  100% {
+    transform: translateX(-50%) rotate(90deg) scale(1);
+  }
+}
+
+/* Field colors for light/dark mode */
+:root {
+  --field-dark: #2E7D32;
+  --field-light: #4CAF50;
+}
+
+[data-theme="dark"] {
+  --field-dark: #1B5E20;
+  --field-light: #388E3C;
+}
+
+/* Enhanced ball marker for dark mode */
+[data-theme="dark"] .ball-marker {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) brightness(0.9);
+}
+
+.direction-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.drive-info {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  background: var(--hover-bg);
+  padding: 0.5rem;
   border-radius: 4px;
+}
+
+.drive-info span {
+  padding: 0 0.5rem;
+}
 }
 
 .red-zone-indicator {

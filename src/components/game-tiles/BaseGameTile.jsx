@@ -23,20 +23,25 @@ const BaseGameTile = ({
   draggableId,
   renderAdditionalInfo: customRenderAdditionalInfo,
   renderScore: customRenderScore,
-  showTeamForm = true
+  showTeamForm = true,
+  isDragging = false
 }) => {
-  const statusClass = getStatusClass(game.status);
-  const timeDisplay = formatGameTime(game.date, game.status);
-  const leagueColors = getLeagueColors(game.league);
-  const isMovedToBottom = shouldMoveToBottom(game);
+  const statusClass = getStatusClass(game.status || {});
+  const timeDisplay = formatGameTime(game.date || new Date(), game.status || {});
+  const leagueColors = getLeagueColors(game.league || 'nfl');
+  const isMovedToBottom = shouldMoveToBottom(game || {});
   
   // Track previous values for animations
+  // Safe accessors: support both legacy top-level homeTeam/awayTeam and new teams.home/away
+  const homeTeamSafe = game.homeTeam || game.teams?.home || { id: null, name: '', abbreviation: '', score: 0, logo: '' };
+  const awayTeamSafe = game.awayTeam || game.teams?.away || { id: null, name: '', abbreviation: '', score: 0, logo: '' };
+
   const prevValues = useRef({
-    homeScore: game.homeTeam.score,
-    awayScore: game.awayTeam.score,
-    homeTeamName: game.homeTeam.name,
-    awayTeamName: game.awayTeam.name,
-    status: game.status.type,
+    homeScore: homeTeamSafe.score,
+    awayScore: awayTeamSafe.score,
+    homeTeamName: homeTeamSafe.name,
+    awayTeamName: awayTeamSafe.name,
+    status: game.status?.type,
     venue: game.venue,
     league: game.league
   });
@@ -64,16 +69,18 @@ const BaseGameTile = ({
   };
 
   useEffect(() => {
-    const cleanup = handleValueChange('homeScore', game.homeTeam.score, prevValues.current.homeScore);
-    prevValues.current.homeScore = game.homeTeam.score;
+    const newHomeScore = (game.homeTeam || game.teams?.home)?.score ?? 0;
+    const cleanup = handleValueChange('homeScore', newHomeScore, prevValues.current.homeScore);
+    prevValues.current.homeScore = newHomeScore;
     return cleanup;
-  }, [game.homeTeam.score]);
-  
+  }, [game.homeTeam?.score, game.teams?.home?.score]);
+
   useEffect(() => {
-    const cleanup = handleValueChange('awayScore', game.awayTeam.score, prevValues.current.awayScore);
-    prevValues.current.awayScore = game.awayTeam.score;
+    const newAwayScore = (game.awayTeam || game.teams?.away)?.score ?? 0;
+    const cleanup = handleValueChange('awayScore', newAwayScore, prevValues.current.awayScore);
+    prevValues.current.awayScore = newAwayScore;
     return cleanup;
-  }, [game.awayTeam.score]);
+  }, [game.awayTeam?.score, game.teams?.away?.score]);
 
   // ... other useEffects remain the same ...
 
@@ -84,7 +91,7 @@ const BaseGameTile = ({
 
   // Render methods that can be overridden by sport-specific tiles
   const renderTeamLogo = (team) => (
-    team.logo && (
+    team?.logo ? (
       <img 
         src={team.logo} 
         alt={`${team.name} logo`}
@@ -93,7 +100,7 @@ const BaseGameTile = ({
           e.target.style.display = 'none';
         }}
       />
-    )
+    ) : null
   );
 
   const renderTeamForm = (team) => {
@@ -119,42 +126,32 @@ const BaseGameTile = ({
     );
   };
 
-  const renderTeamName = (team) => (
+  const renderTeamName = (team, isHome) => (
     <div className="team-details">
-      <div className={`team-name`}>
-        <span className="abbrev">{team.abbreviation}</span>
-        {showTeamForm && renderTeamForm(team)}
-        <span className="tooltip">{team.name}</span>
+      <div className={`team-name ${game.situation?.possession === team?.name ? 'has-possession' : ''}`}>
+        <span className="abbrev">{team?.abbreviation}</span>
+        {showTeamForm && team?.id && renderTeamForm(team)}
+        <span className="tooltip">{team?.name}</span>
       </div>
     </div>
   );
 
   const defaultRenderScore = (team, isHome) => (
     <div className={`team-score ${animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : ''}`}>
-      {team.score || '0'}
+      {(team?.score ?? 0) || '0'}
     </div>
   );
 
-  const renderScore = customRenderScore || defaultRenderScore;
+  const renderTeamScore = customRenderScore || defaultRenderScore;
 
   const renderTeam = (team, isHome = false) => {
-    const scoreProps = {
-      team,
-      isHome,
-      animations,
-      animationClass: animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : ''
-    };
-
     return (
       <div className="team">
         <div className="team-info">
           {renderTeamLogo(team)}
-          {renderTeamName(team)}
+          {renderTeamName(team, isHome)}
         </div>
-        {typeof customRenderScore === 'function' 
-          ? customRenderScore(team, isHome, animations)
-          : defaultRenderScore(team, isHome, animations)
-        }
+        {renderTeamScore(team, isHome, animations)}
       </div>
     );
   };  const renderGameStatus = () => (

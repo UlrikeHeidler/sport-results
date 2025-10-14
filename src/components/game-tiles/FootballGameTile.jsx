@@ -1,53 +1,51 @@
 import React from 'react';
 import BaseGameTile from './BaseGameTile';
+import './FootballTile.css';
+
+// Helper function to get ordinal suffix for numbers
+const getOrdinalSuffix = (num) => {
+  const j = num % 10;
+  const k = num % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+};
 
 const FootballGameTile = (props) => {
   const { game } = props;
 
-  // Custom score renderer for football
-  const renderScore = (team, isHome, animations = {}) => {
-    const animationClass = animations && animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : '';
-    const quarterScores = game.situation?.quarterScores?.[isHome ? 'home' : 'away'] || [];
-    
-    return (
-      <div className="football-score">
-        <div className={`team-score ${animationClass}`}>
-          {team.score || '0'}
-        </div>
-        {quarterScores.length > 0 && (
-          <div className="quarter-scores">
-            {quarterScores.map((score, i) => (
-              <span key={i} className="quarter-score">Q{i+1}: {score}</span>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  // Minimal logging
+  console.log('FootballGameTile:', game.id, 'situation?', !!game.situation);
+
+  // Helper to check if team has possession
+  const hasPossession = (team) => {
+    return game.situation?.possession === team.name;
   };
 
-  // Football-specific additional info renderer
+  // No custom score renderer here — let BaseGameTile render scores so they remain visible
+
+  // Football-specific additional info renderer (compact)
   const renderAdditionalInfo = () => {
-    if (!game.situation) return null;
-    
+    const s = game.situation;
+    if (!s) return null;
+
+    const down = s.down ?? null;
+    const distance = s.distance ?? null;
+    const yardLine = s.yardLine ? parseInt(s.yardLine) : null;
+    const inOpponent = s.fieldSide === 'opponent';
+    const ballPercent = yardLine ? (inOpponent ? 50 + (50 - yardLine) : yardLine) : 50;
+
     return (
-      <div className="football-info">
-        {game.situation.possession && (
-          <div className="possession-info">
-            <span className="possession-indicator">🏈</span>
-            <span className="possession-team">{game.situation.possession}</span>
+      <div className="football-info compact">
+        <div className="compact-row">
+          <div className="down-display">{down ? `${down}${getOrdinalSuffix(down)} & ${distance || '-'}` : '—'}</div>
+          <div className="field-display compact-field">
+            <div className="field-line compact-line">
+              <div className="ball-marker compact-ball" style={{ left: `${(ballPercent / 100) * 100}%` }} />
+            </div>
           </div>
-        )}
-        {game.situation.down && (
-          <div className="down-distance">
-            <span className="down">{game.situation.down}{getDownSuffix(game.situation.down)} & {game.situation.distance}</span>
-            {game.situation.yardLine && (
-              <span className="yard-line">at {game.situation.yardLine}</span>
-            )}
-          </div>
-        )}
-        {game.situation.redZone && (
-          <div className="red-zone-indicator">🔴 Red Zone</div>
-        )}
+        </div>
       </div>
     );
   };

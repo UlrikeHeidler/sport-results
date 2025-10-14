@@ -57,59 +57,73 @@ export const fetchGames = async (league) => {
  * @returns {Array} Parsed games array
  */
 const parseGamesData = (data, league) => {
-  if (!data.events || !Array.isArray(data.events)) {
-    console.log(`No events found for ${league}`);
+  if (!data || !data.events || !Array.isArray(data.events)) {
+    console.warn('Invalid game data format:', data);
     return [];
   }
 
-  console.log(`Parsing ${data.events.length} events for ${league}`);
-
   return data.events.map(event => {
-    try {
-      const competition = event.competitions[0];
-      const competitors = competition.competitors;
-      
-      // Find home and away teams
-      const homeTeam = competitors.find(comp => comp.homeAway === 'home');
-      const awayTeam = competitors.find(comp => comp.homeAway === 'away');
+    const competition = event.competitions[0];
+    const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
+    const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
 
-      if (!homeTeam || !awayTeam) {
-        console.warn('Missing team data for event:', event.id);
-        return null;
-      }
+    // Parse sport-specific situation data
+    const situation = parseSituation(competition, league);
 
-      return {
-        id: event.id,
-        league: league.toUpperCase(),
-        status: {
-          type: competition.status.type.name,
-          displayClock: competition.status.displayClock || '',
-          period: competition.status.period || 0,
-          completed: competition.status.type.completed || false
-        },
-        homeTeam: {
-          id: homeTeam.id,
-          name: homeTeam.team.displayName || homeTeam.team.name,
-          abbreviation: homeTeam.team.abbreviation,
-          score: homeTeam.score || '0',
-          logo: homeTeam.team.logo || ''
-        },
-        awayTeam: {
-          id: awayTeam.id,
-          name: awayTeam.team.displayName || awayTeam.team.name,
-          abbreviation: awayTeam.team.abbreviation,
-          score: awayTeam.score || '0',
-          logo: awayTeam.team.logo || ''
-        },
-        date: new Date(event.date),
-        venue: competition.venue ? competition.venue.fullName : 'TBD',
-        finishedAt: competition.status.type.completed ? new Date() : null
-      };
-    } catch (error) {
-      console.error('Error parsing event:', event.id, error);
-      return null;
-    }
-  }).filter(game => game !== null); // Remove any failed parses
+    const home = {
+      id: homeTeam?.id,
+      location: homeTeam?.team?.location || '',
+      name: homeTeam?.team?.name || '',
+      abbreviation: homeTeam?.team?.abbreviation || '',
+      displayName: homeTeam?.team?.displayName || '',
+      color: homeTeam?.team?.color || 'gray',
+      alternateColor: homeTeam?.team?.alternateColor || 'lightgray',
+      logo: homeTeam?.team?.logo || '',
+      score: parseInt(homeTeam?.score) || 0,
+      winner: homeTeam?.winner || false,
+      record: homeTeam?.records?.[0]?.summary || ''
+    };
+
+    const away = {
+      id: awayTeam?.id,
+      location: awayTeam?.team?.location || '',
+      name: awayTeam?.team?.name || '',
+      abbreviation: awayTeam?.team?.abbreviation || '',
+      displayName: awayTeam?.team?.displayName || '',
+      color: awayTeam?.team?.color || 'gray',
+      alternateColor: awayTeam?.team?.alternateColor || 'lightgray',
+      logo: awayTeam?.team?.logo || '',
+      score: parseInt(awayTeam?.score) || 0,
+      winner: awayTeam?.winner || false,
+      record: awayTeam?.records?.[0]?.summary || ''
+    };
+
+    return {
+      id: event.id,
+      league: league.toUpperCase(),
+      status: {
+        type: competition.status.type.name,
+        displayClock: competition.status.displayClock || '',
+        period: competition.status.period || 0,
+        completed: competition.status.type.completed || false
+      },
+      teams: {
+        home,
+        away
+      },
+      // Backwards-compatible top-level fields expected by components
+      homeTeam: home,
+      awayTeam: away,
+      venue: {
+        name: competition.venue?.fullName || '',
+        city: competition.venue?.address?.city || '',
+        state: competition.venue?.address?.state || ''
+      },
+      date: new Date(event.date),
+      broadcasts: competition.broadcasts?.map(broadcast => broadcast.names?.[0]) || [],
+      situation: situation
+    };
+  });
 };
 
 /**
@@ -165,6 +179,153 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
  * @param {Object} status - Game status
  * @returns {string} Formatted time string
  */
+/**
+ * Parse sport-specific situation data
+ * @param {Object} competition - Competition data from ESPN API
+ * @param {string} league - League identifier
+ * @returns {Object} Parsed situation data
+ */
+const parseSituation = (competition, league) => {
+  try {
+    const situation = competition.situation || {};
+    const league_lower = league.toLowerCase();
+
+    // Football specific data (NFL, FBS, FCS)
+    if (league_lower === 'nfl' || league_lower === 'fbs' || league_lower === 'fcs') {
+      if (!situation) return null;
+
+      const possession = situation.possession ? 
+        competition.competitors.find(team => team.id === situation.possession)?.team.name : null;
+
+      return {
+        down: situation.down,
+        distance: situation.distance,
+        yardLine: situation.yardLine,
+        possession: possession,
+        fieldSide: situation.possessionText?.includes('Own') ? 'own' : 'opponent',
+        redZone: situation.isRedZone,
+        quarterScores: {
+          home: competition.competitors.find(team => team.homeAway === 'home')?.linescores?.map(q => q.value) || [],
+          away: competition.competitors.find(team => team.homeAway === 'away')?.linescores?.map(q => q.value) || []
+        },
+        driveInfo: situation.lastPlay ? {
+          plays: situation.lastPlay.drivePlayCount,
+          yards: situation.lastPlay.driveYards,
+          time: situation.lastPlay.driveTimeOfPossession
+        } : null
+      };
+    }
+
+    // Hockey specific data (NHL)
+    if (league_lower === 'nhl') {
+      try {
+        const homeComp = competition.competitors.find(team => team.homeAway === 'home');
+        const awayComp = competition.competitors.find(team => team.homeAway === 'away');
+
+        const parseNumber = (v) => {
+          if (v === undefined || v === null) return null;
+          if (typeof v === 'number') return v;
+          const n = parseInt(String(v).replace(/[^0-9-]/g, ''), 10);
+          return Number.isNaN(n) ? null : n;
+        };
+
+        const getShots = (comp) => {
+          if (!comp) return null;
+
+          // 1) competitor.statistics array (common): find any stat with 'shot' in name/displayName
+          const statsArr = comp.statistics || comp.stats || comp.team?.statistics || null;
+          if (Array.isArray(statsArr)) {
+            const stat = statsArr.find(s => {
+              const label = (s.name || s.displayName || s.label || '').toString().toLowerCase();
+              return /shot/.test(label) || /sog/.test(label) || /shots on goal/.test(label);
+            });
+            if (stat) {
+              // value, displayValue, or a numeric field
+              const candidate = stat.value ?? stat.displayValue ?? stat.statValue;
+              const parsed = parseNumber(candidate);
+              if (parsed !== null) return parsed;
+            }
+          }
+
+          // 2) direct fields commonly used
+          const directCandidates = [comp.shots, comp.shotsOnGoal, comp.sog, comp.team?.shots, comp.team?.shotsOnGoal];
+          for (const c of directCandidates) {
+            const parsed = parseNumber(c);
+            if (parsed !== null) return parsed;
+          }
+
+          // 3) boxscore-style: competition.boxscore?.teams -> find matching team id
+          try {
+            if (competition?.boxscore?.teams && comp?.team?.id) {
+              const teamBox = competition.boxscore.teams.find(t => t.team?.id === comp.team.id || t.team?.id === comp.id);
+              if (teamBox) {
+                // look for stats on this teamBox
+                const teamStats = teamBox.statistics || teamBox.stats || null;
+                if (Array.isArray(teamStats)) {
+                  const stat = teamStats.find(s => /shot/.test((s.name || s.displayName || '').toLowerCase()));
+                  if (stat) {
+                    const parsed = parseNumber(stat.value ?? stat.displayValue);
+                    if (parsed !== null) return parsed;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // ignore and continue
+          }
+
+          return null;
+        };
+
+        const shotCount = {
+          home: getShots(homeComp),
+          away: getShots(awayComp)
+        };
+
+        const powerPlay = situation?.powerPlay || false;
+        let powerPlayTeam = null;
+        if (situation?.powerPlayTeam) {
+          powerPlayTeam = situation.powerPlayTeam.team?.displayName || situation.powerPlayTeam;
+        } else if (competition?.powerPlayTeam) {
+          powerPlayTeam = competition.powerPlayTeam?.team?.displayName || competition.powerPlayTeam;
+        }
+
+        const powerPlayTime = situation?.powerPlayTime || competition?.powerPlayTime || null;
+
+        // Debug: helpful in browser console to verify shot counts parsing
+        try {
+          console.debug('Parsed NHL situation', {
+            gameId: competition?.id,
+            powerPlay,
+            powerPlayTeam,
+            powerPlayTime,
+            shotCount,
+            homeCompSnippet: { id: homeComp?.id, name: homeComp?.team?.displayName },
+            awayCompSnippet: { id: awayComp?.id, name: awayComp?.team?.displayName }
+          });
+        } catch (e) {
+          // ignore logging errors
+        }
+
+        return {
+          powerPlay,
+          powerPlayTeam,
+          powerPlayTime,
+          shotCount
+        };
+      } catch (err) {
+        console.error('Error parsing hockey situation:', err);
+        return null;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error parsing situation:', error);
+    return null;
+  }
+};
+
 export const formatGameTime = (date, status) => {
   if (status.completed) {
     return 'Final';
