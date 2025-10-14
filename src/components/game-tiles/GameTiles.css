@@ -10,18 +10,21 @@
   margin: 0.75rem 0;
   border-radius: 8px;
   box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 
 /* Baseball */
 .baseball-info {
-  background: linear-gradient(to bottom, #fff 0%, #f9f9ff 100%);
-  border: 1px solid rgba(190, 0, 0, 0.1);
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
 }
 
 .inning-info {
   text-align: center;
   font-weight: bold;
-  color: #BE0000;
+  color: var(--text-color);
 }
 
 .count-info {
@@ -51,13 +54,13 @@
 
 /* Hockey */
 .hockey-info {
-  background: linear-gradient(to bottom, #fff 0%, #f0f8ff 100%);
-  border: 1px solid rgba(0, 76, 142, 0.1);
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
 }
 
 .power-play {
   text-align: center;
-  color: #004C8E;
+  color: var(--text-color);
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;

@@ -23,7 +23,9 @@ function App() {
     refreshInterval: 30,
     selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
     hiddenTeams: [],
-    colorCoding: true
+    colorCoding: true,
+    showTeamForm: true,
+    darkMode: false
   });
 
   // Custom game order (for drag and drop)
@@ -51,6 +53,7 @@ function App() {
   const handleSettingsChange = (newSettings) => {
     setSettings(newSettings);
     localStorage.setItem('sportsAppSettings', JSON.stringify(newSettings));
+    document.documentElement.setAttribute('data-theme', newSettings.darkMode ? 'dark' : 'light');
   };
 
   // Incremental updates hook
@@ -388,6 +391,7 @@ function App() {
                           game={game}
                           index={index}
                           colorCoding={settings.colorCoding}
+                          showTeamForm={settings.showTeamForm}
                           isDragDisabled={sortMode === 'startTime'}
                           draggableId={`${game.league}-${game.id}`}
                         />

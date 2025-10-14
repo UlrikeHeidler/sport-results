@@ -1,0 +1,33 @@
+.team-form {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  gap: 2px;
+  background: var(--card-bg);
+  padding: 2px 4px;
+  border-radius: 12px;
+}
+
+.form-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.form-indicator:hover {
+  transform: scale(1.2);
+  cursor: help;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode specific styles */
+[data-theme="dark"] .form-indicator {
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .team-form {
+  background: var(--hover-bg);
+}

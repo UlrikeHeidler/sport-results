@@ -11,6 +11,13 @@ const Settings = ({
   const [localSettings, setLocalSettings] = useState(settings);
   const [searchFilter, setSearchFilter] = useState('');
 
+  const toggleSetting = (settingName) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      [settingName]: !prev[settingName]
+    }));
+  };
+
   const handleSave = () => {
     onSettingsChange(localSettings);
     onClose();
@@ -21,7 +28,9 @@ const Settings = ({
       refreshInterval: 30,
       selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
       hiddenTeams: [],
-      colorCoding: true
+      colorCoding: true,
+      showTeamForm: true,
+      darkMode: false
     };
     setLocalSettings(defaultSettings);
   };
@@ -164,19 +173,32 @@ const Settings = ({
             </div>
           </div>
 
-          {/* Color Coding */}
+          {/* Display Options */}
           <div className="setting-group">
             <h3>🎨 Display Options</h3>
-            <label className="color-option">
+            <label className="display-option">
               <input
                 type="checkbox"
                 checked={localSettings.colorCoding}
-                onChange={(e) => setLocalSettings(prev => ({
-                  ...prev,
-                  colorCoding: e.target.checked
-                }))}
+                onChange={() => toggleSetting('colorCoding')}
               />
               <span>Enable color coding by league</span>
+            </label>
+            <label className="display-option">
+              <input
+                type="checkbox"
+                checked={localSettings.darkMode}
+                onChange={() => toggleSetting('darkMode')}
+              />
+              <span>Enable dark mode</span>
+            </label>
+            <label className="display-option">
+              <input
+                type="checkbox"
+                checked={localSettings.showTeamForm}
+                onChange={() => toggleSetting('showTeamForm')}
+              />
+              <span>Show team form indicators</span>
             </label>
           </div>
 

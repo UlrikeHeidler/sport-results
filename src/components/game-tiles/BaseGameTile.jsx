@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../../services/sportsApi';
+import { getTeamForm, getFormColor } from '../../services/teamStats';
 
 const getDisplayStatus = (status) => {
   const isOngoing = status.type === 'STATUS_IN_PROGRESS' ||
@@ -21,7 +22,8 @@ const BaseGameTile = ({
   isDragDisabled = true, 
   draggableId,
   renderAdditionalInfo: customRenderAdditionalInfo,
-  renderScore: customRenderScore 
+  renderScore: customRenderScore,
+  showTeamForm = true
 }) => {
   const statusClass = getStatusClass(game.status);
   const timeDisplay = formatGameTime(game.date, game.status);
@@ -94,10 +96,34 @@ const BaseGameTile = ({
     )
   );
 
+  const renderTeamForm = (team) => {
+    const form = getTeamForm(team.id, game.league);
+    return (
+      <div className="team-form">
+        {form.map((result, index) => (
+          <span
+            key={index}
+            className="form-indicator"
+            style={{
+              backgroundColor: getFormColor(result),
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              display: 'inline-block',
+              margin: '0 2px'
+            }}
+            title={result === 'W' ? 'Win' : result === 'L' ? 'Loss' : 'Draw'}
+          />
+        ))}
+      </div>
+    );
+  };
+
   const renderTeamName = (team) => (
     <div className="team-details">
       <div className={`team-name`}>
         <span className="abbrev">{team.abbreviation}</span>
+        {showTeamForm && renderTeamForm(team)}
         <span className="tooltip">{team.name}</span>
       </div>
     </div>
