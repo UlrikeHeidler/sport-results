@@ -274,7 +274,37 @@ body {
 .team-name {
   font-weight: 600;
   font-size: 1rem;
-  height: 3rem;
+  height: 2rem;
+  position: relative;
+  cursor: default;
+}
+
+.team-name .abbrev {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.team-name .tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.team-name:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 
 .team-score {

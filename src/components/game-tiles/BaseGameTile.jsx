@@ -97,9 +97,9 @@ const BaseGameTile = ({
   const renderTeamName = (team) => (
     <div className="team-details">
       <div className={`team-name`}>
-        {team.name}
+        <span className="abbrev">{team.abbreviation}</span>
+        <span className="tooltip">{team.name}</span>
       </div>
-      <div className="team-abbreviation">{team.abbreviation}</div>
     </div>
   );
 
