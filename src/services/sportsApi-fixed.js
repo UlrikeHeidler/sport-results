@@ -16,6 +16,29 @@ const API_ENDPOINTS = {
 };
 
 /**
+ * Get a date object in the current user's timezone
+ * @param  {String} dateStr        A date string saved in a specific timezone
+ * @param  {String} serverTimezone The timezone the dateStr is in
+ * @return {Date}                  A date object, adjusted to user's timezone
+ */
+function getDateInCurrentUsersTimezone (dateStr, serverTimezone) {
+
+	// Get timezone offsets
+	// This gets the difference in ms between the server time and the users current location
+	let nowAsStringInServerTimezone = new Date().toLocaleString('en-US', {timeZone: serverTimezone});
+	let serverTimestamp = new Date(nowAsStringInServerTimezone).getTime();
+	let userTimestamp = Date.now();
+	let offset = userTimestamp - serverTimestamp;
+
+	// Get a unix timestamp for the server date and add the offset
+	let adjustedTimestamp = new Date(dateStr).getTime() + offset;
+
+	// Return a date object adjusted for the user's timezone
+	return new Date(adjustedTimestamp);
+
+}
+
+/**
  * Fetch games for a specific league
  * @param {string} league - The league to fetch games for (nfl, nhl)
  * @returns {Promise<Array>} Array of game objects
@@ -27,13 +50,18 @@ export const fetchGames = async (league) => {
       throw new Error(`Unsupported league: ${league}`);
     }
 
-    // Format today's date as YYYYMMDD
+    let apiTimezone = 'America/Denver';
+
+    // Include only todays games
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
-    // Append date parameter using existing URL params or adding new one
+
+
+    const dateStr = today.getFullYear()+''+(today.getMonth() + 1)+''+today.getDate();
+    console.log('Fetching games for date:', dateStr);
+    // Append dates parameter using existing URL params or adding new one
     const separator = baseEndpoint.includes('?') ? '&' : '?';
     const endpoint = `${baseEndpoint}${separator}dates=${dateStr}`;
-  
+    
     console.log(`Fetching ${league} games from:`, endpoint);
     
     const response = await fetch(endpoint);
@@ -57,73 +85,89 @@ export const fetchGames = async (league) => {
  * @returns {Array} Parsed games array
  */
 const parseGamesData = (data, league) => {
-  if (!data || !data.events || !Array.isArray(data.events)) {
-    console.warn('Invalid game data format:', data);
+  if (!data.events || !Array.isArray(data.events)) {
+    console.log(`No events found for ${league}`);
     return [];
   }
 
+  console.log(`Parsing ${data.events.length} events for ${league}`);
+
   return data.events.map(event => {
-    const competition = event.competitions[0];
-    const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
-    const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
+    try {
+      const competition = event.competitions[0];
+      const competitors = competition.competitors;
+      
+      // Find home and away teams
+      const homeTeam = competitors.find(comp => comp.homeAway === 'home');
+      const awayTeam = competitors.find(comp => comp.homeAway === 'away');
 
-    // Parse sport-specific situation data
-    const situation = parseSituation(competition, league);
+      if (!homeTeam || !awayTeam) {
+        console.warn('Missing team data for event:', event.id);
+        return null;
+      }
 
-    const home = {
-      id: homeTeam?.id,
-      location: homeTeam?.team?.location || '',
-      name: homeTeam?.team?.name || '',
-      abbreviation: homeTeam?.team?.abbreviation || '',
-      displayName: homeTeam?.team?.displayName || '',
-      color: homeTeam?.team?.color || 'gray',
-      alternateColor: homeTeam?.team?.alternateColor || 'lightgray',
-      logo: homeTeam?.team?.logo || '',
-      score: parseInt(homeTeam?.score) || 0,
-      winner: homeTeam?.winner || false,
-      record: homeTeam?.records?.[0]?.summary || ''
-    };
+      // Map ESPN status to our status types
+      const normalizeStatus = (status) => {
+        // Common live game states in ESPN API
+        const liveStates = [
+          'STATUS_IN_PROGRESS',
+          'STATUS_HALFTIME',
+          'STATUS_END_PERIOD',
+          'STATUS_PLAYING',
+          'IN_PROGRESS',
+          'HALFTIME',
+          'END_PERIOD'
+        ];
+        
+        const statusName = status.type.name || status.state;
+        const isLive = liveStates.includes(statusName.toUpperCase());
+        
+        return {
+          type: isLive ? 'STATUS_IN_PROGRESS' : statusName,
+          displayClock: status.displayClock || status.clock || '',
+          period: status.period || 0,
+          completed: status.type.completed || status.state === 'post' || false
+        };
+      };
 
-    const away = {
-      id: awayTeam?.id,
-      location: awayTeam?.team?.location || '',
-      name: awayTeam?.team?.name || '',
-      abbreviation: awayTeam?.team?.abbreviation || '',
-      displayName: awayTeam?.team?.displayName || '',
-      color: awayTeam?.team?.color || 'gray',
-      alternateColor: awayTeam?.team?.alternateColor || 'lightgray',
-      logo: awayTeam?.team?.logo || '',
-      score: parseInt(awayTeam?.score) || 0,
-      winner: awayTeam?.winner || false,
-      record: awayTeam?.records?.[0]?.summary || ''
-    };
+      // Extract situation data for football games
+      const situation = competition.situation || {};
+      console.log(`Game ${event.id} situation data:`, situation);
 
-    return {
-      id: event.id,
-      league: league.toUpperCase(),
-      status: {
-        type: competition.status.type.name,
-        displayClock: competition.status.displayClock || '',
-        period: competition.status.period || 0,
-        completed: competition.status.type.completed || false
-      },
-      teams: {
-        home,
-        away
-      },
-      // Backwards-compatible top-level fields expected by components
-      homeTeam: home,
-      awayTeam: away,
-      venue: {
-        name: competition.venue?.fullName || '',
-        city: competition.venue?.address?.city || '',
-        state: competition.venue?.address?.state || ''
-      },
-      date: new Date(event.date),
-      broadcasts: competition.broadcasts?.map(broadcast => broadcast.names?.[0]) || [],
-      situation: situation
-    };
-  });
+      return {
+        id: event.id,
+        league: league.toUpperCase(),
+        status: normalizeStatus(competition.status),
+        homeTeam: {
+          id: homeTeam.id,
+          name: homeTeam.team.displayName || homeTeam.team.name,
+          abbreviation: homeTeam.team.abbreviation,
+          score: homeTeam.score || '0',
+          logo: homeTeam.team.logo || ''
+        },
+        awayTeam: {
+          id: awayTeam.id,
+          name: awayTeam.team.displayName || awayTeam.team.name,
+          abbreviation: awayTeam.team.abbreviation,
+          score: awayTeam.score || '0',
+          logo: awayTeam.team.logo || ''
+        },
+        situation: league.toLowerCase().includes('football') ? {
+          down: situation.down,
+          distance: situation.distance,
+          yardLine: situation.yardLine,
+          fieldSide: situation.possessionText?.includes('OWN') ? 'own' : 'opponent',
+          possession: situation.possession
+        } : null,
+        date: new Date(event.date),
+        venue: competition.venue ? competition.venue.fullName : 'TBD',
+        finishedAt: competition.status.type.completed ? new Date() : null
+      };
+    } catch (error) {
+      console.error('Error parsing event:', event.id, error);
+      return null;
+    }
+  }).filter(game => game !== null); // Remove any failed parses
 };
 
 /**
@@ -179,153 +223,6 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
  * @param {Object} status - Game status
  * @returns {string} Formatted time string
  */
-/**
- * Parse sport-specific situation data
- * @param {Object} competition - Competition data from ESPN API
- * @param {string} league - League identifier
- * @returns {Object} Parsed situation data
- */
-const parseSituation = (competition, league) => {
-  try {
-    const situation = competition.situation || {};
-    const league_lower = league.toLowerCase();
-
-    // Football specific data (NFL, FBS, FCS)
-    if (league_lower === 'nfl' || league_lower === 'fbs' || league_lower === 'fcs') {
-      if (!situation) return null;
-
-      const possession = situation.possession ? 
-        competition.competitors.find(team => team.id === situation.possession)?.team.name : null;
-
-      return {
-        down: situation.down,
-        distance: situation.distance,
-        yardLine: situation.yardLine,
-        possession: possession,
-        fieldSide: situation.possessionText?.includes('Own') ? 'own' : 'opponent',
-        redZone: situation.isRedZone,
-        quarterScores: {
-          home: competition.competitors.find(team => team.homeAway === 'home')?.linescores?.map(q => q.value) || [],
-          away: competition.competitors.find(team => team.homeAway === 'away')?.linescores?.map(q => q.value) || []
-        },
-        driveInfo: situation.lastPlay ? {
-          plays: situation.lastPlay.drivePlayCount,
-          yards: situation.lastPlay.driveYards,
-          time: situation.lastPlay.driveTimeOfPossession
-        } : null
-      };
-    }
-
-    // Hockey specific data (NHL)
-    if (league_lower === 'nhl') {
-      try {
-        const homeComp = competition.competitors.find(team => team.homeAway === 'home');
-        const awayComp = competition.competitors.find(team => team.homeAway === 'away');
-
-        const parseNumber = (v) => {
-          if (v === undefined || v === null) return null;
-          if (typeof v === 'number') return v;
-          const n = parseInt(String(v).replace(/[^0-9-]/g, ''), 10);
-          return Number.isNaN(n) ? null : n;
-        };
-
-        const getShots = (comp) => {
-          if (!comp) return null;
-
-          // 1) competitor.statistics array (common): find any stat with 'shot' in name/displayName
-          const statsArr = comp.statistics || comp.stats || comp.team?.statistics || null;
-          if (Array.isArray(statsArr)) {
-            const stat = statsArr.find(s => {
-              const label = (s.name || s.displayName || s.label || '').toString().toLowerCase();
-              return /shot/.test(label) || /sog/.test(label) || /shots on goal/.test(label);
-            });
-            if (stat) {
-              // value, displayValue, or a numeric field
-              const candidate = stat.value ?? stat.displayValue ?? stat.statValue;
-              const parsed = parseNumber(candidate);
-              if (parsed !== null) return parsed;
-            }
-          }
-
-          // 2) direct fields commonly used
-          const directCandidates = [comp.shots, comp.shotsOnGoal, comp.sog, comp.team?.shots, comp.team?.shotsOnGoal];
-          for (const c of directCandidates) {
-            const parsed = parseNumber(c);
-            if (parsed !== null) return parsed;
-          }
-
-          // 3) boxscore-style: competition.boxscore?.teams -> find matching team id
-          try {
-            if (competition?.boxscore?.teams && comp?.team?.id) {
-              const teamBox = competition.boxscore.teams.find(t => t.team?.id === comp.team.id || t.team?.id === comp.id);
-              if (teamBox) {
-                // look for stats on this teamBox
-                const teamStats = teamBox.statistics || teamBox.stats || null;
-                if (Array.isArray(teamStats)) {
-                  const stat = teamStats.find(s => /shot/.test((s.name || s.displayName || '').toLowerCase()));
-                  if (stat) {
-                    const parsed = parseNumber(stat.value ?? stat.displayValue);
-                    if (parsed !== null) return parsed;
-                  }
-                }
-              }
-            }
-          } catch (e) {
-            // ignore and continue
-          }
-
-          return null;
-        };
-
-        const shotCount = {
-          home: getShots(homeComp),
-          away: getShots(awayComp)
-        };
-
-        const powerPlay = situation?.powerPlay || false;
-        let powerPlayTeam = null;
-        if (situation?.powerPlayTeam) {
-          powerPlayTeam = situation.powerPlayTeam.team?.displayName || situation.powerPlayTeam;
-        } else if (competition?.powerPlayTeam) {
-          powerPlayTeam = competition.powerPlayTeam?.team?.displayName || competition.powerPlayTeam;
-        }
-
-        const powerPlayTime = situation?.powerPlayTime || competition?.powerPlayTime || null;
-
-        // Debug: helpful in browser console to verify shot counts parsing
-        try {
-          console.debug('Parsed NHL situation', {
-            gameId: competition?.id,
-            powerPlay,
-            powerPlayTeam,
-            powerPlayTime,
-            shotCount,
-            homeCompSnippet: { id: homeComp?.id, name: homeComp?.team?.displayName },
-            awayCompSnippet: { id: awayComp?.id, name: awayComp?.team?.displayName }
-          });
-        } catch (e) {
-          // ignore logging errors
-        }
-
-        return {
-          powerPlay,
-          powerPlayTeam,
-          powerPlayTime,
-          shotCount
-        };
-      } catch (err) {
-        console.error('Error parsing hockey situation:', err);
-        return null;
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Error parsing situation:', error);
-    return null;
-  }
-};
-
 export const formatGameTime = (date, status) => {
   if (status.completed) {
     return 'Final';
@@ -375,70 +272,65 @@ export const getStatusClass = (status) => {
  */
 export const getLeagueColors = (league) => {
   const themes = {
-    // Football themes with brown/gold tones
     nfl: {
-      primary: '#5A4423',  // Rich brown
-      secondary: '#8B6B42',
-      accent: '#FFB612',  // Gold
-      background: '#FFF8E7' // Light warm beige
+      primary: '#013369',
+      secondary: '#D50A0A',
+      accent: '#FFB612',
+      background: '#f8f9ff'
+    },
+    nhl: {
+      primary: '#000000',
+      secondary: '#C8102E',
+      accent: '#FCB514',
+      background: '#f5f5f5'
     },
     fcs: {
-      primary: '#654321',  // Dark brown
-      secondary: '#BA8C3C',
-      accent: '#FFD700',  // Gold
-      background: '#FFF6E6' // Light warm beige
+      primary: '#8B0000',
+      secondary: '#FFD700',
+      accent: '#228B22',
+      background: '#fff8f0'
     },
     fbs: {
-      primary: '#704214',  // Brown
-      secondary: '#9E7845',
-      accent: '#DAA520',  // Golden rod
-      background: '#FFF4E0' // Light warm beige
+      primary: '#FF8C00',
+      secondary: '#4169E1',
+      accent: '#32CD32',
+      background: '#fff5ee'
     },
-    // Baseball theme with classic red/white/blue
     mlb: {
-      primary: '#BE0000',  // Classic baseball red
-      secondary: '#14387F',
+      primary: '#002D72',
+      secondary: '#D50032',
       accent: '#FFFFFF',
-      background: '#F9F9FF' // Very light blue tint
+      background: '#f0f8ff'
     },
-    // Basketball themes with orange tones
-    nba: {
-      primary: '#F85800',  // Bright orange
-      secondary: '#2C2C2C',
-      accent: '#FFFFFF',
-      background: '#FFF4EE' // Light orange tint
-    },
-    ncaaw: {
-      primary: '#FF6B1A',  // Warm orange
-      secondary: '#1A1A1A',
-      accent: '#FFFFFF',
-      background: '#FFF2EB' // Light orange tint
-    },
-    // Hockey theme with icy blues
-    nhl: {
-      primary: '#004C8E',  // Deep ice blue
-      secondary: '#60B2FF',
-      accent: '#FFFFFF',
-      background: '#F0F8FF' // Alice blue
-    },
-    // Soccer themes with green/field colors
     bundesliga1: {
-      primary: '#006633',  // Forest green
-      secondary: '#CCDD22', // Yellow-green
-      accent: '#FFFFFF',
-      background: '#F5FFE6' // Light green tint
+      primary: '#D20515',
+      secondary: '#000000',
+      accent: '#FFCC02',
+      background: '#fff0f0'
     },
     bundesliga2: {
-      primary: '#005C2F',  // Deep green
-      secondary: '#B8D43C',
+      primary: '#005CA9',
+      secondary: '#FFFFFF',
+      accent: '#E30613',
+      background: '#f0f5ff'
+    },
+     nba: {
+      primary: '#002D72',
+      secondary: '#D50032',
       accent: '#FFFFFF',
-      background: '#F7FFE8' // Light green tint
+      background: '#f0f8ff'
     },
     mls: {
-      primary: '#007A3D',  // Soccer field green
-      secondary: '#B3D12A',
-      accent: '#FFFFFF',
-      background: '#F6FFEA' // Light green tint
+      primary: '#D20515',
+      secondary: '#000000',
+      accent: '#FFCC02',
+      background: '#fff0f0'
+    },
+    ncaaw: {
+      primary: '#005CA9',
+      secondary: '#FFFFFF',
+      accent: '#E30613',
+      background: '#f0f5ff'
     }
   };
   
@@ -511,7 +403,7 @@ export const extractTeams = (gamesData) => {
     games.forEach(game => {
       [game.homeTeam, game.awayTeam].forEach(team => {
         var uniqueId = league + team.id;
-        console.log('####Processing team:', uniqueId);
+        //console.log('####Processing team:', uniqueId);
         if (!teamIds.has(uniqueId)) {
           teamIds.add(uniqueId);
           teams.push({

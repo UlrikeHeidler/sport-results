@@ -112,7 +112,7 @@ const Settings = ({
                   checked={localSettings.selectedLeagues.includes('fcs')}
                   onChange={() => toggleLeague('fcs')}
                 />
-                <span>🎓 FCS</span>
+                <span>🏈 FCS</span>
               </label>
               <label className="league-option">
                 <input
@@ -120,7 +120,7 @@ const Settings = ({
                   checked={localSettings.selectedLeagues.includes('fbs')}
                   onChange={() => toggleLeague('fbs')}
                 />
-                <span>🏟️ FBS</span>
+                <span>🏈 FBS</span>
               </label>
               <label className="league-option">
                 <input
@@ -144,7 +144,7 @@ const Settings = ({
                   checked={localSettings.selectedLeagues.includes('bundesliga2')}
                   onChange={() => toggleLeague('bundesliga2')}
                 />
-                <span>🥅 BL2</span>
+                <span>⚽ BL2</span>
               </label>
               <label className="league-option">
                 <input
@@ -152,7 +152,7 @@ const Settings = ({
                   checked={localSettings.selectedLeagues.includes('nba')}
                   onChange={() => toggleLeague('nba')}
                 />
-                <span>🥅 NBA</span>
+                <span>🏀 NBA</span>
               </label>
               <label className="league-option">
                 <input
@@ -168,7 +168,7 @@ const Settings = ({
                   checked={localSettings.selectedLeagues.includes('ncaaw')}
                   onChange={() => toggleLeague('ncaaw')}
                 />
-                <span>🥅 NCAAW</span>
+                <span>🏀 NCAAW</span>
               </label>
             </div>
           </div>

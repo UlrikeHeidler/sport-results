@@ -15,8 +15,17 @@ const getOrdinalSuffix = (num) => {
 const FootballGameTile = (props) => {
   const { game } = props;
 
-  // Minimal logging
-  console.log('FootballGameTile:', game.id, 'situation?', !!game.situation);
+  // Detailed logging
+  console.log('FootballGameTile props:', props);
+  console.log('FootballGameTile game data:', {
+    id: game.id,
+    league: game.league,
+    situation: game.situation,
+    teams: {
+      home: game.homeTeam,
+      away: game.awayTeam
+    }
+  });
 
   // Helper to check if team has possession
   const hasPossession = (team) => {
@@ -26,15 +35,21 @@ const FootballGameTile = (props) => {
   // No custom score renderer here — let BaseGameTile render scores so they remain visible
 
   // Football-specific additional info renderer (compact)
-  const renderAdditionalInfo = () => {
+  const renderAdditionalInfo = (game) => {
+    console.log('Rendering football additional info for game:', game.id);
     const s = game.situation;
-    if (!s) return null;
+    if (!s) {
+      console.log('No situation data for game:', game.id);
+      return null;
+    }
 
     const down = s.down ?? null;
     const distance = s.distance ?? null;
     const yardLine = s.yardLine ? parseInt(s.yardLine) : null;
     const inOpponent = s.fieldSide === 'opponent';
     const ballPercent = yardLine ? (inOpponent ? 50 + (50 - yardLine) : yardLine) : 50;
+
+    console.log('Football situation:', { down, distance, yardLine, inOpponent, ballPercent });
 
     return (
       <div className="football-info compact">
@@ -58,11 +73,35 @@ const FootballGameTile = (props) => {
     return 'th';
   };
 
+  // Try rendering the additional info directly first to verify it works
+  const additionalInfoContent = renderAdditionalInfo(game);
+  console.log('Additional info content:', additionalInfoContent);
+
+  // Separate props for BaseGameTile
+  const baseGameProps = {
+    ...props,
+    renderAdditionalInfo: () => {
+      console.log('renderAdditionalInfo called in FootballGameTile');
+      return additionalInfoContent;
+    }
+  };
+
+  console.log('Rendering FootballGameTile BaseGameTile with:', {
+    hasRenderFunction: !!renderAdditionalInfo,
+    gameHasSituation: !!game.situation,
+    additionalInfoExists: !!additionalInfoContent
+  });
+
   return (
-    <BaseGameTile
-      {...props}
-      renderAdditionalInfo={renderAdditionalInfo}
-    />
+    <>
+      {/* Test render - will show directly in the DOM if it works */}
+      <div style={{ display: 'none' }}>
+        {additionalInfoContent}
+      </div>
+      
+      {/* Normal render through BaseGameTile */}
+      <BaseGameTile {...baseGameProps} />
+    </>
   );
 };
 

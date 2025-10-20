@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable } from '@hello-pangea/dnd';
 import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../services/sportsApi';
 
 const getDisplayStatus = (status) => {

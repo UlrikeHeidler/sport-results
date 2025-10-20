@@ -186,7 +186,20 @@ const BaseGameTile = ({
         {renderTeam(game.homeTeam, true)}
       </div>
 
-      {renderAdditionalInfo()}
+      {/* Debug information */}
+      <div style={{ display: 'none' }}>
+        {console.log('BaseGameTile rendering additional info:', {
+          hasCustomRender: !!customRenderAdditionalInfo,
+          gameId: game.id,
+          hasSituation: !!game.situation,
+          situation: game.situation
+        })}
+      </div>
+
+      {/* Render additional info */}
+      <div className="additional-info-wrapper">
+        {customRenderAdditionalInfo && customRenderAdditionalInfo()}
+      </div>
 
       <div className="game-time">
         {timeDisplay}
