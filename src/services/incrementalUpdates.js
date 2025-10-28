@@ -3,6 +3,8 @@
 
 import { fetchGames } from './sportsApi-fixed';
 import { isGameOngoing } from './gameUtils';
+// Debug logger
+const debug = (...args) => { if (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('debugIncremental') === '1') { console.log('[IncrementalUpdates]', ...args); } };
 
 /**
  * Incremental Updates Manager
@@ -16,7 +18,7 @@ class IncrementalUpdatesManager {
     this.updateQueue = new Map(); // Queued updates
     this.isUpdating = false;
     this.updateInterval = null;
-    
+    this.userRefreshInterval = 30; // Default to 30s if not set
     // Configuration
     this.config = {
       minUpdateInterval: 5000, // Minimum 5 seconds between updates
@@ -94,10 +96,11 @@ class IncrementalUpdatesManager {
   /**
    * Initialize the incremental updates system
    */
-  initialize() {
+  initialize(userRefreshInterval = 30) {
+    debug('Initializing IncrementalUpdatesManager with refreshInterval:', userRefreshInterval);
+    this.userRefreshInterval = userRefreshInterval || 30;
     this.loadCacheFromStorage();
     this.startPeriodicUpdates();
-    
     // Listen for visibility changes to optimize updates
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
@@ -382,27 +385,8 @@ class IncrementalUpdatesManager {
    * Get appropriate update interval based on game states
    */
   getUpdateInterval(league) {
-    const cacheKey = `games_${league}`;
-    const games = this.cache.get(cacheKey) || [];
-    
-    // Check if any games are live
-    const hasLiveGames = games.some(game => isGameOngoing(game.status));
-
-    // Check if any games are starting soon (within 30 minutes)
-    const now = new Date();
-    const hasUpcomingGames = games.some(game => {
-      const gameTime = new Date(game.date);
-      const timeDiff = gameTime - now;
-      return timeDiff > 0 && timeDiff < 30 * 60 * 1000; // 30 minutes
-    });
-
-    if (hasLiveGames) {
-      return this.config.minUpdateInterval; // 5 seconds for live games
-    } else if (hasUpcomingGames) {
-      return 15000; // 15 seconds for upcoming games
-    } else {
-      return this.config.maxUpdateInterval; // 60 seconds for other games
-    }
+    // Always use the user setting (in seconds), fallback to 30s if not set
+    return (this.userRefreshInterval || 30) * 1000;
   }
 
   /**
@@ -425,12 +409,12 @@ class IncrementalUpdatesManager {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
-
+    debug('Starting periodic updates with interval:', (this.userRefreshInterval || 30) * 1000, 'ms');
     this.updateInterval = setInterval(() => {
       if (!document.hidden && !this.isUpdating) {
         this.performScheduledUpdates();
       }
-    }, this.config.minUpdateInterval);
+    }, (this.userRefreshInterval || 30) * 1000);
   }
 
   /**
@@ -528,8 +512,8 @@ class IncrementalUpdatesManager {
 export const incrementalUpdatesManager = new IncrementalUpdatesManager();
 
 // Export utility functions
-export const initializeIncrementalUpdates = () => {
-  incrementalUpdatesManager.initialize();
+export const initializeIncrementalUpdates = (userRefreshInterval = 30) => {
+  incrementalUpdatesManager.initialize(userRefreshInterval);
 };
 
 export const getGamesWithIncrementalUpdates = (leagues, forceRefresh = false) => {

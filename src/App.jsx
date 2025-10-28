@@ -113,7 +113,7 @@ function App() {
     changeSummary,
     liveGamesCount,
     updateFrequency
-  } = useIncrementalUpdates(settings.selectedLeagues);
+  } = useIncrementalUpdates(settings.selectedLeagues, settings.refreshInterval);
 
   // Fallback to traditional loading
   const [games, setGames] = useState({});

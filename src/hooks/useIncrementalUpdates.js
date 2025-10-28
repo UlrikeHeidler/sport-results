@@ -15,7 +15,7 @@ import { isGameOngoing } from '../services/gameUtils';
 /**
  * Custom hook for managing incremental updates in React components
  */
-export const useIncrementalUpdates = (selectedLeagues = []) => {
+export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30) => {
   const [games, setGames] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,11 +32,8 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
    * Initialize the incremental updates system
    */
   useEffect(() => {
-    if (!isInitialized.current) {
-      initializeIncrementalUpdates();
-      isInitialized.current = true;
-    }
-  }, []);
+    initializeIncrementalUpdates(refreshInterval);
+  }, [refreshInterval]);
 
   /**
    * Handle real-time changes from the incremental updates system
@@ -213,28 +210,8 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
    * Get update frequency based on current game states
    */
   const getUpdateFrequency = useCallback(() => {
-    const liveGames = getLiveGamesCount();
-    if (liveGames > 0) {
-      return 'High (5s) - Live games active';
-    }
-    
-    // Check for upcoming games
-    const now = new Date();
-    let upcomingGames = 0;
-    Object.values(games).forEach(leagueGames => {
-      upcomingGames += leagueGames.filter(game => {
-        const gameTime = new Date(game.date);
-        const timeDiff = gameTime - now;
-        return timeDiff > 0 && timeDiff < 30 * 60 * 1000;
-      }).length;
-    });
-    
-    if (upcomingGames > 0) {
-      return 'Medium (15s) - Games starting soon';
-    }
-    
-    return 'Low (60s) - No active games';
-  }, [games, getLiveGamesCount]);
+    return `Every ${refreshInterval}s (user setting)`;
+  }, [refreshInterval]);
 
   return {
     // Core data
