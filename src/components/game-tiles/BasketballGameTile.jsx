@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseGameTile from './BaseGameTile';
+import './GameTiles.basketball.css';
 
 const BasketballGameTile = (props) => {
   const { game } = props;

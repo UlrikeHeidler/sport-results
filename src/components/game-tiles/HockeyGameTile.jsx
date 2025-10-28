@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import BaseGameTile from './BaseGameTile';
+import './GameTiles.hockey.css';
 import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi-fixed';
 
 const HockeyGameTile = (props) => {

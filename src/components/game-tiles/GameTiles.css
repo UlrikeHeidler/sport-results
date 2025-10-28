@@ -340,6 +340,10 @@
   background-color: lightgray !important;
 }
 
+.game-tile.final {
+  background-color: lightyellow !important;
+}
+
 .game-situation {
   display: flex;
   justify-content: space-between;
