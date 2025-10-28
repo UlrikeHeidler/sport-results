@@ -50,8 +50,6 @@ export const fetchGames = async (league) => {
       throw new Error(`Unsupported league: ${league}`);
     }
 
-    let apiTimezone = 'America/Denver';
-
     // Include only todays games
     const today = new Date();
 

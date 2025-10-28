@@ -17,7 +17,7 @@ const getDisplayStatus = (status) => {
 
 const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, draggableId }) => {
   const statusClass = getStatusClass(game.status);
-  const timeDisplay = formatGameTime(game.date, game.status);
+  const timeDisplay = formatGameTime(game.date, game.status, game.league);
   const leagueColors = getLeagueColors(game.league);
   const isMovedToBottom = shouldMoveToBottom(game);
   

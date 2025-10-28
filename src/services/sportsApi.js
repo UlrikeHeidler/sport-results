@@ -11,6 +11,19 @@ const API_ENDPOINTS = {
   mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
 };
 
+// Known ongoing status types
+const ongoingTypes = new Set([
+  'STATUS_IN_PROGRESS',
+  'STATUS_HALFTIME',
+  'STATUS_FIRST_HALF',
+  'STATUS_SECOND_HALF',
+  'STATUS_EXTRA_TIME',
+  'STATUS_PENALTIES',
+  'STATUS_BREAK',
+  'STATUS_INTERMISSION',
+  'STATUS_END_PERIOD'
+]);
+
 // Date utilities
 const getDateString = (date) => {
   return date.toISOString().split('T')[0].replace(/-/g, '');
@@ -85,7 +98,8 @@ const parseGamesData = (data, league) => {
         type: competition.status.type.name,
         displayClock: competition.status.displayClock,
         period: competition.status.period,
-        completed: competition.status.type.completed
+        completed: competition.status.type.completed,
+        description: competition.status.description || competition.status.type.description || ''
       },
       homeTeam: {
         id: homeTeam.id,
@@ -174,24 +188,38 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl']) => {
  * @param {Object} status - Game status
  * @returns {string} Formatted time string
  */
-export const formatGameTime = (date, status) => {
-  if (status.completed) {
-    return 'Final';
-  }
+export const formatGameTime = (date, status = {}, league = '') => {
+  try {
+    // For MLB, prefer the status.description if available (ESPN provides
+    // human-readable timing like "Top 5th" in description).
+    if (league && String(league).toLowerCase() === 'mlb') {
+      if (status && status.description) return status.description;
+    }
 
-  if (status.type === 'STATUS_IN_PROGRESS') {
-    return `${status.displayClock} - Period ${status.period}`;
-  }
+    if (status && status.completed) {
+      return 'Final';
+    }
 
-  if (status.type === 'STATUS_SCHEDULED') {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  }
+    if (status && ongoingTypes.has(status.type)) {
+      return `${status.displayClock || ''}`.trim() ? `${status.displayClock} - Period ${status.period}` : `Live`;
+    }
 
-  return status.type.replace('STATUS_', '').replace('_', ' ');
+    if (status && status.type === 'STATUS_SCHEDULED') {
+      if (date instanceof Date) {
+        return date.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+      return String(date);
+    }
+
+    return status && status.type ? String(status.type).replace('STATUS_', '').replace('_', ' ') : '';
+  } catch (e) {
+    console.error('formatGameTime error', e, date, status, league);
+    return '';
+  }
 };
 
 /**
@@ -200,11 +228,14 @@ export const formatGameTime = (date, status) => {
  * @returns {string} CSS class name
  */
 export const getStatusClass = (status) => {
+
+
+
   if (status.completed) {
     return 'final';
   }
   
-  if (status.type === 'STATUS_IN_PROGRESS') {
+  if (ongoingTypes.has(status.type)) {
     return 'live';
   }
   

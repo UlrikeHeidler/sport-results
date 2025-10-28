@@ -2,16 +2,37 @@ import React, { useState, useEffect, useRef } from 'react';
 import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../../services/sportsApi';
 import { getTeamForm, getFormColor } from '../../services/teamStats';
 
-const getDisplayStatus = (status) => {
-  const isOngoing = status.type === 'STATUS_IN_PROGRESS' ||
-                   status.type === 'STATUS_HALFTIME' ||
-                   status.type === 'STATUS_BREAK' ||
-                   status.type === 'STATUS_INTERMISSION' ||
-                   status.type === 'STATUS_END_PERIOD';
-  
-  if (isOngoing && status.type === 'STATUS_IN_PROGRESS') return 'LIVE';
-  if (isOngoing) return 'INTERMISSION';
-  if (status.completed) return 'FINAL';
+const getDisplayStatus = (status, situation) => {
+  // Known ongoing status types
+  const ongoingTypes = new Set([
+    'STATUS_IN_PROGRESS',
+    'STATUS_HALFTIME',
+    'STATUS_FIRST_HALF',
+    'STATUS_SECOND_HALF',
+    'STATUS_EXTRA_TIME',
+    'STATUS_PENALTIES',
+    'STATUS_BREAK',
+    'STATUS_INTERMISSION',
+    'STATUS_END_PERIOD'
+  ]);
+
+  const isOngoingType = status && ongoingTypes.has(status.type);
+
+  // Heuristic: some APIs may leave status.type as 'SCHEDULED' while providing
+  // situation data (matchTime / period / displayClock). Treat those as live.
+  const situationIndicatesLive = situation && (
+    situation.matchTime != null ||
+    (situation.period && /half|period|extra|penalties|first|second/i.test(String(situation.period))) ||
+    (status && status.displayClock)
+  );
+
+  if (isOngoingType || situationIndicatesLive) {
+    // Prefer explicit in-progress type; otherwise consider it live
+    if (status && status.type === 'STATUS_IN_PROGRESS') return 'LIVE';
+    return 'LIVE';
+  }
+
+  if (status && status.completed) return 'FINAL';
   return 'SCHEDULED';
 };
 
@@ -27,7 +48,7 @@ const BaseGameTile = ({
   isDragging = false
 }) => {
   const statusClass = getStatusClass(game.status || {});
-  const timeDisplay = formatGameTime(game.date || new Date(), game.status || {});
+  const timeDisplay = formatGameTime(game.date || new Date(), game.status || {}, game.league);
   const leagueColors = getLeagueColors(game.league || 'nfl');
   const isMovedToBottom = shouldMoveToBottom(game || {});
   
@@ -154,7 +175,9 @@ const BaseGameTile = ({
         {renderTeamScore(team, isHome, animations)}
       </div>
     );
-  };  const renderGameStatus = () => (
+  };  
+  
+  const renderGameStatus = () => (
     <div className="game-header">
       <span className={`league-badge`} style={colorCoding ? {
         backgroundColor: leagueColors.primary,
@@ -163,7 +186,7 @@ const BaseGameTile = ({
         {game.league}
       </span>
       <span className={`game-status ${statusClass} ${animations.status ? 'status-changed' : ''}`}>
-        {getDisplayStatus(game.status)}
+        {getDisplayStatus(game.status, game.situation)}
       </span>
     </div>
   );
@@ -175,7 +198,7 @@ const BaseGameTile = ({
 
   return (
     <div
-      className={`game-tile ${isMovedToBottom ? 'moved-to-bottom' : ''} ${isDragDisabled ? 'drag-disabled' : ''}`}
+      className={`game-tile ${statusClass} ${isMovedToBottom ? 'moved-to-bottom' : ''} ${isDragDisabled ? 'drag-disabled' : ''}`}
       style={tileStyle}
     >
       {renderGameStatus()}
@@ -196,14 +219,15 @@ const BaseGameTile = ({
         })}
       </div>
 
+      <div className="game-time">
+        {timeDisplay}
+      </div>
+
       {/* Render additional info */}
       <div className="additional-info-wrapper">
         {customRenderAdditionalInfo && customRenderAdditionalInfo()}
       </div>
 
-      <div className="game-time">
-        {timeDisplay}
-      </div>
 
       {isMovedToBottom && (
         <div className="bottom-indicator">

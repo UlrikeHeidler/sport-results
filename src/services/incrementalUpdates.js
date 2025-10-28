@@ -28,6 +28,37 @@ class IncrementalUpdatesManager {
   }
 
   /**
+   * Set which leagues should be tracked by the manager.
+   * Removes cached data and lastFetch entries for leagues that are not in the
+   * provided list so the manager stops polling them.
+   */
+  setTrackedLeagues(leagues = []) {
+    try {
+      const keep = new Set(leagues);
+
+      // Remove cache entries not requested
+      for (const key of Array.from(this.cache.keys())) {
+        const league = key.replace(/^games_/, '');
+        if (!keep.has(league)) {
+          this.cache.delete(key);
+        }
+      }
+
+      // Remove lastFetch entries not requested
+      for (const k of Array.from(this.lastFetch.keys())) {
+        if (!keep.has(k)) {
+          this.lastFetch.delete(k);
+        }
+      }
+
+      // Persist cache changes
+      this.saveCacheToStorage();
+    } catch (e) {
+      console.warn('setTrackedLeagues failed', e);
+    }
+  }
+
+  /**
    * Initialize the incremental updates system
    */
   initialize() {
@@ -58,6 +89,20 @@ class IncrementalUpdatesManager {
   async getGamesIncremental(leagues, forceRefresh = false) {
     const results = {};
     const updatePromises = [];
+
+    // Ensure manager only tracks leagues the caller cares about. Remove any
+    // previously tracked leagues that are not in the requested list so the
+    // periodic updater doesn't continue polling them.
+    try {
+      const requestedSet = new Set(leagues);
+      for (const tracked of Array.from(this.lastFetch.keys())) {
+        if (!requestedSet.has(tracked)) {
+          this.lastFetch.delete(tracked);
+        }
+      }
+    } catch (e) {
+      // ignore pruning errors
+    }
 
     for (const league of leagues) {
       const cacheKey = `games_${league}`;
@@ -467,6 +512,10 @@ export const initializeIncrementalUpdates = () => {
 
 export const getGamesWithIncrementalUpdates = (leagues, forceRefresh = false) => {
   return incrementalUpdatesManager.getGamesIncremental(leagues, forceRefresh);
+};
+
+export const setTrackedLeagues = (leagues) => {
+  return incrementalUpdatesManager.setTrackedLeagues(leagues);
 };
 
 export const addChangeListener = (callback) => {

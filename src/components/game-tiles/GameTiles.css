@@ -197,6 +197,10 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.game-tile.scheduled {
+  background-color: lightgray !important;
+}
+
 .game-situation {
   display: flex;
   justify-content: space-between;

@@ -6,6 +6,7 @@ const BaseballGameTile = (props) => {
   
   // Baseball-specific additional info renderer
   const renderAdditionalInfo = () => {
+    console.log('BaseballGameTile rendering additional info with situation:', game.situation);
     if (!game.situation) return null;
     
     return (

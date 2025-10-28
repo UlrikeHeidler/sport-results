@@ -10,6 +10,8 @@ import {
   sortGames,
   extractTeams
 } from './services/sportsApi-fixed';
+import { loadSettings, saveSettings, clearSettings } from './utils/storage';
+import Toast from './components/Toast';
 
 function App() {
   const [filteredGames, setFilteredGames] = useState([]);
@@ -34,23 +36,46 @@ function App() {
 
   const availableLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'];
 
-  // Load settings from localStorage
+  // Toast notifications
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = 'success', ttl = 4000) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const t = { id, message, type };
+    setToasts(prev => [t, ...prev]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(x => x.id !== id));
+    }, ttl);
+  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+  // Load settings from localStorage, fall back to cookie
   useEffect(() => {
-    const savedSettings = localStorage.getItem('sportsAppSettings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
-      } catch (error) {
-        console.error('Error loading settings:', error);
+    try {
+      const saved = loadSettings();
+      if (saved) {
+        setSettings(prev => ({ ...prev, ...saved }));
+        if (saved.darkMode && typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
       }
+    } catch (error) {
+      console.error('Error loading settings:', error);
     }
   }, []);
 
-  // Save settings to localStorage
+  // Save settings to localStorage and cookie
   const handleSettingsChange = (newSettings) => {
     setSettings(newSettings);
-    localStorage.setItem('sportsAppSettings', JSON.stringify(newSettings));
+    try {
+      saveSettings(newSettings);
+    } catch (e) {
+      console.error('Failed to persist settings:', e);
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', newSettings.darkMode ? 'dark' : 'light');
+    }
+    // notify user
+    try { addToast('Settings saved'); } catch (e) { /* ignore */ }
   };
 
   // Incremental updates hook
@@ -442,7 +467,9 @@ function App() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         availableTeams={availableTeams}
+        onClearStorage={() => { clearSettings(); addToast('Cleared saved settings'); }}
       />
+      <Toast toasts={toasts} onRemove={removeToast} />
 
       <IncrementalUpdatesMonitor
         isVisible={showIncrementalMonitor}

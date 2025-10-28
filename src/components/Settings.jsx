@@ -6,7 +6,8 @@ const Settings = ({
   onSettingsChange,
   isOpen,
   onClose,
-  availableTeams
+  availableTeams,
+  onClearStorage
 }) => {
   const [localSettings, setLocalSettings] = useState(settings);
   const [searchFilter, setSearchFilter] = useState('');
@@ -33,6 +34,25 @@ const Settings = ({
       darkMode: false
     };
     setLocalSettings(defaultSettings);
+  };
+
+  const handleClearStorage = () => {
+    // Clear persisted settings (localStorage + cookie) via parent handler
+    if (typeof onClearStorage === 'function') {
+      onClearStorage();
+    }
+
+    // Reset UI to defaults and immediately persist the defaults
+    const defaultSettings = {
+      refreshInterval: 30,
+      selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
+      hiddenTeams: [],
+      colorCoding: true,
+      showTeamForm: true,
+      darkMode: false
+    };
+    setLocalSettings(defaultSettings);
+    if (typeof onSettingsChange === 'function') onSettingsChange(defaultSettings);
   };
 
   const toggleHiddenTeam = (teamId) => {
@@ -243,6 +263,9 @@ const Settings = ({
         <div className="settings-footer">
           <button className="reset-button" onClick={handleReset}>
             Reset to Defaults
+          </button>
+          <button className="clear-button" onClick={handleClearStorage} title="Clear persisted settings (cookies + localStorage)">
+            Clear Storage
           </button>
           <div className="action-buttons">
             <button className="cancel-button" onClick={onClose}>

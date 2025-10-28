@@ -6,7 +6,8 @@ import {
   initializeIncrementalUpdates, 
   getGamesWithIncrementalUpdates, 
   addChangeListener,
-  getIncrementalCacheStats 
+  getIncrementalCacheStats,
+  setTrackedLeagues
 } from '../services/incrementalUpdates';
 
 /**
@@ -157,8 +158,15 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
    * Load games when selected leagues change
    */
   useEffect(() => {
+    // Tell the manager which leagues we want tracked and remove any cached
+    // data for leagues the user has deselected. Then load current games.
+    setTrackedLeagues(selectedLeagues || []);
+
     if (selectedLeagues.length > 0) {
       loadGames();
+    } else {
+      // If user has deselected all leagues, clear local games state
+      setGames({});
     }
   }, [selectedLeagues, loadGames]);
 
@@ -197,6 +205,8 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
       liveCount += leagueGames.filter(game => 
         game.status.type === 'STATUS_IN_PROGRESS' ||
         game.status.type === 'STATUS_HALFTIME' ||
+        game.status.type === 'STATUS_FIRST_HALF' ||
+        game.status.type === 'STATUS_SECOND_HALF' ||
         game.status.type === 'STATUS_BREAK' ||
         game.status.type === 'STATUS_INTERMISSION' ||
         game.status.type === 'STATUS_END_PERIOD'
