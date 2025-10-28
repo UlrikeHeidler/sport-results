@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseGameTile from './BaseGameTile';
-import './FootballTile.css';
+import './GameTiles.football.css';
 
 // Helper function to get ordinal suffix for numbers
 const getOrdinalSuffix = (num) => {

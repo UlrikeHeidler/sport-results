@@ -1,9 +1,60 @@
+/* Design tokens and global variables (centralized) */
+:root {
+  /* Palette */
+  --card-bg: #ffffff;
+  --hover-bg: #f7f7f8;
+  --border-color: rgba(0,0,0,0.08);
+  --text-color: #222222;
+  --text-secondary: #666666;
+  --accent-color: #4CAF50;
+
+  /* League colors (override per-tile via inline style) */
+  --league-primary: #0077cc;
+  --league-background: #ffffff;
+
+  /* Spacing & sizing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --radius-md: 8px;
+
+  /* Motion */
+  --anim-fast: 150ms;
+  --anim-medium: 300ms;
+  --anim-slow: 600ms;
+  /* Field colors (defaults, can be overridden by themes) */
+  --field-dark: #2E7D32;
+  --field-light: #4CAF50;
+}
+
+/*
+  GameTiles.css (base)
+  - Tokens (above)
+  - Shared utility styles used by multiple tiles.
+  Sport-specific rules were moved to separate files:
+  - GameTiles.baseball.css
+  - GameTiles.hockey.css
+  - GameTiles.football.css
+  - GameTiles.soccer.css
+  - GameTiles.basketball.css
+*/
+
 /* Sport-specific tile styles */
 /* Common styles for sport info sections */
 .team-name {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Team logo sizing and image handling */
+.team-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: inline-block;
+  flex: 0 0 36px;
+  border-radius: 4px;
 }
 
 .possession-marker {
@@ -19,14 +70,11 @@
 /* Sport-specific tile styles */
 
 /* Common styles for sport info sections */
-.baseball-info,
-.hockey-info,
-.football-info,
-.soccer-info,
-.basketball-info {
+.base-shared,
+.info-block {
   padding: 0.75rem;
   margin: 0.75rem 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -101,21 +149,20 @@
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: left 0.3s ease-out;
+  /* animate transforms for better performance */
+  transition: transform var(--anim-medium) ease-out;
+  will-change: transform, opacity;
 }
 
-:root {
-  --field-dark: #2E7D32;
-  --field-light: #4CAF50;
-}
-
+/* Dark theme overrides */
 [data-theme="dark"] {
   --field-dark: #1B5E20;
   --field-light: #388E3C;
 }
 
 [data-theme="dark"] .ball-marker {
-  filter: brightness(0.9);
+  /* combined dark-mode adjustments for ball marker */
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)) brightness(0.9);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   border-color: #333;
 }
@@ -378,7 +425,8 @@
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: left 0.3s ease-out;
+  transition: transform var(--anim-medium) ease-out;
+  will-change: transform, opacity;
 }
 
 @keyframes pulse {
@@ -387,21 +435,6 @@
   100% { opacity: 1; }
 }
 
-:root {
-  --field-dark: #2E7D32;
-  --field-light: #4CAF50;
-}
-
-[data-theme="dark"] {
-  --field-dark: #1B5E20;
-  --field-light: #388E3C;
-}
-
-[data-theme="dark"] .ball-marker {
-  filter: brightness(0.9);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  border-color: #333;
-}
 
 /* Possession styling */
 .possession-info {
@@ -549,20 +582,7 @@
 }
 
 /* Field colors for light/dark mode */
-:root {
-  --field-dark: #2E7D32;
-  --field-light: #4CAF50;
-}
 
-[data-theme="dark"] {
-  --field-dark: #1B5E20;
-  --field-light: #388E3C;
-}
-
-/* Enhanced ball marker for dark mode */
-[data-theme="dark"] .ball-marker {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) brightness(0.9);
-}
 
 .direction-indicators {
   display: flex;
@@ -626,10 +646,11 @@
   margin-top: 0.5rem;
 }
 
-/* Basketball */
 .basketball-info {
   background: linear-gradient(to bottom, #fff 0%, #FFF4EE 100%);
   border: 1px solid rgba(248, 88, 0, 0.1);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 .quarter-info {
@@ -648,22 +669,12 @@
   background: rgba(248, 88, 0, 0.1);
   padding: 0.3rem;
   border-radius: 4px;
+  font-weight: bold;
 }
 
 .penalties {
   font-size: 0.85rem;
   color: #666;
-}
-
-/* Basketball */
-.basketball-info {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-}
-
-.shot-clock {
-  text-align: center;
-  font-weight: bold;
 }
 
 .team-fouls {
@@ -699,4 +710,17 @@
   background: rgba(0, 0, 0, 0.05);
   padding: 0.15rem 0.3rem;
   border-radius: 3px;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .has-possession,
+  .ball-marker,
+  .baseball-diamond .base.occupied,
+  .possessionPulse,
+  .possession-indicator,
+  .summary-btn {
+    animation: none !important;
+    transition: none !important;
+  }
 }

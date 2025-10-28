@@ -114,9 +114,13 @@ const BaseGameTile = ({
   const renderTeamLogo = (team) => (
     team?.logo ? (
       <img 
-        src={team.logo} 
+        src={team.logo}
         alt={`${team.name} logo`}
         className="team-logo"
+        loading="lazy"
+        decoding="async"
+        width={36}
+        height={36}
         onError={(e) => {
           e.target.style.display = 'none';
         }}
@@ -154,8 +158,23 @@ const BaseGameTile = ({
     const situation = game.situation || null;
     let hasPossessionMarker = false;
     if (situation) {
-      console.log('Determining possession for team:', team.id, 'with situation:', situation.lastPlay?.team?.id);
-      if (situation?.lastPlay && situation?.lastPlay?.team?.id === team?.id) hasPossessionMarker = true;
+      // Prefer explicit normalized ownership
+      if (situation.possessionWhich) {
+        if (situation.possessionWhich === 'home') hasPossessionMarker = !!isHome;
+        else if (situation.possessionWhich === 'away') hasPossessionMarker = !isHome;
+      } else if (situation?.lastPlay && situation?.lastPlay?.team?.id) {
+        // Some feeds provide a lastPlay.team.id we can match against
+        if (situation.lastPlay.team.id === team?.id) hasPossessionMarker = true;
+      } else {
+        // Fallback: string matching against possession label or team abbreviation/name
+        const poss = situation.possession || situation.possessionLabel || null;
+        if (poss) {
+          const normalize = v => (v == null ? '' : String(v).toLowerCase());
+          const possNorm = normalize(poss);
+          const teamNorms = [team?.abbreviation, team?.name, team?.displayName].map(normalize);
+          if (teamNorms.includes(possNorm)) hasPossessionMarker = true;
+        }
+      }
     }
 
     return (

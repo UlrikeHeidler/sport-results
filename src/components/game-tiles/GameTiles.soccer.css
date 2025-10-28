@@ -1,0 +1,23 @@
+/* Soccer-specific styles extracted from GameTiles.css */
+.soccer-info {
+  background: linear-gradient(to bottom, #fff 0%, #F5FFE6 100%);
+  border: 1px solid rgba(0, 102, 51, 0.1);
+}
+
+.match-time {
+  text-align: center;
+  font-weight: bold;
+  color: #006633;
+  font-size: 1.1rem;
+}
+
+.added-time {
+  color: #006633;
+  margin-left: 0.5rem;
+  font-weight: normal;
+  background: rgba(204, 221, 34, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.cards { display:flex; justify-content:center; gap:1.5rem; margin-top:0.5rem; }

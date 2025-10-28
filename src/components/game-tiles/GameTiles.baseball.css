@@ -1,0 +1,75 @@
+/* Baseball-specific styles extracted from GameTiles.css */
+.baseball-info {
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
+}
+
+.inning-info {
+  text-align: center;
+  font-weight: bold;
+  color: var(--text-color);
+  float: left;
+}
+
+.count-info {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.bases-info {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.on-base {
+  background: #BE0000;
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(190, 0, 0, 0.2);
+}
+
+.baseball-situation-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.baseball-diamond {
+  width: 52px;
+  height: 52px;
+  display: inline-block;
+}
+
+.baseball-diamond .base {
+  stroke: var(--card-bg);
+  stroke-width: 1;
+  transition: transform 200ms ease, r 200ms ease, fill 200ms ease;
+}
+
+.baseball-diamond .base.occupied {
+  fill: var(--accent-color, #BE0000);
+}
+
+.baseball-diamond .base.empty {
+  fill: transparent;
+  stroke: var(--border-color);
+}
+
+.baseball-diamond svg { display: block; }
+
+.baseball-info .count-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #666;
+}

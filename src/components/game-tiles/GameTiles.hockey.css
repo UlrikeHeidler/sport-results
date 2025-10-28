@@ -1,0 +1,53 @@
+/* Hockey-specific styles extracted from GameTiles.css */
+.hockey-info {
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
+}
+
+.power-play {
+  text-align: center;
+  color: var(--text-color);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+.period-clock {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.period-clock .period {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.power-play {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.shots-on-goal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #004C8E;
+  margin-top: 0.5rem;
+  background: rgba(96, 178, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.hockey-summary .goalie-info { margin-bottom: 0.5rem; }
+.hockey-summary .empty-net-info { font-weight: 600; }

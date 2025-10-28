@@ -7,6 +7,11 @@ import FootballGameTile from './FootballGameTile';
 import HockeyGameTile from './HockeyGameTile';
 import SoccerGameTile from './SoccerGameTile';
 import './GameTiles.css';
+import './GameTiles.baseball.css';
+import './GameTiles.hockey.css';
+import './GameTiles.football.css';
+import './GameTiles.soccer.css';
+import './GameTiles.basketball.css';
 
 const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot, showTeamForm = true }) => {
   // Select the appropriate tile component based on league/sport
