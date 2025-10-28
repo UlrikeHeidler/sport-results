@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../services/sportsApi';
+import { isGameOngoing } from '../services/gameUtils';
 
 const getDisplayStatus = (status) => {
-  const isOngoing = status.type === 'STATUS_IN_PROGRESS' ||
-                 status.type === 'STATUS_HALFTIME' ||
-                 status.type === 'STATUS_BREAK' ||
-                 status.type === 'STATUS_INTERMISSION' ||
-                 status.type === 'STATUS_END_PERIOD';
-  
-  if (isOngoing && status.type === 'STATUS_IN_PROGRESS') return 'LIVE';
-  if (isOngoing) return 'INTERMISSION';
+  if (isGameOngoing(status)) {
+    if (status.type === 'STATUS_IN_PROGRESS') return 'LIVE';
+    return 'INTERMISSION';
+  }
   if (status.completed) return 'FINAL';
   return 'SCHEDULED';
 };

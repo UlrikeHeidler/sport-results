@@ -1,26 +1,21 @@
+// Re-export sortGames for compatibility with existing imports
+export { sortGames };
 // ESPN API endpoints for sports data
 import { debug } from '../utils/logger';
-const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports';
-
-// API endpoints for different leagues
-const API_ENDPOINTS = {
-  nfl: `${ESPN_BASE_URL}/football/nfl/scoreboard`,
-  nhl: `${ESPN_BASE_URL}/hockey/nhl/scoreboard`,
-  fcs: `${ESPN_BASE_URL}/football/college-football/scoreboard?groups=81`,
-  fbs: `${ESPN_BASE_URL}/football/college-football/scoreboard?groups=80`,
-  mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
-  bundesliga1: `${ESPN_BASE_URL}/soccer/ger.1/scoreboard`,
-  bundesliga2: `${ESPN_BASE_URL}/soccer/ger.2/scoreboard`,
-  dfb_pokal: `${ESPN_BASE_URL}/soccer/ger.dfb_pokal/scoreboard`, // German Cup (DFB Pokal)
-  ucl: `${ESPN_BASE_URL}/soccer/uefa.champions/scoreboard`, // UEFA Champions League
-  nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
-  ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
-  mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
-};
+import API_ENDPOINTS from './apiEndpoints';
+import { normalizeStatus } from './normalizeStatus';
+import { normalizeSituation } from './normalizeSituation';
+import { getDateInCurrentUsersTimezone, shouldMoveToBottom, sortGames, extractTeams, getLeagueColors, isGameOngoing } from './gameUtils';
+// Re-export extractTeams for compatibility with existing imports
+export { extractTeams };
+import { handleError } from '../utils/errorHandler';
 
 /**
  * Detect which team has possession from a competition payload and team objects.
- * Returns { which: 'home'|'away'|null, label: string|null }
+ * @param {Object} competitionObj - ESPN competition object
+ * @param {Object} homeTeamObj - Home team info (id, abbreviation, name, displayName)
+ * @param {Object} awayTeamObj - Away team info (id, abbreviation, name, displayName)
+ * @returns {{ which: 'home'|'away'|null, label: string|null }}
  */
 export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
   if (!competitionObj) return { which: null, label: null };
@@ -91,26 +86,16 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
  * @param  {String} serverTimezone The timezone the dateStr is in
  * @return {Date}                  A date object, adjusted to user's timezone
  */
-function getDateInCurrentUsersTimezone (dateStr, serverTimezone) {
-
-	// Get timezone offsets
-	// This gets the difference in ms between the server time and the users current location
-	let nowAsStringInServerTimezone = new Date().toLocaleString('en-US', {timeZone: serverTimezone});
-	let serverTimestamp = new Date(nowAsStringInServerTimezone).getTime();
-	let userTimestamp = Date.now();
-	let offset = userTimestamp - serverTimestamp;
-
-	// Get a unix timestamp for the server date and add the offset
-	let adjustedTimestamp = new Date(dateStr).getTime() + offset;
-
-	// Return a date object adjusted for the user's timezone
-	return new Date(adjustedTimestamp);
-
-}
+// getDateInCurrentUsersTimezone now imported from gameUtils
 
 /**
  * Fetch games for a specific league
  * @param {string} league - The league to fetch games for (nfl, nhl)
+ * @returns {Promise<Array>} Array of game objects
+ */
+/**
+ * Fetch games for a specific league
+ * @param {string} league - The league to fetch games for (e.g. 'nfl', 'nhl')
  * @returns {Promise<Array>} Array of game objects
  */
 export const fetchGames = async (league) => {
@@ -143,11 +128,17 @@ export const fetchGames = async (league) => {
   debug(`${league} API response:`, data);
     return parseGamesData(data, league);
   } catch (error) {
-    console.error(`Error fetching ${league} games:`, error);
+    handleError(error, `fetchGames (${league})`);
     return []; // Return empty array instead of throwing
   }
 };
 
+/**
+ * Parse the ESPN API response into a standardized format
+ * @param {Object} data - Raw API response
+ * @param {string} league - League identifier
+ * @returns {Array} Parsed games array
+ */
 /**
  * Parse the ESPN API response into a standardized format
  * @param {Object} data - Raw API response
@@ -172,39 +163,11 @@ const parseGamesData = (data, league) => {
       const awayTeam = competitors.find(comp => comp.homeAway === 'away');
 
       if (!homeTeam || !awayTeam) {
-        console.warn('Missing team data for event:', event.id);
+        handleError(`Missing team data for event: ${event.id}`, 'parseGamesData');
         return null;
       }
 
-      // Map ESPN status to our status types
-      const normalizeStatus = (status) => {
-        // Common live game states in ESPN API
-        const liveStates = [
-          'STATUS_IN_PROGRESS',
-          'STATUS_OVERTIME',
-          'STATUS_HALFTIME',
-          'STATUS_HALFTIME_ET',
-          'STATUS_BREAK',
-          'STATUS_INTERMISSION',
-          'STATUS_FIRST_HALF',
-          'STATUS_SECOND_HALF',
-          'STATUS_END_PERIOD',
-          'STATUS_PLAYING',
-          'IN_PROGRESS',
-          'HALFTIME',
-          'END_PERIOD'
-        ];
-        
-        const statusName = status.type.name || status.state;
-        const isLive = liveStates.includes(statusName.toUpperCase());
-        
-        return {
-          type: isLive ? 'STATUS_IN_PROGRESS' : statusName,
-          displayClock: status.displayClock || status.clock || '',
-          period: status.period || 0,
-          completed: status.type.completed || status.state === 'post' || false
-        };
-      };
+      // Use shared normalizeStatus helper
 
   // Extract situation data for football games
   const situation = competition.situation || {};
@@ -228,110 +191,14 @@ const parseGamesData = (data, league) => {
           score: awayTeam.score || '0',
           logo: awayTeam.team.logo || ''
         },
-        // Normalize situation for different sports. Many ESPN scoreboards provide
-        // a `competition.situation` object but shape varies by sport. Attach a
-        // small, defensive subset depending on the league so tiles can render.
-        situation: (() => {
-          if (!situation || Object.keys(situation).length === 0) return null;
-
-          const ln = String(league).toLowerCase();
-
-          // Football (college / nfl family)
-          if (ln.includes('football')) {
-            // Normalize possession to home/away when possible and provide a
-            // human label. Use competition.drives/currentPlay when available.
-            const homeTeamInfo = {
-              id: homeTeam.id,
-              abbreviation: homeTeam.team.abbreviation,
-              name: homeTeam.team.displayName || homeTeam.team.name,
-              displayName: homeTeam.team.displayName || homeTeam.team.name
-            };
-            const awayTeamInfo = {
-              id: awayTeam.id,
-              abbreviation: awayTeam.team.abbreviation,
-              name: awayTeam.team.displayName || awayTeam.team.name,
-              displayName: awayTeam.team.displayName || awayTeam.team.name
-            };
-
-            const poss = detectPossession(competition, homeTeamInfo, awayTeamInfo);
-            return {
-              down: situation.down,
-              distance: situation.distance,
-              yardLine: situation.yardLine,
-              fieldSide: situation.possessionText?.includes('OWN') ? 'own' : 'opponent',
-              // Backwards-compatible: keep `possession` string but prefer a
-              // resolved team name when we know which side has the ball.
-              possession: poss.which === 'home' ? homeTeamInfo.name : poss.which === 'away' ? awayTeamInfo.name : (situation.possession || null),
-              possessionWhich: poss.which,
-              possessionLabel: poss.label
-              ,
-              // Preserve lastPlay for downstream components that may want to
-              // inspect the raw last play payload.
-              lastPlay: situation.lastPlay || null
-            };
-          }
-
-          // Baseball (MLB)
-          if (ln === 'mlb' || ln.includes('baseball')) {
-            return {
-              inning: situation.inning || competition.status?.period || null,
-              isTopInning: situation.isTopInning || situation.inningState === 'top' || false,
-              balls: typeof situation.balls === 'number' ? situation.balls : null,
-              strikes: typeof situation.strikes === 'number' ? situation.strikes : null,
-              outs: typeof situation.outs === 'number' ? situation.outs : null,
-              onFirst: !!situation.onFirst || !!situation.onBase?.first,
-              onSecond: !!situation.onSecond || !!situation.onBase?.second,
-              onThird: !!situation.onThird || !!situation.onBase?.third,
-              onBase: !!situation.onFirst || !!situation.onSecond || !!situation.onThird || Boolean(situation.onBase)
-            };
-          }
-
-          // Basketball
-          if (ln.includes('basketball')) {
-            return {
-              shotClock: situation.shotClock || null,
-              quarter: situation.period || competition.status?.period || null,
-              teamFouls: situation.teamFouls || null,
-              bonus: situation.bonus || null
-            };
-          }
-
-          // Hockey
-          if (ln.includes('hockey')) {
-            return {
-              powerPlay: situation.powerPlay || false,
-              powerPlayTeam: situation.powerPlayTeam || null,
-              powerPlayTime: situation.powerPlayTime || null,
-              shotsOnGoalHome: situation.shotsOnGoalHome || null,
-              shotsOnGoalAway: situation.shotsOnGoalAway || null
-            };
-          }
-
-          // SOCCER
-          if (ln.includes('soccer')) {
-            return {
-              // Preserve lastPlay for downstream components that may want to
-              // inspect the raw last play payload.
-              lastPlay: situation.lastPlay || null,
-              period: situation.period || competition.status?.period || null,
-              matchTime: situation.matchTime || null,
-              shotsOnGoalHome: situation.shotsOnGoalHome || null,
-              shotsOnGoalAway: situation.shotsOnGoalAway || null,
-              yellowCards: situation.yellowCards || 0,
-              redCards: situation.redCards || 0
-            };
-          }
-
-          // Default: return raw situation for downstream components that may
-          // expect other fields (soccer cards, penalties, etc.). Keep it small.
-          return situation;
-        })(),
+        // Use shared normalizeSituation helper
+        situation: normalizeSituation(league, situation, competition, homeTeam, awayTeam),
         date: new Date(event.date),
         venue: competition.venue ? competition.venue.fullName : 'TBD',
         finishedAt: competition.status.type.completed ? new Date() : null
       };
     } catch (error) {
-      console.error('Error parsing event:', event.id, error);
+      handleError(error, `parseGamesData (event: ${event.id})`);
       return null;
     }
   }).filter(game => game !== null); // Remove any failed parses
@@ -340,6 +207,11 @@ const parseGamesData = (data, league) => {
 /**
  * Get games for all supported leagues
  * @param {Array} selectedLeagues - Array of league names to fetch
+ * @returns {Promise<Object>} Object with games grouped by league
+ */
+/**
+ * Get games for all supported leagues
+ * @param {Array} [selectedLeagues] - Array of league names to fetch
  * @returns {Promise<Object>} Object with games grouped by league
  */
 export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw']) => {
@@ -359,7 +231,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
         gamesData[league] = games;
         debug(`Successfully fetched ${games.length} games for ${league}`);
       } else {
-        console.error('Failed to fetch games for a league:', result.reason);
+        handleError(result.reason, 'fetchAllGames (Promise.allSettled)');
       }
     });
 
@@ -379,8 +251,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
 
     return gamesData;
   } catch (error) {
-    console.error('Error fetching all games:', error);
-    throw error;
+    handleError(error, 'fetchAllGames', true);
   }
 };
 
@@ -391,10 +262,20 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
  * @param {string} eventId - ESPN event id
  * @returns {Promise<Object|null>} parsed JSON or null on error
  */
+/**
+ * Fetch per-game summary / boxscore for a specific event.
+ * This is an on-demand, optional fetch used to enrich tiles (goalie stats, penalties, play-by-play).
+ * @param {string} league - league key (e.g., 'nhl')
+ * @param {string} eventId - ESPN event id
+ * @returns {Promise<Object|null>} parsed JSON or null on error
+ */
 export const fetchGameSummary = async (league, eventId) => {
   try {
     const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
-    if (!baseEndpoint) throw new Error(`Unsupported league: ${league}`);
+    if (!baseEndpoint) {
+      handleError(`Unsupported league: ${league}`, 'fetchGameSummary');
+      return null;
+    }
 
     // Replace /scoreboard with /summary and append event id param if needed
     const summaryEndpoint = baseEndpoint.includes('/scoreboard')
@@ -403,13 +284,13 @@ export const fetchGameSummary = async (league, eventId) => {
 
     const res = await fetch(summaryEndpoint);
     if (!res.ok) {
-      console.warn('fetchGameSummary failed', res.status);
+      handleError(`fetchGameSummary failed: ${res.status}`, 'fetchGameSummary');
       return null;
     }
     const data = await res.json();
     return data;
   } catch (err) {
-    console.error('Error fetching game summary:', err);
+    handleError(err, 'fetchGameSummary');
     return null;
   }
 };
@@ -420,6 +301,11 @@ export const fetchGameSummary = async (league, eventId) => {
  * extracts goalie and empty-net info for home/away in a stable form.
  * @param {Object} raw - raw JSON from summary endpoint
  * @returns {Object} normalized summary { teams: { home: {...}, away: {...} } }
+ */
+/**
+ * Normalize a raw game summary/boxscore payload for downstream use
+ * @param {Object} raw - Raw summary/boxscore data
+ * @returns {Object|null} Normalized summary or null
  */
 export const normalizeGameSummary = (raw) => {
   if (!raw) return null;
@@ -491,15 +377,19 @@ export const normalizeGameSummary = (raw) => {
  * @param {Object} status - Game status
  * @returns {string} Formatted time string
  */
+/**
+ * Format game time for display
+ * @param {Date} date - Game date
+ * @param {Object} status - Game status
+ * @returns {string} Formatted time string
+ */
 export const formatGameTime = (date, status) => {
   if (status.completed) {
     return 'Final';
   }
-
-  if (status.type === 'STATUS_IN_PROGRESS') {
+  if (isGameOngoing(status)) {
     return status.displayClock ? `${status.displayClock} - Period ${status.period}` : 'Live';
   }
-
   if (status.type === 'STATUS_SCHEDULED') {
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -507,10 +397,14 @@ export const formatGameTime = (date, status) => {
       hour12: true
     });
   }
-
   return status.type.replace('STATUS_', '').replace('_', ' ');
 };
 
+/**
+ * Get status class for styling
+ * @param {Object} status - Game status
+ * @returns {string} CSS class name
+ */
 /**
  * Get status class for styling
  * @param {Object} status - Game status
@@ -520,16 +414,7 @@ export const getStatusClass = (status) => {
   if (status.completed) {
     return 'final';
   }
-  // Treat games in progress, halftime, intermission, overtime, etc. as live
-  if (
-    status.type === 'STATUS_IN_PROGRESS' ||
-    status.type === 'STATUS_HALFTIME' ||
-    status.type === 'STATUS_BREAK' ||
-    status.type === 'STATUS_INTERMISSION' ||
-    status.type === 'STATUS_END_PERIOD' ||
-    status.type === 'STATUS_OVERTIME' || // OVERTIME is live for soccer
-    status.type === 'STATUS_HALFTIME_ET'
-  ) {
+  if (isGameOngoing(status)) {
     return 'live';
   }
   return 'scheduled';
@@ -540,164 +425,25 @@ export const getStatusClass = (status) => {
  * @param {string} league - League identifier
  * @returns {Object} Color theme object
  */
-export const getLeagueColors = (league) => {
-  const themes = {
-    nfl: {
-      primary: '#013369',
-      secondary: '#D50A0A',
-      accent: '#FFB612',
-      background: '#f8f9ff'
-    },
-    nhl: {
-      primary: '#000000',
-      secondary: '#C8102E',
-      accent: '#FCB514',
-      background: '#f5f5f5'
-    },
-    fcs: {
-      primary: '#8B0000',
-      secondary: '#FFD700',
-      accent: '#228B22',
-      background: '#fff8f0'
-    },
-    fbs: {
-      primary: '#FF8C00',
-      secondary: '#4169E1',
-      accent: '#32CD32',
-      background: '#fff5ee'
-    },
-    mlb: {
-      primary: '#002D72',
-      secondary: '#D50032',
-      accent: '#FFFFFF',
-      background: '#f0f8ff'
-    },
-    bundesliga1: {
-      primary: '#D20515',
-      secondary: '#000000',
-      accent: '#FFCC02',
-      background: '#fff0f0'
-    },
-    bundesliga2: {
-      primary: '#005CA9',
-      secondary: '#FFFFFF',
-      accent: '#E30613',
-      background: '#f0f5ff'
-    },
-    dfb_pokal: {
-      primary: '#008751', // DFB green
-      secondary: '#FFFFFF',
-      accent: '#FFD700',
-      background: '#f0fff0'
-    },
-    ucl: {
-      primary: '#1B1E3C', // UCL dark blue
-      secondary: '#FFFFFF',
-      accent: '#FFD700',
-      background: '#f5f7fa'
-    },
-     nba: {
-      primary: '#002D72',
-      secondary: '#D50032',
-      accent: '#FFFFFF',
-      background: '#f0f8ff'
-    },
-    mls: {
-      primary: '#D20515',
-      secondary: '#000000',
-      accent: '#FFCC02',
-      background: '#fff0f0'
-    },
-    ncaaw: {
-      primary: '#005CA9',
-      secondary: '#FFFFFF',
-      accent: '#E30613',
-      background: '#f0f5ff'
-    }
-  };
-  
-  return themes[league.toLowerCase()] || themes.nfl;
-};
+// getLeagueColors now imported from gameUtils
 
 /**
  * Check if a game should be moved to bottom (finished > 2 minutes ago)
  * @param {Object} game - Game object
  * @returns {boolean} Whether game should be at bottom
  */
-export const shouldMoveToBottom = (game) => {
-  if (!game.status.completed || !game.finishedAt) {
-    return false;
-  }
-  
-  const now = new Date();
-  const timeSinceFinished = now - new Date(game.finishedAt);
-  const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
-  
-  return timeSinceFinished > twoMinutes;
-};
+// shouldMoveToBottom now imported from gameUtils
 
 /**
  * Sort games with smart ordering
  * @param {Array} games - Array of games
  * @returns {Array} Sorted games array
  */
-export const sortGames = (games) => {
-  return games.sort((a, b) => {
-    // Check if games should be moved to bottom
-    const aToBottom = shouldMoveToBottom(a);
-    const bToBottom = shouldMoveToBottom(b);
-    
-    if (aToBottom && !bToBottom) return 1;
-    if (!aToBottom && bToBottom) return -1;
-    
-    // Live games first (among non-bottom games) - including games in breaks
-    if (!aToBottom && !bToBottom) {
-      const aIsLive = a.status.type === 'STATUS_IN_PROGRESS' ||
-                     a.status.type === 'STATUS_HALFTIME' ||
-                     a.status.type === 'STATUS_BREAK' ||
-                     a.status.type === 'STATUS_INTERMISSION' ||
-                     a.status.type === 'STATUS_END_PERIOD';
-      const bIsLive = b.status.type === 'STATUS_IN_PROGRESS' ||
-                     b.status.type === 'STATUS_HALFTIME' ||
-                     b.status.type === 'STATUS_BREAK' ||
-                     b.status.type === 'STATUS_INTERMISSION' ||
-                     b.status.type === 'STATUS_END_PERIOD';
-      
-      if (aIsLive && !bIsLive) return -1;
-      if (bIsLive && !aIsLive) return 1;
-    }
-    
-    // Then by date
-    return new Date(a.date) - new Date(b.date);
-  });
-};
+// sortGames now imported from gameUtils
 
 /**
  * Extract all unique teams from games data
  * @param {Object} gamesData - Games data grouped by league
  * @returns {Array} Array of team objects
  */
-export const extractTeams = (gamesData) => {
-  const teams = [];
-  const teamIds = new Set();
-  
-  Object.entries(gamesData).forEach(([league, games]) => {
-    games.forEach(game => {
-      [game.homeTeam, game.awayTeam].forEach(team => {
-        var uniqueId = league + team.id;
-        //console.log('####Processing team:', uniqueId);
-        if (!teamIds.has(uniqueId)) {
-          teamIds.add(uniqueId);
-          teams.push({
-            id: uniqueId,
-            name: team.name,
-            abbreviation: team.abbreviation,
-            league: league.toUpperCase()
-          });
-        }
-      });
-    });
-  });
-  
-  return teams.sort((a, b) => a.name.localeCompare(b.name));
-};
+// extractTeams now imported from gameUtils

@@ -10,6 +10,7 @@ import {
   getIncrementalCacheStats,
   setTrackedLeagues
 } from '../services/incrementalUpdates';
+import { isGameOngoing } from '../services/gameUtils';
 
 /**
  * Custom hook for managing incremental updates in React components
@@ -203,17 +204,7 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
   const getLiveGamesCount = useCallback(() => {
     let liveCount = 0;
     Object.values(games).forEach(leagueGames => {
-      liveCount += leagueGames.filter(game => 
-        game.status.type === 'STATUS_IN_PROGRESS' ||
-        game.status.type === 'STATUS_HALFTIME' ||
-        game.status.type === 'STATUS_HALFTIME_ET' ||
-        game.status.type === 'STATUS_OVERTIME' ||
-        game.status.type === 'STATUS_FIRST_HALF' ||
-        game.status.type === 'STATUS_SECOND_HALF' ||
-        game.status.type === 'STATUS_BREAK' ||
-        game.status.type === 'STATUS_INTERMISSION' ||
-        game.status.type === 'STATUS_END_PERIOD'
-      ).length;
+      liveCount += leagueGames.filter(game => isGameOngoing(game.status)).length;
     });
     return liveCount;
   }, [games]);

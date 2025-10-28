@@ -2,6 +2,7 @@
 // Provides efficient data synchronization with minimal API calls and optimal user experience
 
 import { fetchGames } from './sportsApi-fixed';
+import { isGameOngoing } from './gameUtils';
 
 /**
  * Incremental Updates Manager
@@ -364,17 +365,7 @@ class IncrementalUpdatesManager {
     const games = this.cache.get(cacheKey) || [];
     
     // Check if any games are live
-    const hasLiveGames = games.some(game => 
-      game.status.type === 'STATUS_IN_PROGRESS' ||
-      game.status.type === 'STATUS_HALFTIME' ||
-      game.status.type === 'STATUS_HALFTIME_ET' ||
-      game.status.type === 'STATUS_OVERTIME' ||
-      game.status.type === 'STATUS_FIRST_HALF' ||
-      game.status.type === 'STATUS_SECOND_HALF' ||
-      game.status.type === 'STATUS_BREAK' ||
-      game.status.type === 'STATUS_INTERMISSION' ||
-      game.status.type === 'STATUS_END_PERIOD'
-    );
+    const hasLiveGames = games.some(game => isGameOngoing(game.status));
 
     // Check if any games are starting soon (within 30 minutes)
     const now = new Date();
