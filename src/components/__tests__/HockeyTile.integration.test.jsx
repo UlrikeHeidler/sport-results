@@ -19,15 +19,23 @@ describe('HockeyGameTile integration', () => {
       }
     };
 
-    const { rerender } = render(<HockeyGameTile game={initialGame} index={0} />);
+  const { rerender, container } = render(<HockeyGameTile game={initialGame} index={0} />);
 
-    // Initial SOG present
-    expect(screen.getByText(/SOG: 8/)).toBeTruthy();
-    expect(screen.getByText(/SOG: 10/)).toBeTruthy();
+  // Initial period/clock present (scoped to additional-info area)
+  const additional = container.querySelector('.additional-info-wrapper');
+  expect(additional).toBeTruthy();
+  const { getByText: getByTextInAdditional } = require('@testing-library/dom');
+  // the additional-info-wrapper should contain the clock text
+  expect(getByTextInAdditional(additional, /10:00/)).toBeTruthy();
+
+  // Initial SOG present
+  expect(screen.getByText(/SOG: 8/)).toBeTruthy();
+  expect(screen.getByText(/SOG: 10/)).toBeTruthy();
 
     // Update situation: shot counts change and power play starts for home
     const updatedGame = {
       ...initialGame,
+      status: { type: 'STATUS_IN_PROGRESS', displayClock: '05:12', period: 3 },
       situation: {
         shotCount: { home: 12, away: 9 },
         powerPlay: true,
@@ -37,6 +45,9 @@ describe('HockeyGameTile integration', () => {
     };
 
     rerender(<HockeyGameTile game={updatedGame} index={0} />);
+
+  // Updated period/clock (scoped to additional-info area)
+  expect(getByTextInAdditional(additional, /05:12/)).toBeTruthy();
 
     // Updated SOG
     expect(screen.getByText(/SOG: 9/)).toBeTruthy();

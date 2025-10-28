@@ -37,27 +37,32 @@ const FootballGameTile = (props) => {
   // Football-specific additional info renderer (compact)
   const renderAdditionalInfo = (game) => {
     console.log('Rendering football additional info for game:', game.id);
-    const s = game.situation;
-    if (!s) {
+    console.log('Rendering football additional info :', game.situation);
+    const situation = game.situation;
+    if (!situation) {
       console.log('No situation data for game:', game.id);
       return null;
     }
 
-    const down = s.down ?? null;
-    const distance = s.distance ?? null;
-    const yardLine = s.yardLine ? parseInt(s.yardLine) : null;
-    const inOpponent = s.fieldSide === 'opponent';
+    const down = situation.down ?? null;
+    const distance = situation.distance ?? null;
+    const yardLine = situation.yardLine ? parseInt(situation.yardLine) : null;
+    const inOpponent = situation.fieldSide === 'opponent';
     const ballPercent = yardLine ? (inOpponent ? 50 + (50 - yardLine) : yardLine) : 50;
-
-    console.log('Football situation:', { down, distance, yardLine, inOpponent, ballPercent });
+    // Prefer provided downDistanceText, otherwise construct from down & distance
+    const downDistanceText = situation.downDistanceText
+      ? `${situation.downDistanceText}`
+      : (down ? `${down}${getDownSuffix(down)} & ${distance ?? '—'}` : '—');
+   
+    console.log('Football situation:', { down, distance, yardLine, inOpponent, ballPercent, downDistanceText });
 
     return (
       <div className="football-info compact">
         <div className="compact-row">
-          <div className="down-display">{down ? `${down}${getOrdinalSuffix(down)} & ${distance || '-'}` : '—'}</div>
+          <div className="down-display">{downDistanceText}</div>
           <div className="field-display compact-field">
             <div className="field-line compact-line">
-              <div className="ball-marker compact-ball" style={{ left: `${(ballPercent / 100) * 100}%` }} />
+              <div className="ball-marker compact-ball" style={{ right: `${(ballPercent / 100) * 100}%` }} />
             </div>
           </div>
         </div>

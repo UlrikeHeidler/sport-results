@@ -8,7 +8,7 @@ import HockeyGameTile from './HockeyGameTile';
 import SoccerGameTile from './SoccerGameTile';
 import './GameTiles.css';
 
-const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot }) => {
+const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot, showTeamForm = true }) => {
   // Select the appropriate tile component based on league/sport
   const getTileComponent = () => {
     const league = game.league.toLowerCase();
@@ -52,7 +52,8 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
     index,
     colorCoding,
     isDragDisabled,
-    isDragging: snapshot?.isDragging
+    isDragging: snapshot?.isDragging,
+    showTeamForm
   };
 
   return (

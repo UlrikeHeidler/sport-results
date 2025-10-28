@@ -147,19 +147,31 @@ const BaseGameTile = ({
     );
   };
 
-  const renderTeamName = (team, isHome) => (
-    <div className="team-details">
-      <div className={`team-name ${game.situation?.possession === team?.name ? 'has-possession' : ''}`}>
-        <span className="abbrev">{team?.abbreviation}</span>
-        {showTeamForm && team?.id && renderTeamForm(team)}
-        {/* Possession marker: show a small football emoji when this team has possession */}
-        {game.situation?.possession === team?.name && (
-          <span className="possession-marker" aria-hidden title="Has possession">🏈</span>
-        )}
-        <span className="tooltip">{team?.name}</span>
+  const renderTeamName = (team, isHome) => {
+    // Determine possession for this team. Prefer the normalized `possessionWhich`
+    // field (set to 'home'|'away') if available. Fall back to string matching
+    // against team name or possession label when necessary.
+    const situation = game.situation || null;
+    let hasPossessionMarker = false;
+    if (situation) {
+      console.log('Determining possession for team:', team.id, 'with situation:', situation.lastPlay?.team?.id);
+      if (situation?.lastPlay && situation?.lastPlay?.team?.id === team?.id) hasPossessionMarker = true;
+    }
+
+    return (
+      <div className="team-details">
+        <div className={`team-name ${hasPossessionMarker ? 'has-possession' : ''}`}>
+          <span className="abbrev">{team?.abbreviation}</span>
+          {showTeamForm && team?.id && renderTeamForm(team)}
+          {/* Possession marker: show a small football emoji when this team has possession */}
+          {hasPossessionMarker && (
+            <span className="possession-marker" aria-hidden title="Has possession">🏈</span>
+          )}
+          <span className="tooltip">{team?.name}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const defaultRenderScore = (team, isHome) => (
     <div className={`team-score ${animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : ''}`}>

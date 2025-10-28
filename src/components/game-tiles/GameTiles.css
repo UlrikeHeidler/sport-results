@@ -138,7 +138,6 @@
   justify-content: center;
   gap: 1rem;
   margin-top: 0.5rem;
-  font-family: monospace;
   font-size: 1.1rem;
 }
 
@@ -203,7 +202,8 @@
   flex-direction: column;
   gap: 0.2rem;
   text-align: left;
-  font-family: monospace;
+  font-size: 0.9rem;
+  color: #666;
 }
 
 /* Hockey */
@@ -219,6 +219,31 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 0.9rem;
+}
+
+.period-clock {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.period-clock .period {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.power-play {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .shots-on-goal {
@@ -405,7 +430,6 @@
   transform: translateY(-50%);
   width: 3px;
   height: 70%;
-  background: #4CAF50;
   border-radius: 2px;
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
 }

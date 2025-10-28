@@ -415,6 +415,7 @@ function App() {
                           colorCoding={settings.colorCoding}
                           isDragDisabled={sortMode === 'startTime'}
                           draggableId={`${game.league}-${game.id}`}
+                          showTeamForm={settings.showTeamForm}
                         />
                       ))}
                       {provided.placeholder}
