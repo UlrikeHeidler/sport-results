@@ -1,4 +1,5 @@
 // ESPN API endpoints for sports data
+import { debug } from '../utils/logger';
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports';
 
 // API endpoints for different leagues
@@ -122,20 +123,20 @@ export const fetchGames = async (league) => {
 
 
     const dateStr = today.getFullYear()+''+(today.getMonth() + 1)+''+today.getDate();
-    console.log('Fetching games for date:', dateStr);
+  debug('Fetching games for date:', dateStr);
     // Append dates parameter using existing URL params or adding new one
     const separator = baseEndpoint.includes('?') ? '&' : '?';
     const endpoint = `${baseEndpoint}${separator}dates=${dateStr}`;
     
-    console.log(`Fetching ${league} games from:`, endpoint);
+  debug(`Fetching ${league} games from:`, endpoint);
     
     const response = await fetch(endpoint);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log(`${league} API response:`, data);
+  const data = await response.json();
+  debug(`${league} API response:`, data);
     return parseGamesData(data, league);
   } catch (error) {
     console.error(`Error fetching ${league} games:`, error);
@@ -151,11 +152,11 @@ export const fetchGames = async (league) => {
  */
 const parseGamesData = (data, league) => {
   if (!data.events || !Array.isArray(data.events)) {
-    console.log(`No events found for ${league}`);
+    debug(`No events found for ${league}`);
     return [];
   }
 
-  console.log(`Parsing ${data.events.length} events for ${league}`);
+  debug(`Parsing ${data.events.length} events for ${league}`);
 
   return data.events.map(event => {
     try {
@@ -195,9 +196,9 @@ const parseGamesData = (data, league) => {
         };
       };
 
-      // Extract situation data for football games
-      const situation = competition.situation || {};
-      console.log(`Game ${event.id} situation data:`, situation);
+  // Extract situation data for football games
+  const situation = competition.situation || {};
+  debug(`Game ${event.id} situation data:`, situation);
 
       return {
         id: event.id,
@@ -318,7 +319,7 @@ const parseGamesData = (data, league) => {
  */
 export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw']) => {
   try {
-    console.log('Fetching games for leagues:', selectedLeagues);
+    debug('Fetching games for leagues:', selectedLeagues);
     
     const promises = selectedLeagues.map(league => 
       fetchGames(league).then(games => ({ league, games }))
@@ -331,7 +332,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
       if (result.status === 'fulfilled') {
         const { league, games } = result.value;
         gamesData[league] = games;
-        console.log(`Successfully fetched ${games.length} games for ${league}`);
+        debug(`Successfully fetched ${games.length} games for ${league}`);
       } else {
         console.error('Failed to fetch games for a league:', result.reason);
       }
@@ -348,7 +349,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
         const gameDate = new Date(game.date);
         return gameDate >= today && gameDate <= endOfToday;
       });
-      console.log(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
+      debug(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
     });
 
     return gamesData;

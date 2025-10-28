@@ -1,6 +1,7 @@
 import React from 'react';
 import BaseGameTile from './BaseGameTile';
 import './GameTiles.football.css';
+import { debug } from '../../utils/logger';
 
 // Helper function to get ordinal suffix for numbers
 const getOrdinalSuffix = (num) => {
@@ -15,9 +16,9 @@ const getOrdinalSuffix = (num) => {
 const FootballGameTile = (props) => {
   const { game } = props;
 
-  // Detailed logging
-  console.log('FootballGameTile props:', props);
-  console.log('FootballGameTile game data:', {
+  // Verbose dev logging (no-op in production)
+  debug('FootballGameTile props:', props);
+  debug('FootballGameTile game data:', {
     id: game.id,
     league: game.league,
     situation: game.situation,
@@ -36,11 +37,11 @@ const FootballGameTile = (props) => {
 
   // Football-specific additional info renderer (compact)
   const renderAdditionalInfo = (game) => {
-    console.log('Rendering football additional info for game:', game.id);
-    console.log('Rendering football additional info :', game.situation);
+  debug('Rendering football additional info for game:', game.id);
+  debug('Rendering football additional info :', game.situation);
     const situation = game.situation;
     if (!situation) {
-      console.log('No situation data for game:', game.id);
+      debug('No situation data for game:', game.id);
       return null;
     }
 
@@ -54,7 +55,7 @@ const FootballGameTile = (props) => {
       ? `${situation.downDistanceText}`
       : (down ? `${down}${getDownSuffix(down)} & ${distance ?? '—'}` : '—');
    
-    console.log('Football situation:', { down, distance, yardLine, inOpponent, ballPercent, downDistanceText });
+  debug('Football situation:', { down, distance, yardLine, inOpponent, ballPercent, downDistanceText });
 
     return (
       <div className="football-info compact">
@@ -82,12 +83,12 @@ const FootballGameTile = (props) => {
   const baseGameProps = {
     ...props,
     renderAdditionalInfo: () => {
-      console.log('renderAdditionalInfo called in FootballGameTile');
+      debug('renderAdditionalInfo called in FootballGameTile');
       return renderAdditionalInfo(game);
     }
   };
 
-  console.log('Rendering FootballGameTile BaseGameTile with:', {
+  debug('Rendering FootballGameTile BaseGameTile with:', {
     hasRenderFunction: !!renderAdditionalInfo,
     gameHasSituation: !!game.situation
   });

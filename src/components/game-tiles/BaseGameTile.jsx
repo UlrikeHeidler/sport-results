@@ -244,15 +244,7 @@ const BaseGameTile = ({
         {renderTeam(game.homeTeam, true)}
       </div>
 
-      {/* Debug information */}
-      <div style={{ display: 'none' }}>
-        {console.log('BaseGameTile rendering additional info:', {
-          hasCustomRender: !!customRenderAdditionalInfo,
-          gameId: game.id,
-          hasSituation: !!game.situation,
-          situation: game.situation
-        })}
-      </div>
+      {/* Debug information removed: avoid noisy console output in render */}
 
       <div className="game-time">
         {timeDisplay}

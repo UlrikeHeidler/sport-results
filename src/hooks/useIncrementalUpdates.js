@@ -2,6 +2,7 @@
 // Provides seamless integration with React components for real-time data updates
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { debug } from '../utils/logger';
 import { 
   initializeIncrementalUpdates, 
   getGamesWithIncrementalUpdates, 
@@ -40,7 +41,7 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
    * Handle real-time changes from the incremental updates system
    */
   const handleChanges = useCallback((changes) => {
-    console.log('Received incremental changes:', changes);
+    debug('Received incremental changes:', changes);
     
     // Update recent changes for debugging/monitoring
     setRecentChanges(prev => {

@@ -7,6 +7,7 @@ import FootballGameTile from './FootballGameTile';
 import HockeyGameTile from './HockeyGameTile';
 import SoccerGameTile from './SoccerGameTile';
 import './GameTiles.css';
+import { debug } from '../../utils/logger';
 
 const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot, showTeamForm = true }) => {
   // Select the appropriate tile component based on league/sport
@@ -39,7 +40,7 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
 
   const TileComponent = getTileComponent();
   
-  console.log('GameTileFactory rendering:', {
+  debug('GameTileFactory rendering:', {
     componentType: TileComponent.name,
     league: game.league,
     hasSituation: !!game.situation,
