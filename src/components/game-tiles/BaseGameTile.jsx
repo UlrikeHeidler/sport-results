@@ -202,9 +202,19 @@ const BaseGameTile = ({
 
   const renderTeamScore = customRenderScore || defaultRenderScore;
 
+  // Winner logic: only for completed games
+  let winner = null;
+  if (game.status && game.status.completed) {
+    const homeScore = Number(game.homeTeam?.score ?? 0);
+    const awayScore = Number(game.awayTeam?.score ?? 0);
+    if (homeScore > awayScore) winner = 'home';
+    else if (awayScore > homeScore) winner = 'away';
+  }
+
   const renderTeam = (team, isHome = false) => {
+    const isWinner = winner && ((winner === 'home' && isHome) || (winner === 'away' && !isHome));
     return (
-      <div className="team">
+      <div className={`team${isWinner ? ' winner' : ''}`}>
         <div className="team-info">
           {renderTeamLogo(team)}
           {renderTeamName(team, isHome)}
@@ -212,7 +222,7 @@ const BaseGameTile = ({
         {renderTeamScore(team, isHome, animations)}
       </div>
     );
-  };  
+  };
   
   const renderGameStatus = () => (
     <div className="game-header">
