@@ -15,6 +15,7 @@ const API_ENDPOINTS = {
 const ongoingTypes = new Set([
   'STATUS_IN_PROGRESS',
   'STATUS_HALFTIME',
+  'STATUS_HALFTIME_ET',
   'STATUS_OVERTIME',
   'STATUS_FIRST_HALF',
   'STATUS_SECOND_HALF',
@@ -23,6 +24,13 @@ const ongoingTypes = new Set([
   'STATUS_BREAK',
   'STATUS_INTERMISSION',
   'STATUS_END_PERIOD'
+]);
+
+const inBreakTypes = new Set([
+  'STATUS_HALFTIME',
+  'STATUS_HALFTIME_ET',
+  'STATUS_BREAK',
+  'STATUS_INTERMISSION'
 ]);
 
 // Date utilities
@@ -193,11 +201,26 @@ export const formatGameTime = (date, status = {}, league = '') => {
   try {
     // For MLB, don't show anything, because we will display the score in a diamond.
     if (league && String(league).toLowerCase() === 'mlb') {
-      return '';
+      if (ongoingTypes.has(status.type) || status.completed) {
+        return '';
+      }
+      if (date instanceof Date) {
+        return date.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+      return String(date);
     }
 
     if (status && status.completed) {
       return 'Final';
+    }
+    console.log('formatGameTime inputs:', { date, status, league });
+    
+    if (status && inBreakTypes.has(status.type)) {
+      return 'INTERMISSION';
     }
 
     if (status && ongoingTypes.has(status.type)) {

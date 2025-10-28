@@ -28,25 +28,35 @@ class IncrementalUpdatesManager {
     };
   }
 
-  // Helper to clone a game object defensively so callers don't accidentally
-  // mutate the internal cache objects. This creates shallow copies of nested
-  // team/status/situation objects and rehydrates date fields.
+  // Deep clone a game object, including all nested objects/arrays, to ensure React state updates
   cloneGame(game) {
     if (!game) return game;
     try {
+      // Deep clone using structuredClone if available (modern browsers)
+      if (typeof structuredClone === 'function') {
+        return structuredClone(game);
+      }
+      // Fallback: manual deep clone for all relevant fields
       return {
         ...game,
         homeTeam: game.homeTeam ? { ...game.homeTeam } : null,
         awayTeam: game.awayTeam ? { ...game.awayTeam } : null,
-        teams: game.teams ? { home: { ...(game.teams.home || {}) }, away: { ...(game.teams.away || {}) } } : game.teams,
+        teams: game.teams ? {
+          home: game.teams.home ? { ...game.teams.home } : null,
+          away: game.teams.away ? { ...game.teams.away } : null
+        } : null,
         status: game.status ? { ...game.status } : null,
-        situation: game.situation ? (Array.isArray(game.situation) ? game.situation.slice() : { ...game.situation }) : null,
+        situation: game.situation
+          ? (Array.isArray(game.situation)
+              ? game.situation.map(s => (typeof s === 'object' && s !== null ? { ...s } : s))
+              : { ...game.situation })
+          : null,
         date: game.date ? new Date(game.date) : null,
         finishedAt: game.finishedAt ? new Date(game.finishedAt) : null
       };
     } catch (e) {
       // Fallback to returning the original object if cloning fails
-      return game;
+      return JSON.parse(JSON.stringify(game));
     }
   }
 
@@ -153,7 +163,7 @@ class IncrementalUpdatesManager {
       if (result.status === 'fulfilled') {
         const { league, games } = result.value;
         // Return clones to callers to avoid exposing internal cache references
-        results[league] = (games || []).map(g => this.cloneGame ? this.cloneGame(g) : g);
+          results[league] = (games || []).map(g => this.cloneGame(g));
       }
     });
 
@@ -180,13 +190,24 @@ class IncrementalUpdatesManager {
       // Save to localStorage
       this.saveCacheToStorage();
       
-      // Notify listeners of changes
+      // Always notify listeners: if changes, send them; otherwise, send a GAME_REFRESH event for all games
       if (changes.length > 0) {
         // Clone game objects on change payloads as well to be defensive
         const safeChanges = changes.map(c => ({ ...c, game: this.cloneGame(c.game) }));
         this.notifyChanges(safeChanges);
+      } else {
+        // No detected changes, but new data fetched: notify listeners with a GAME_REFRESH for each game
+        const refreshEvents = (cloned || []).map(game => ({
+          type: 'GAME_REFRESH',
+          league,
+          gameId: game.id,
+          game,
+          timestamp: Date.now()
+        }));
+        if (refreshEvents.length > 0) {
+          this.notifyChanges(refreshEvents);
+        }
       }
-      
       return { league, games: newGames, changes };
     } catch (error) {
       console.error(`Failed to update ${league}:`, error);
@@ -462,55 +483,14 @@ class IncrementalUpdatesManager {
   /**
    * Save cache to localStorage
    */
-  saveCacheToStorage() {
-    try {
-      const cacheData = {
-        games: Object.fromEntries(this.cache),
-        lastFetch: Object.fromEntries(this.lastFetch),
-        timestamp: Date.now()
-      };
-      localStorage.setItem('sportsApp_incrementalCache', JSON.stringify(cacheData));
-    } catch (error) {
-      console.error('Failed to save cache to storage:', error);
-    }
-  }
+  // Disabled: No-op to avoid localStorage caching issues
+  saveCacheToStorage() {}
 
   /**
    * Load cache from localStorage
    */
-  loadCacheFromStorage() {
-    try {
-      const stored = localStorage.getItem('sportsApp_incrementalCache');
-      if (stored) {
-        const cacheData = JSON.parse(stored);
-        
-        // Check if cache is not expired
-        if (Date.now() - cacheData.timestamp < this.config.cacheExpiry) {
-          // Rehydrate games: JSON.stringify turns Date objects into ISO strings,
-          // so convert `date` and `finishedAt` back into Date objects here.
-          const gamesObj = cacheData.games || {};
-          const rehydratedGames = {};
-          Object.entries(gamesObj).forEach(([cacheKey, games]) => {
-            rehydratedGames[cacheKey] = (games || []).map(game => ({
-              // keep all properties but convert date-like fields back to Date
-              ...game,
-              date: game && game.date ? new Date(game.date) : null,
-              finishedAt: game && game.finishedAt ? new Date(game.finishedAt) : null
-            }));
-          });
-
-          this.cache = new Map(Object.entries(rehydratedGames));
-
-          // Ensure lastFetch values are numbers (they may be stored as strings)
-          const lastFetchObj = cacheData.lastFetch || {};
-          const lastFetchMap = new Map(Object.entries(lastFetchObj).map(([k, v]) => [k, Number(v)]));
-          this.lastFetch = lastFetchMap;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load cache from storage:', error);
-    }
-  }
+  // Disabled: No-op to avoid localStorage caching issues
+  loadCacheFromStorage() {}
 
   /**
    * Clear all cached data
@@ -518,7 +498,7 @@ class IncrementalUpdatesManager {
   clearCache() {
     this.cache.clear();
     this.lastFetch.clear();
-    localStorage.removeItem('sportsApp_incrementalCache');
+    // localStorage.removeItem('sportsApp_incrementalCache');
   }
 
   /**

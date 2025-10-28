@@ -3,14 +3,14 @@ import React from 'react';
 const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) => {
   const leagueInfo = {
     nfl: { name: 'NFL', fullName: 'National Football League', emoji: '🏈', sport: 'Football' },
-    fbs: { name: 'FBS', fullName: 'College Football FBS Division', emoji: '�', sport: 'Football' },
+    fbs: { name: 'FBS', fullName: 'College Football FBS Division', emoji: '🏈', sport: 'Football' },
     fcs: { name: 'FCS', fullName: 'College Football FCS Division', emoji: '🏈', sport: 'Football' },
-    nhl: { name: 'NHL', fullName: 'National Hockey League', emoji: '�', sport: 'Hockey' },
+    nhl: { name: 'NHL', fullName: 'National Hockey League', emoji: ' 🏒', sport: 'Hockey' },
     mlb: { name: 'MLB', fullName: 'Major League Baseball', emoji: '⚾', sport: 'Baseball' },
     bundesliga1: { name: 'BL1', fullName: 'German Bundesliga 1', emoji: '⚽', sport: 'Soccer' },
     bundesliga2: { name: 'BL2', fullName: 'German Bundesliga 2', emoji: '⚽', sport: 'Soccer' },
-    dfb_pokal: { name: 'DFB', fullName: 'German Cup (DFB Pokal)', emoji: '🏆', sport: 'Soccer' },
-    ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⭐️', sport: 'Soccer' },
+    dfb_pokal: { name: 'DFB', fullName: 'German Cup (DFB Pokal)', emoji: '⚽', sport: 'Soccer' },
+    ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⚽', sport: 'Soccer' },
     mls: { name: 'MLS', fullName: 'Major League Soccer', emoji: '⚽', sport: 'Soccer' },
     nba: { name: 'NBA', fullName: 'National Basketball Association', emoji: '🏀', sport: 'Basketball' },
     ncaaw: { name: 'NCAAW', fullName: 'Womens College Basketball', emoji: '🏀', sport: 'Basketball' },

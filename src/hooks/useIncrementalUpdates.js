@@ -62,12 +62,10 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
     // Apply changes to current games state
     setGames(prevGames => {
       const newGames = { ...prevGames };
-      
       Object.entries(changesByLeague).forEach(([league, leagueChanges]) => {
         if (!newGames[league]) {
           newGames[league] = [];
         }
-
         leagueChanges.forEach(change => {
           switch (change.type) {
             case 'NEW_GAME':
@@ -76,24 +74,26 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
                 newGames[league] = [...newGames[league], change.game];
               }
               break;
-              
             case 'GAME_UPDATED':
-              // Update existing game
-              newGames[league] = newGames[league].map(game => 
-                game.id === change.gameId ? change.game : game
-              );
+            case 'GAME_REFRESH':
+              // Update existing game (or insert if missing)
+              if (newGames[league].find(g => g.id === change.gameId)) {
+                newGames[league] = newGames[league].map(game =>
+                  game.id === change.gameId ? change.game : game
+                );
+              } else {
+                newGames[league] = [...newGames[league], change.game];
+              }
               break;
-              
             case 'GAME_REMOVED':
               // Remove game
-              newGames[league] = newGames[league].filter(game => 
+              newGames[league] = newGames[league].filter(game =>
                 game.id !== change.gameId
               );
               break;
           }
         });
       });
-
       return newGames;
     });
 
