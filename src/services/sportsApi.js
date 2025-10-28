@@ -190,10 +190,9 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl']) => {
  */
 export const formatGameTime = (date, status = {}, league = '') => {
   try {
-    // For MLB, prefer the status.description if available (ESPN provides
-    // human-readable timing like "Top 5th" in description).
+    // For MLB, don't show anything, because we will display the score in a diamond.
     if (league && String(league).toLowerCase() === 'mlb') {
-      if (status && status.description) return status.description;
+      return '';
     }
 
     if (status && status.completed) {

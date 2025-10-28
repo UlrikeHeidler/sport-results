@@ -150,13 +150,65 @@ const parseGamesData = (data, league) => {
           score: awayTeam.score || '0',
           logo: awayTeam.team.logo || ''
         },
-        situation: league.toLowerCase().includes('football') ? {
-          down: situation.down,
-          distance: situation.distance,
-          yardLine: situation.yardLine,
-          fieldSide: situation.possessionText?.includes('OWN') ? 'own' : 'opponent',
-          possession: situation.possession
-        } : null,
+        // Normalize situation for different sports. Many ESPN scoreboards provide
+        // a `competition.situation` object but shape varies by sport. Attach a
+        // small, defensive subset depending on the league so tiles can render.
+        situation: (() => {
+          if (!situation || Object.keys(situation).length === 0) return null;
+
+          const ln = String(league).toLowerCase();
+
+          // Football (college / nfl family)
+          if (ln.includes('football')) {
+            return {
+              down: situation.down,
+              distance: situation.distance,
+              yardLine: situation.yardLine,
+              fieldSide: situation.possessionText?.includes('OWN') ? 'own' : 'opponent',
+              possession: situation.possession
+            };
+          }
+
+          // Baseball (MLB)
+          if (ln === 'mlb' || ln.includes('baseball')) {
+            return {
+              inning: situation.inning || competition.status?.period || null,
+              isTopInning: situation.isTopInning || situation.inningState === 'top' || false,
+              balls: typeof situation.balls === 'number' ? situation.balls : null,
+              strikes: typeof situation.strikes === 'number' ? situation.strikes : null,
+              outs: typeof situation.outs === 'number' ? situation.outs : null,
+              onFirst: !!situation.onFirst || !!situation.onBase?.first,
+              onSecond: !!situation.onSecond || !!situation.onBase?.second,
+              onThird: !!situation.onThird || !!situation.onBase?.third,
+              onBase: !!situation.onFirst || !!situation.onSecond || !!situation.onThird || Boolean(situation.onBase)
+            };
+          }
+
+          // Basketball
+          if (ln.includes('basketball')) {
+            return {
+              shotClock: situation.shotClock || null,
+              quarter: situation.period || competition.status?.period || null,
+              teamFouls: situation.teamFouls || null,
+              bonus: situation.bonus || null
+            };
+          }
+
+          // Hockey
+          if (ln.includes('hockey')) {
+            return {
+              powerPlay: situation.powerPlay || false,
+              powerPlayTeam: situation.powerPlayTeam || null,
+              powerPlayTime: situation.powerPlayTime || null,
+              shotsOnGoalHome: situation.shotsOnGoalHome || null,
+              shotsOnGoalAway: situation.shotsOnGoalAway || null
+            };
+          }
+
+          // Default: return raw situation for downstream components that may
+          // expect other fields (soccer cards, penalties, etc.). Keep it small.
+          return situation;
+        })(),
         date: new Date(event.date),
         venue: competition.venue ? competition.venue.fullName : 'TBD',
         finishedAt: competition.status.type.completed ? new Date() : null

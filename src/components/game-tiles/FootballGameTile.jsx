@@ -73,32 +73,22 @@ const FootballGameTile = (props) => {
     return 'th';
   };
 
-  // Try rendering the additional info directly first to verify it works
-  const additionalInfoContent = renderAdditionalInfo(game);
-  console.log('Additional info content:', additionalInfoContent);
-
-  // Separate props for BaseGameTile
+  // Separate props for BaseGameTile - compute additional info at render time
   const baseGameProps = {
     ...props,
     renderAdditionalInfo: () => {
       console.log('renderAdditionalInfo called in FootballGameTile');
-      return additionalInfoContent;
+      return renderAdditionalInfo(game);
     }
   };
 
   console.log('Rendering FootballGameTile BaseGameTile with:', {
     hasRenderFunction: !!renderAdditionalInfo,
-    gameHasSituation: !!game.situation,
-    additionalInfoExists: !!additionalInfoContent
+    gameHasSituation: !!game.situation
   });
 
   return (
     <>
-      {/* Test render - will show directly in the DOM if it works */}
-      <div style={{ display: 'none' }}>
-        {additionalInfoContent}
-      </div>
-      
       {/* Normal render through BaseGameTile */}
       <BaseGameTile {...baseGameProps} />
     </>

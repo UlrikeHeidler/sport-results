@@ -112,6 +112,7 @@
   text-align: center;
   font-weight: bold;
   color: var(--text-color);
+  float: left;
 }
 
 .count-info {
@@ -137,6 +138,54 @@
   border-radius: 4px;
   font-size: 0.9rem;
   box-shadow: 0 2px 4px rgba(190, 0, 0, 0.2);
+}
+
+/* Baseball diamond visualization */
+.baseball-situation-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+
+.baseball-diamond {
+  width: 52px; /* user requested size */
+  height: 52px;
+  display: inline-block;
+}
+
+.baseball-diamond .base {
+  stroke: var(--card-bg);
+  stroke-width: 1;
+  transition: transform 200ms ease, r 200ms ease, fill 200ms ease;
+}
+
+/* pulsing occupied base */
+.baseball-diamond .base.occupied {
+  fill: var(--accent-color, #BE0000); /* red by default, can inherit theme */
+  /*animation: basePulse 1.6s ease-in-out infinite;*/
+}
+
+.baseball-diamond .base.empty {
+  fill: transparent;
+  stroke: var(--border-color);
+}
+
+@keyframes basePulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.baseball-diamond svg { display: block; }
+
+.baseball-info .count-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  font-family: monospace;
 }
 
 /* Hockey */

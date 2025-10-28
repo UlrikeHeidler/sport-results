@@ -27,6 +27,28 @@ class IncrementalUpdatesManager {
     };
   }
 
+  // Helper to clone a game object defensively so callers don't accidentally
+  // mutate the internal cache objects. This creates shallow copies of nested
+  // team/status/situation objects and rehydrates date fields.
+  cloneGame(game) {
+    if (!game) return game;
+    try {
+      return {
+        ...game,
+        homeTeam: game.homeTeam ? { ...game.homeTeam } : null,
+        awayTeam: game.awayTeam ? { ...game.awayTeam } : null,
+        teams: game.teams ? { home: { ...(game.teams.home || {}) }, away: { ...(game.teams.away || {}) } } : game.teams,
+        status: game.status ? { ...game.status } : null,
+        situation: game.situation ? (Array.isArray(game.situation) ? game.situation.slice() : { ...game.situation }) : null,
+        date: game.date ? new Date(game.date) : null,
+        finishedAt: game.finishedAt ? new Date(game.finishedAt) : null
+      };
+    } catch (e) {
+      // Fallback to returning the original object if cloning fails
+      return game;
+    }
+  }
+
   /**
    * Set which leagues should be tracked by the manager.
    * Removes cached data and lastFetch entries for leagues that are not in the
@@ -129,7 +151,8 @@ class IncrementalUpdatesManager {
     updates.forEach((result, index) => {
       if (result.status === 'fulfilled') {
         const { league, games } = result.value;
-        results[league] = games;
+        // Return clones to callers to avoid exposing internal cache references
+        results[league] = (games || []).map(g => this.cloneGame ? this.cloneGame(g) : g);
       }
     });
 
@@ -148,8 +171,9 @@ class IncrementalUpdatesManager {
       // Detect changes
       const changes = this.detectChanges(oldGames, newGames, league);
       
-      // Update cache
-      this.cache.set(cacheKey, newGames);
+      // Update cache (store cloned games to avoid sharing references)
+      const cloned = (newGames || []).map(g => this.cloneGame(g));
+      this.cache.set(cacheKey, cloned);
       this.lastFetch.set(league, Date.now());
       
       // Save to localStorage
@@ -157,7 +181,9 @@ class IncrementalUpdatesManager {
       
       // Notify listeners of changes
       if (changes.length > 0) {
-        this.notifyChanges(changes);
+        // Clone game objects on change payloads as well to be defensive
+        const safeChanges = changes.map(c => ({ ...c, game: this.cloneGame(c.game) }));
+        this.notifyChanges(safeChanges);
       }
       
       return { league, games: newGames, changes };
@@ -304,6 +330,27 @@ class IncrementalUpdatesManager {
         newValue: newGame.venue,
         priority: 'LOW'
       });
+    }
+
+    // Situation changes (e.g., down/distance, balls/strikes/outs, power play)
+    try {
+      const oldSit = oldGame.situation || null;
+      const newSit = newGame.situation || null;
+      // Use a JSON stringify comparison to detect any nested changes. This is
+      // intentionally broad: situation updates are important to surface to the
+      // UI even when scores/status haven't changed (e.g., down/distance updates).
+      if (JSON.stringify(oldSit) !== JSON.stringify(newSit)) {
+        changes.push({
+          field: 'situation',
+          oldValue: oldSit,
+          newValue: newSit,
+          priority: 'HIGH'
+        });
+      }
+    } catch (e) {
+      // If comparison fails for any reason, don't block other change detection
+      // but log for debugging.
+      console.warn('Failed to compare situation objects for game', oldGame?.id, e);
     }
 
     return changes;
