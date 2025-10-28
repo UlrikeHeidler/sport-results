@@ -1,4 +1,22 @@
 /* Sport-specific tile styles */
+/* Common styles for sport info sections */
+.team-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.possession-marker {
+  margin-left: 4px;
+  font-size: 0.95em;
+  line-height: 1;
+  opacity: 0.95;
+}
+
+.team-name.has-possession .abbrev {
+  font-weight: 700;
+}
+/* Sport-specific tile styles */
 
 /* Common styles for sport info sections */
 .baseball-info,

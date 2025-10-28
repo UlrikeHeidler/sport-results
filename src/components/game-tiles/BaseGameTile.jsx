@@ -152,6 +152,10 @@ const BaseGameTile = ({
       <div className={`team-name ${game.situation?.possession === team?.name ? 'has-possession' : ''}`}>
         <span className="abbrev">{team?.abbreviation}</span>
         {showTeamForm && team?.id && renderTeamForm(team)}
+        {/* Possession marker: show a small football emoji when this team has possession */}
+        {game.situation?.possession === team?.name && (
+          <span className="possession-marker" aria-hidden title="Has possession">🏈</span>
+        )}
         <span className="tooltip">{team?.name}</span>
       </div>
     </div>
