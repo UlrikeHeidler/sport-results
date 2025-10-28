@@ -367,6 +367,10 @@ class IncrementalUpdatesManager {
     const hasLiveGames = games.some(game => 
       game.status.type === 'STATUS_IN_PROGRESS' ||
       game.status.type === 'STATUS_HALFTIME' ||
+      game.status.type === 'STATUS_HALFTIME_ET' ||
+      game.status.type === 'STATUS_OVERTIME' ||
+      game.status.type === 'STATUS_FIRST_HALF' ||
+      game.status.type === 'STATUS_SECOND_HALF' ||
       game.status.type === 'STATUS_BREAK' ||
       game.status.type === 'STATUS_INTERMISSION' ||
       game.status.type === 'STATUS_END_PERIOD'

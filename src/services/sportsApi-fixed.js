@@ -11,6 +11,8 @@ const API_ENDPOINTS = {
   mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
   bundesliga1: `${ESPN_BASE_URL}/soccer/ger.1/scoreboard`,
   bundesliga2: `${ESPN_BASE_URL}/soccer/ger.2/scoreboard`,
+  dfb_pokal: `${ESPN_BASE_URL}/soccer/ger.dfb_pokal/scoreboard`, // German Cup (DFB Pokal)
+  ucl: `${ESPN_BASE_URL}/soccer/uefa.champions/scoreboard`, // UEFA Champions League
   nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
   ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
   mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
@@ -122,7 +124,9 @@ export const fetchGames = async (league) => {
     const today = new Date();
 
 
-    const dateStr = today.getFullYear()+''+(today.getMonth() + 1)+''+today.getDate();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${today.getFullYear()}${month}${day}`;
   debug('Fetching games for date:', dateStr);
     // Append dates parameter using existing URL params or adding new one
     const separator = baseEndpoint.includes('?') ? '&' : '?';
@@ -177,7 +181,13 @@ const parseGamesData = (data, league) => {
         // Common live game states in ESPN API
         const liveStates = [
           'STATUS_IN_PROGRESS',
+          'STATUS_OVERTIME',
           'STATUS_HALFTIME',
+          'STATUS_HALFTIME_ET',
+          'STATUS_BREAK',
+          'STATUS_INTERMISSION',
+          'STATUS_FIRST_HALF',
+          'STATUS_SECOND_HALF',
           'STATUS_END_PERIOD',
           'STATUS_PLAYING',
           'IN_PROGRESS',
@@ -294,6 +304,21 @@ const parseGamesData = (data, league) => {
               powerPlayTime: situation.powerPlayTime || null,
               shotsOnGoalHome: situation.shotsOnGoalHome || null,
               shotsOnGoalAway: situation.shotsOnGoalAway || null
+            };
+          }
+
+          // SOCCER
+          if (ln.includes('soccer')) {
+            return {
+              // Preserve lastPlay for downstream components that may want to
+              // inspect the raw last play payload.
+              lastPlay: situation.lastPlay || null,
+              period: situation.period || competition.status?.period || null,
+              matchTime: situation.matchTime || null,
+              shotsOnGoalHome: situation.shotsOnGoalHome || null,
+              shotsOnGoalAway: situation.shotsOnGoalAway || null,
+              yellowCards: situation.yellowCards || 0,
+              redCards: situation.redCards || 0
             };
           }
 
@@ -495,16 +520,18 @@ export const getStatusClass = (status) => {
   if (status.completed) {
     return 'final';
   }
-  
-  // Treat games in progress, halftime, intermission, etc. as live
-  if (status.type === 'STATUS_IN_PROGRESS' ||
-      status.type === 'STATUS_HALFTIME' ||
-      status.type === 'STATUS_BREAK' ||
-      status.type === 'STATUS_INTERMISSION' ||
-      status.type === 'STATUS_END_PERIOD') {
+  // Treat games in progress, halftime, intermission, overtime, etc. as live
+  if (
+    status.type === 'STATUS_IN_PROGRESS' ||
+    status.type === 'STATUS_HALFTIME' ||
+    status.type === 'STATUS_BREAK' ||
+    status.type === 'STATUS_INTERMISSION' ||
+    status.type === 'STATUS_END_PERIOD' ||
+    status.type === 'STATUS_OVERTIME' || // OVERTIME is live for soccer
+    status.type === 'STATUS_HALFTIME_ET'
+  ) {
     return 'live';
   }
-  
   return 'scheduled';
 };
 
@@ -556,6 +583,18 @@ export const getLeagueColors = (league) => {
       secondary: '#FFFFFF',
       accent: '#E30613',
       background: '#f0f5ff'
+    },
+    dfb_pokal: {
+      primary: '#008751', // DFB green
+      secondary: '#FFFFFF',
+      accent: '#FFD700',
+      background: '#f0fff0'
+    },
+    ucl: {
+      primary: '#1B1E3C', // UCL dark blue
+      secondary: '#FFFFFF',
+      accent: '#FFD700',
+      background: '#f5f7fa'
     },
      nba: {
       primary: '#002D72',

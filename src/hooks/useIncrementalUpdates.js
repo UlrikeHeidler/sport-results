@@ -206,6 +206,8 @@ export const useIncrementalUpdates = (selectedLeagues = []) => {
       liveCount += leagueGames.filter(game => 
         game.status.type === 'STATUS_IN_PROGRESS' ||
         game.status.type === 'STATUS_HALFTIME' ||
+        game.status.type === 'STATUS_HALFTIME_ET' ||
+        game.status.type === 'STATUS_OVERTIME' ||
         game.status.type === 'STATUS_FIRST_HALF' ||
         game.status.type === 'STATUS_SECOND_HALF' ||
         game.status.type === 'STATUS_BREAK' ||

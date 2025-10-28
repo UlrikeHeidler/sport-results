@@ -23,7 +23,18 @@ function App() {
   // Settings state
   const [settings, setSettings] = useState({
     refreshInterval: 30,
-    selectedLeagues: ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'],
+    selectedLeagues: [
+      // Football
+      'nfl', 'fbs', 'fcs',
+      // Hockey
+      'nhl',
+      // Baseball
+      'mlb',
+      // Soccer
+      'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
+      // Basketball
+      'nba', 'ncaaw'
+    ],
     hiddenTeams: [],
     colorCoding: true
   });
@@ -34,7 +45,18 @@ function App() {
   // Sorting mode: 'custom' or 'startTime'
   const [sortMode, setSortMode] = useState('custom');
 
-  const availableLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw'];
+  const availableLeagues = [
+    // Football
+    'nfl', 'fbs', 'fcs',
+    // Hockey
+    'nhl',
+    // Baseball
+    'mlb',
+    // Soccer
+    'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
+    // Basketball
+    'nba', 'ncaaw'
+  ];
 
   // Toast notifications
   const [toasts, setToasts] = useState([]);
@@ -179,6 +201,8 @@ function App() {
           // Ongoing games (live or in intermission)
           if (game.status.type === 'STATUS_IN_PROGRESS' ||
               game.status.type === 'STATUS_HALFTIME' ||
+              game.status.type === 'STATUS_HALFTTIME_ET' ||
+              game.status.type === 'STATUS_OVERTIME' ||
               game.status.type === 'STATUS_BREAK' ||
               game.status.type === 'STATUS_INTERMISSION' ||
               game.status.type === 'STATUS_END_PERIOD') {

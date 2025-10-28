@@ -1,5 +1,10 @@
 // Lightweight logger wrapper — debug logs are no-ops in production
-const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+let isProd = false;
+try {
+  isProd = typeof import.meta !== 'undefined' && import.meta.env && !!import.meta.env.PROD;
+} catch (e) {
+  isProd = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production';
+}
 
 export const debug = (...args) => {
   if (!isProd) {

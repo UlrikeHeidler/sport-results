@@ -7,6 +7,8 @@ const getDisplayStatus = (status, situation) => {
   const ongoingTypes = new Set([
     'STATUS_IN_PROGRESS',
     'STATUS_HALFTIME',
+    'STATUS_HALFTIME_ET',
+    'STATUS_OVERTIME',
     'STATUS_FIRST_HALF',
     'STATUS_SECOND_HALF',
     'STATUS_EXTRA_TIME',
@@ -22,7 +24,7 @@ const getDisplayStatus = (status, situation) => {
   // situation data (matchTime / period / displayClock). Treat those as live.
   const situationIndicatesLive = situation && (
     situation.matchTime != null ||
-    (situation.period && /half|period|extra|penalties|first|second/i.test(String(situation.period))) ||
+    (situation.period && /half|period|overtime|extra|penalties|first|second/i.test(String(situation.period))) ||
     (status && status.displayClock)
   );
 

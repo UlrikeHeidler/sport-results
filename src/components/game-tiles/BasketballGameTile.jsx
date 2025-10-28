@@ -7,10 +7,16 @@ const BasketballGameTile = (props) => {
 
   // Basketball-specific additional info renderer
   const renderAdditionalInfo = () => {
+    console.log('#######Rendering basketball additional info for game:', game.situation);
     if (!game.situation) return null;
-    
+    console.log('Rendering basketball additional info for game:', game.situation);
     return (
       <div className="basketball-info">
+        {game.situation.lastPlay && game.situation.lastPlay?.text && (
+          <div className="last-play">
+            Last Play: {game.situation.lastPlay?.text}
+          </div>
+        )}
         {game.situation.shotClock && (
           <div className="shot-clock">
             Shot: {game.situation.shotClock}
