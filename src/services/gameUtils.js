@@ -111,40 +111,40 @@ export function extractTeams(gamesData) {
 export function getLeagueColors(league) {
   const themes = {
     nfl: {
-      primary: '#013369', secondary: '#D50A0A', accent: '#FFB612', background: '#f8f9ff'
+      primary: '#013369', secondary: '#D50A0A', accent: '#FFB612', background: '#f0f8ff'
     },
     nhl: {
-      primary: '#000000', secondary: '#C8102E', accent: '#FCB514', background: '#f5f5f5'
+      primary: '#000000', secondary: '#C8102E', accent: '#FCB514', background: '#f0f8ff'
     },
     fcs: {
-      primary: '#8B0000', secondary: '#FFD700', accent: '#228B22', background: '#fff8f0'
+      primary: '#8B0000', secondary: '#FFD700', accent: '#228B22', background: '#f0f8ff'
     },
     fbs: {
-      primary: '#FF8C00', secondary: '#4169E1', accent: '#32CD32', background: '#fff5ee'
+      primary: '#FF8C00', secondary: '#4169E1', accent: '#32CD32', background: '#f0f8ff'
     },
     mlb: {
       primary: '#002D72', secondary: '#D50032', accent: '#FFFFFF', background: '#f0f8ff'
     },
     bundesliga1: {
-      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#fff0f0'
+      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#f0f8ff'
     },
     bundesliga2: {
-      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f5ff'
+      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
     },
     dfb_pokal: {
-      primary: '#008751', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0fff0'
+      primary: '#008751', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0f8ff'
     },
     ucl: {
-      primary: '#1B1E3C', secondary: '#FFFFFF', accent: '#FFD700', background: '#f5f7fa'
+      primary: '#1B1E3C', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0f8ff'
     },
     nba: {
       primary: '#002D72', secondary: '#D50032', accent: '#FFFFFF', background: '#f0f8ff'
     },
     mls: {
-      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#fff0f0'
+      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#f0f8ff'
     },
     ncaaw: {
-      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f5ff'
+      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
     }
   };
   return themes[league.toLowerCase()] || themes.nfl;

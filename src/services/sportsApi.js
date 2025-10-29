@@ -29,6 +29,7 @@ const ongoingTypes = new Set([
 const inBreakTypes = new Set([
   'STATUS_HALFTIME',
   'STATUS_HALFTIME_ET',
+  'STATUS_END_PERIOD',
   'STATUS_BREAK',
   'STATUS_INTERMISSION'
 ]);
@@ -217,10 +218,9 @@ export const formatGameTime = (date, status = {}, league = '') => {
     if (status && status.completed) {
       return 'Final';
     }
-    console.log('formatGameTime inputs:', { date, status, league });
     
     if (status && inBreakTypes.has(status.type)) {
-      return 'INTERMISSION';
+      return 'Intermission';
     }
 
     if (status && ongoingTypes.has(status.type)) {

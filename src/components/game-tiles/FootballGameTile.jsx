@@ -61,9 +61,11 @@ const FootballGameTile = (props) => {
       <div className="football-info compact">
         <div className="compact-row">
           <div className="down-display">{downDistanceText}</div>
+        </div>
+        <div className="compact-row">
           <div className="field-display compact-field">
             <div className="field-line compact-line">
-              <div className="ball-marker compact-ball" style={{ right: `${(ballPercent / 100) * 100}%` }} />
+              <div className="ball-marker compact-ball" style={{ left: `${(100-(ballPercent / 100) * 100)}%` }} />
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../../services/sportsApi';
+import { formatGameTime, getStatusClass, shouldMoveToBottom } from '../../services/sportsApi';
 import { getTeamForm, getFormColor } from '../../services/teamStats';
+import { getLeagueColors } from '../../services/gameUtils';
+
 
 const getDisplayStatus = (status, situation) => {
   // Known ongoing status types

@@ -29,7 +29,8 @@ export function normalizeStatus(status) {
   const statusName = status.type.name || status.state;
   const isLive = liveStates.includes(statusName.toUpperCase());
   return {
-    type: isLive ? 'STATUS_IN_PROGRESS' : statusName,
+    //type: isLive ? 'STATUS_IN_PROGRESS' : statusName,
+    type: status.type.name,
     displayClock: status.displayClock || status.clock || '',
     period: status.period || 0,
     completed: status.type.completed || status.state === 'post' || false

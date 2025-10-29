@@ -353,11 +353,11 @@ body {
 }
 
 .team-score.score-changed {
-  animation: pulse 5s ease-in-out;
+  animation: pulse 15s ease-in-out;
 }
 
 .game-status.status-changed {
-  animation: valueChanged 5s ease-in-out;
+  animation: valueChanged 15s ease-in-out;
 }
 
 @keyframes pulse {

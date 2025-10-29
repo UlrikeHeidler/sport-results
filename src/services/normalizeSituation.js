@@ -12,6 +12,7 @@ import { detectPossession } from './sportsApi-fixed';
  */
 export function normalizeSituation(league, situation, competition, homeTeam, awayTeam) {
   if (!situation || Object.keys(situation).length === 0) return null;
+  //console.log(`#####Normalizing situation for league: ${league}`, situation);
   const ln = String(league).toLowerCase();
 
   // Football (college / nfl family)
@@ -57,7 +58,7 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
   }
 
   // Basketball
-  if (ln.includes('basketball')) {
+  if (ln === 'nba' || ln === 'ncaaw' || ln.includes('basketball')) {
     return {
       shotClock: situation.shotClock || null,
       quarter: situation.period || competition.status?.period || null,
@@ -67,18 +68,14 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
   }
 
   // Hockey
-  if (ln.includes('hockey')) {
+  if (ln === 'nhl' || ln.includes('hockey')) {
     return {
-      powerPlay: situation.powerPlay || false,
-      powerPlayTeam: situation.powerPlayTeam || null,
-      powerPlayTime: situation.powerPlayTime || null,
-      shotsOnGoalHome: situation.shotsOnGoalHome || null,
-      shotsOnGoalAway: situation.shotsOnGoalAway || null
+      lastPlay: situation.lastPlay?.text || null
     };
   }
 
   // Soccer
-  if (ln.includes('soccer')) {
+  if (ln === 'mls' || ln.includes('soccer')) {
     return {
       lastPlay: situation.lastPlay || null,
       period: situation.period || competition.status?.period || null,

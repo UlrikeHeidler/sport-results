@@ -15,6 +15,7 @@ const HockeyGameTile = (props) => {
 
     // period and clock info from status
     const status = game.status || {};
+    const lastPlay = game.situation.lastPlay || null;
     const displayClock = status.displayClock || status.clock || null;
     const period = status.period || status.periodNumber || null;
     const periodLabel = (() => {
@@ -28,12 +29,15 @@ const HockeyGameTile = (props) => {
     return (
       <div className="hockey-info">
         {/* Period & clock */}
-        {(periodLabel || displayClock) && (
+        {(periodLabel || displayClock) && false && (
           <div className="period-clock" aria-hidden>
             {periodLabel && <span className="period">{periodLabel}</span>}
             {displayClock && <span className="clock">{displayClock}</span>}
           </div>
         )}
+        <div className="lastPlay" aria-hidden>
+            {lastPlay && <span className="last-play">{lastPlay}</span>}
+          </div>
 
         {game.situation.powerPlay && (
           <div

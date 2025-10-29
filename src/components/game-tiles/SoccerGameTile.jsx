@@ -8,15 +8,19 @@ const SoccerGameTile = (props) => {
   // Soccer-specific additional info renderer
   const renderAdditionalInfo = () => {
     if (!game.situation) return null;
+    
     return (
       <div className="soccer-info">
-        {game.situation && (game.situation.yellowCards || game.situation.redCards) ? (
+        {game.situation && (game.situation.lastPlay || game.situation.yellowCards || game.situation.redCards) ? (
           <div className="cards">
             {game.situation.yellowCards > 0 && (
               <span className="yellow-cards">🟨 {game.situation.yellowCards}</span>
             )}
             {game.situation.redCards > 0 && (
               <span className="red-cards">🟥 {game.situation.redCards}</span>
+            )}
+             {game.situation.lastPlay && (
+              <span className="last-play">{game.situation.lastPlay?.text}</span>
             )}
           </div>
         ) : null}

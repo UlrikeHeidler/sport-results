@@ -169,7 +169,8 @@ const parseGamesData = (data, league) => {
 
       // Use shared normalizeStatus helper
 
-  // Extract situation data for football games
+  // Extract situation data for  games
+  //console.log('##### Extracting competition: ',competition);
   const situation = competition.situation || {};
   debug(`Game ${event.id} situation data:`, situation);
 
