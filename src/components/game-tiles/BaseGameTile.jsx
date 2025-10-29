@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatGameTime, getStatusClass, shouldMoveToBottom } from '../../services/sportsApi';
 import { getTeamForm, getFormColor } from '../../services/teamStats';
-import { getLeagueColors } from '../../services/gameUtils';
+import { getLeagueColors, isGameOngoing } from '../../services/gameUtils';
 
 
 const getDisplayStatus = (status, situation) => {
@@ -265,11 +265,12 @@ const BaseGameTile = ({
         {timeDisplay}
       </div>
 
-      {/* Render additional info */}
-      <div className="additional-info-wrapper">
-        {customRenderAdditionalInfo && customRenderAdditionalInfo()}
-      </div>
-
+       {/* Render additional info */}
+       {game.status && isGameOngoing(game.status) && (
+        <div className="additional-info-wrapper">
+          {customRenderAdditionalInfo && customRenderAdditionalInfo()}
+        </div>
+      )}
 
       {isMovedToBottom && (
         <div className="bottom-indicator">

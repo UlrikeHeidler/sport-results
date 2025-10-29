@@ -247,6 +247,7 @@ export const formatGameTime = (date, status = {}, league = '') => {
   }
 };
 
+
 /**
  * Get status class for styling
  * @param {Object} status - Game status
