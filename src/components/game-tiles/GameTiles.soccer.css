@@ -35,7 +35,7 @@
   left: 4%;
   right: 4%;
   top: 50%;
-  height: 6px;
+  height: 3px;
   background: linear-gradient(90deg, #43a047 0%, #b2df28 100%);
   border-radius: 3px;
   z-index: 1;
@@ -65,6 +65,7 @@
   height: 2em;
   align-items: flex-start;
   z-index: 2;
+  padding-top: 2px;
 }
 .timeline-event {
   position: absolute;
