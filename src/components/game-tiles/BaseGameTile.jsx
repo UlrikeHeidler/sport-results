@@ -89,7 +89,7 @@ const BaseGameTile = ({
       setAnimations(prev => ({ ...prev, [key]: true }));
       const timer = setTimeout(() => {
         setAnimations(prev => ({ ...prev, [key]: false }));
-      }, 2000);
+      }, 15000); // Match the 15s CSS animation duration
       return () => clearTimeout(timer);
     }
   };
