@@ -14,6 +14,21 @@ import { loadSettings, saveSettings, clearSettings } from './utils/storage';
 import Toast from './components/Toast';
 
 function App() {
+  // Header expand/collapse state
+  const [headerExpanded, setHeaderExpanded] = useState(false);
+
+  // Close header when clicking outside
+  useEffect(() => {
+    if (!headerExpanded) return;
+    function handleClick(e) {
+      const header = document.querySelector('.header');
+      if (header && !header.contains(e.target)) {
+        setHeaderExpanded(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [headerExpanded]);
   const [filteredGames, setFilteredGames] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showIncrementalMonitor, setShowIncrementalMonitor] = useState(false);
@@ -323,82 +338,86 @@ function App() {
 
   return (
     <div className="App">
-      <header className="header">
-        <div className="header-minimized">
-          <div className="header-menu-icon">
-            <span>🏆</span>
+      <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
+        {!headerExpanded && (
+          <div className="header-minimized" onClick={() => setHeaderExpanded(true)}>
+            <div className="header-menu-icon">
+              <span>🏆</span>
+            </div>
           </div>
-        </div>
-        <div className="header-expanded">
-          <div className="container">
-            <div className="header-content">
-              <div className="header-text">
-                <h1>🏆 Live Sports Results</h1>
-                <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
-                {currentLastUpdated && (
-                  <div className="last-updated">
-                    Last updated: {currentLastUpdated.toLocaleTimeString()}
-                    {useIncrementalMode ? (
-                      <span className="refresh-interval">
-                        ({updateFrequency})
-                      </span>
-                    ) : (
-                      settings.refreshInterval && (
+        )}
+        {headerExpanded && (
+          <div className="header-expanded">
+            <button className="header-close-button" onClick={() => setHeaderExpanded(false)} title="Close header">✕</button>
+            <div className="container">
+              <div className="header-content">
+                <div className="header-text">
+                  <h1>🏆 Live Sports Results</h1>
+                  <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
+                  {currentLastUpdated && (
+                    <div className="last-updated">
+                      Last updated: {currentLastUpdated.toLocaleTimeString()}
+                      {useIncrementalMode ? (
                         <span className="refresh-interval">
-                          (Updates every {settings.refreshInterval}s)
+                          ({updateFrequency})
                         </span>
-                    ))}
+                      ) : (
+                        settings.refreshInterval && (
+                          <span className="refresh-interval">
+                            (Updates every {settings.refreshInterval}s)
+                          </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="header-controls">
+                  <LeagueSelector
+                    selectedLeagues={settings.selectedLeagues}
+                    onLeagueToggle={handleLeagueToggle}
+                    availableLeagues={availableLeagues}
+                  />
+                  <div className="sort-controls">
+                    <button 
+                      className={`sort-button ${sortMode === 'custom' ? 'active' : ''}`}
+                      onClick={() => setSortMode('custom')}
+                    >
+                      Custom Order
+                    </button>
+                    <button 
+                      className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
+                      onClick={() => setSortMode('startTime')}
+                    >
+                      By Start Time
+                    </button>
                   </div>
-                )}
-              </div>
-              
-              <div className="header-controls">
-                <LeagueSelector
-                  selectedLeagues={settings.selectedLeagues}
-                  onLeagueToggle={handleLeagueToggle}
-                  availableLeagues={availableLeagues}
-                />
-                <div className="sort-controls">
-                  <button 
-                    className={`sort-button ${sortMode === 'custom' ? 'active' : ''}`}
-                    onClick={() => setSortMode('custom')}
+                </div>
+                <div className="header-buttons">
+                  <button
+                    className="update-mode-button"
+                    onClick={toggleUpdateMode}
+                    title={`Switch to ${useIncrementalMode ? 'Traditional' : 'Incremental'} Updates`}
                   >
-                    Custom Order
+                    {useIncrementalMode ? '🔄' : '⏱️'}
                   </button>
-                  <button 
-                    className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
-                    onClick={() => setSortMode('startTime')}
+                  <button
+                    className="monitor-button"
+                    onClick={() => setShowIncrementalMonitor(true)}
+                    title="Incremental Updates Monitor"
                   >
-                    By Start Time
+                    📊
+                  </button>
+                  <button
+                    className="settings-button"
+                    onClick={() => setShowSettings(true)}
+                    title="Settings"
+                  >
+                    ⚙️
                   </button>
                 </div>
               </div>
-              <div className="header-buttons">
-                <button
-                  className="update-mode-button"
-                  onClick={toggleUpdateMode}
-                  title={`Switch to ${useIncrementalMode ? 'Traditional' : 'Incremental'} Updates`}
-                >
-                  {useIncrementalMode ? '🔄' : '⏱️'}
-                </button>
-                <button
-                  className="monitor-button"
-                  onClick={() => setShowIncrementalMonitor(true)}
-                  title="Incremental Updates Monitor"
-                >
-                  📊
-                </button>
-                <button
-                  className="settings-button"
-                  onClick={() => setShowSettings(true)}
-                  title="Settings"
-                >
-                  ⚙️
-                </button>
-              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       <main className="container">

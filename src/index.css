@@ -71,9 +71,23 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.header:hover {
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  height: 60px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.header.expanded {
   height: auto;
   min-height: 250px;
+  overflow: visible;
 }
 
 .header-minimized {
@@ -89,16 +103,11 @@ body {
   border-radius: 0 0 12px 0;
   transition: all 0.3s ease;
   z-index: 1001;
-}
-
-.header:hover .header-minimized {
-  opacity: 0;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .header-menu-icon {
   font-size: 1.5rem;
-  cursor: pointer;
   transition: transform 0.3s ease;
 }
 
@@ -107,15 +116,31 @@ body {
 }
 
 .header-expanded {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.3s ease;
-  padding: 1rem 0;
-}
-
-.header:hover .header-expanded {
   opacity: 1;
   transform: translateY(0);
+  transition: all 0.3s ease;
+  padding: 1rem 0;
+  position: relative;
+}
+
+.header-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255,255,255,0.7);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s;
+}
+.header-close-button:hover {
+  background: #eee;
 }
 
 .header-content {
