@@ -139,13 +139,13 @@ export function getLeagueColors(league) {
       primary: '#1B1E3C', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0f8ff'
     },
     nba: {
-      primary: '#002D72', secondary: '#D50032', accent: '#FFFFFF', background: '#f0f8ff'
+      primary: '#614304', secondary: '#FFFFFF', accent: '#FFFFFF', background: '#f0f8ff'
     },
     mls: {
       primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#f0f8ff'
     },
     ncaaw: {
-      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
+      primary: '#614304', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
     }
   };
   return themes[league.toLowerCase()] || themes.nfl;
