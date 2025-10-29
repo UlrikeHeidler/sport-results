@@ -2,6 +2,19 @@
 import { detectPossession } from './sportsApi-fixed';
 
 /**
+ * Returns the total elapsed game time in seconds for basketball.
+ * @param {number} secondsLeftInQuarter - Seconds left in the current quarter.
+ * @param {number} quarter - The current quarter number (1-based).
+ * @returns {number} Elapsed seconds since game start.
+ */
+function getElapsedGameTime(secondsLeftInQuarter, quarter) {
+  const quarterLength = 12 * 60; // 12 minutes per quarter
+  const quartersCompleted = Math.max(0, quarter - 1);
+  const elapsed = quartersCompleted * quarterLength + (quarterLength - secondsLeftInQuarter);
+  return elapsed;
+}
+
+/**
  * Normalize situation object for a given league
  * @param {string} league - League identifier
  * @param {Object} situation - Raw situation object from ESPN API
@@ -59,11 +72,10 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Basketball
   if (ln === 'nba' || ln === 'ncaaw' || ln.includes('basketball')) {
+    console.log(`#####Normalizing basketball situation:`, competition.status);
     return {
-      shotClock: situation.shotClock || null,
-      quarter: situation.period || competition.status?.period || null,
-      teamFouls: situation.teamFouls || null,
-      bonus: situation.bonus || null
+      lastPlay: situation.lastPlay || null,
+      time: getElapsedGameTime(competition.status?.clock || 0, competition.status?.period || 1)
     };
   }
 
