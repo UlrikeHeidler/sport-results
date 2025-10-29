@@ -227,8 +227,8 @@ const BaseGameTile = ({
   };
   
   const renderGameStatus = () => (
-    <div className="game-header">
-      <span className={`league-badge`} style={colorCoding ? {
+    <div className={`game-header aloha ${game.id}`}>
+      <span title={game.id} className={`league-badge`} style={colorCoding ? {
         backgroundColor: leagueColors.primary,
         color: 'white'
       } : {}}>

@@ -289,6 +289,7 @@ export const fetchGameSummary = async (league, eventId) => {
       return null;
     }
     const data = await res.json();
+    debug('fetchGameSummary success:', { league, eventId, data });
     return data;
   } catch (err) {
     handleError(err, 'fetchGameSummary');

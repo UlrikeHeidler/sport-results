@@ -4,13 +4,14 @@ const SETTINGS_KEY = 'sportsAppSettings';
 
 export const loadSettings = () => {
   try {
+    // Always prefer the cookie if available
+    const cookie = getCookie(SETTINGS_KEY);
+    if (cookie) return typeof cookie === 'string' ? JSON.parse(cookie) : cookie;
+
     if (typeof localStorage !== 'undefined') {
       const raw = localStorage.getItem(SETTINGS_KEY);
       if (raw) return JSON.parse(raw);
     }
-
-    const cookie = getCookie(SETTINGS_KEY);
-    if (cookie) return typeof cookie === 'string' ? JSON.parse(cookie) : cookie;
   } catch (e) {
     console.error('loadSettings error', e);
   }

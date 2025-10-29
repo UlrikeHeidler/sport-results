@@ -30,7 +30,7 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
       return HockeyGameTile;
     }
     
-    if (league === 'mls' || league === 'bundesliga1' || league === 'bundesliga2') {
+    if (league === 'mls' || league === 'bundesliga1' || league === 'bundesliga2' || league === 'ucl' || league === 'dfb_pokal'  ) {
       return SoccerGameTile;
     }
     
@@ -40,12 +40,12 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
 
   const TileComponent = getTileComponent();
   
-  debug('GameTileFactory rendering:', {
+  /*debug('GameTileFactory rendering:', {
     componentType: TileComponent.name,
     league: game.league,
     hasSituation: !!game.situation,
     gameId: game.id
-  });
+  });*/
 
   // Pass all props through to the specific tile component
   const componentProps = {
@@ -54,7 +54,8 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
     colorCoding,
     isDragDisabled,
     isDragging: snapshot?.isDragging,
-    showTeamForm
+    showTeamForm,
+    refreshInterval: game.refreshInterval || 30
   };
 
   return (

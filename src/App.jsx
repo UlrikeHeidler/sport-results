@@ -434,7 +434,7 @@ function App() {
                       {filteredGames.map((game, index) => (
                         <GameTile
                           key={`${game.league}-${game.id}`}
-                          game={game}
+                          game={{ ...game, refreshInterval: settings.refreshInterval }}
                           index={index}
                           colorCoding={settings.colorCoding}
                           isDragDisabled={sortMode === 'startTime'}

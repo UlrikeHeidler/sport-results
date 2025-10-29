@@ -21,3 +21,67 @@
 }
 
 .cards { display:flex; justify-content:center; gap:1.5rem; margin-top:0.5rem; }
+
+/* Timeline styles */
+
+.soccer-timeline-outer {
+  position: relative;
+  width: 100%;
+  margin: 1.2em 0 0.5em 0;
+  height: 4.5em;
+}
+.soccer-timeline-line {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 50%;
+  height: 6px;
+  background: linear-gradient(90deg, #43a047 0%, #b2df28 100%);
+  border-radius: 3px;
+  z-index: 1;
+}
+.soccer-timeline-row {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  width: 92%;
+  display: flex;
+  flex-direction: row;
+  pointer-events: none;
+}
+.soccer-timeline-home {
+  top: 0;
+  height: 2em;
+  align-items: flex-end;
+  z-index: 2;
+}
+.soccer-timeline-away {
+  bottom: 0;
+  height: 2em;
+  align-items: flex-start;
+  z-index: 2;
+}
+.timeline-event {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2.5em;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  font-size: 1.1em;
+}
+.timeline-event:hover {
+  opacity: 1;
+  z-index: 3;
+}
+.timeline-minute {
+  font-size: 0.8em;
+  color: #006633;
+  margin-bottom: 2px;
+}
+.timeline-goal { color: #388e3c; }
+.timeline-yellow { color: #fbc02d; }
+.timeline-red { color: #d32f2f; }
+.timeline-substitution { color: #1976d2; }

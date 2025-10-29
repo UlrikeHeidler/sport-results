@@ -10,6 +10,11 @@ const Settings = ({
   onClearStorage
 }) => {
   const [localSettings, setLocalSettings] = useState(settings);
+
+  // Sync localSettings with settings prop when it changes
+  React.useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
   const [searchFilter, setSearchFilter] = useState('');
 
   const toggleSetting = (settingName) => {
