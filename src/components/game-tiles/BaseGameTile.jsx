@@ -12,6 +12,7 @@ const getDisplayStatus = (status, situation) => {
     'STATUS_HALFTIME_ET',
     'STATUS_OVERTIME',
     'STATUS_FIRST_HALF',
+    'STATUS_END_OF_REGULATION',
     'STATUS_SECOND_HALF',
     'STATUS_EXTRA_TIME',
     'STATUS_PENALTIES',

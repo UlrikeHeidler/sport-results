@@ -21,6 +21,7 @@ export function normalizeStatus(status) {
     'STATUS_FIRST_HALF',
     'STATUS_SECOND_HALF',
     'STATUS_END_PERIOD',
+    'STATUS_END OF_REGULATION',
     'STATUS_PLAYING',
     'IN_PROGRESS',
     'HALFTIME',

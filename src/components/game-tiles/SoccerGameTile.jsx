@@ -3,13 +3,25 @@ import { useSoccerTimeline } from '../../hooks/useSoccerTimeline';
 import './GameTiles.soccer.css';
 
 // Helper to convert minute string to percentage of match duration (0-100)
-function getTimelinePosition(minuteStr) {
-  // Try to parse the minute (e.g., '45+2', '90', '12')
+function getTimelinePosition(minuteStr, overTime) {
+  // Handles minute strings like "90'+3'", "45+2", "90", "12"
   if (!minuteStr) return 0;
-  const base = parseInt(minuteStr, 10);
-  let min = isNaN(base) ? 0 : base;
-  // Cap at 120 for extra time, else 90
-  const max = min > 90 ? 120 : 90;
+  let min = 0;
+  let max = 90;
+  // Match patterns like 90'+3', 45+2, 90+3, etc.
+  const overtimeMatch = minuteStr.match(/^(\d+)[+'’]?(?:\+|’)?(\d+)?/);
+  if (overTime === 'overtime') {
+    const base = parseInt(overtimeMatch[1], 10);
+    const added = overtimeMatch[2] ? parseInt(overtimeMatch[2], 10) : 0;
+    min = base + added;
+    // Cap at 120 for extra time, else 90
+    max=120;
+
+  } else {
+    // fallback: try to parse as integer
+    const base = parseInt(minuteStr, 10);
+    min = isNaN(base) ? 0 : base;
+  }
   let percent = Math.min(100, Math.round((min / max) * 100));
   return percent;
 }
@@ -18,7 +30,8 @@ function getTimelinePosition(minuteStr) {
 const SoccerGameTile = (props) => {
   const { game, refreshInterval = 30 } = props;
   const timeline = useSoccerTimeline(game.league, game.id, refreshInterval);
-  console.log(game.id,'SoccerGameTile timeline:', timeline);
+  
+  const overTime = game.status?.type?.includes("OVERTIME")? 'overtime': 'regular';
   const renderAdditionalInfo = () => {
     return (
       <div className="soccer-info">
@@ -48,7 +61,7 @@ const SoccerGameTile = (props) => {
                       <span
                         key={idx}
                         className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
-                        style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
+                        style={{ left: `calc(${getTimelinePosition(event.minute, overTime)}% - 1em)` }}
                         title={`${event.minute} - ${event.description}`}
                       >
                         {event.minute && <span className="timeline-minute">{event.minute}</span>}
@@ -81,7 +94,7 @@ const SoccerGameTile = (props) => {
                       <span
                         key={idx}
                         className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
-                        style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
+                        style={{ left: `calc(${getTimelinePosition(event.minute, overTime)}% - 1em)` }}
                         title={`${event.minute} - ${event.description}`}
                       >
                         {event.minute && <span className="timeline-minute">{event.minute}</span>}

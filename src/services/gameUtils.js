@@ -18,6 +18,7 @@ export function isGameOngoing(status) {
     'STATUS_SHOOTOUT',
     'STATUS_BREAK',
     'STATUS_INTERMISSION',
+    'STATUS_END OF_REGULATION',
     'STATUS_END_PERIOD'
   ].includes(status.type);
 }
