@@ -27,7 +27,7 @@
 .soccer-timeline-outer {
   position: relative;
   width: 100%;
-  margin: 1.2em 0 0.5em 0;
+  /*margin: 1.2em 0 0.5em 0;  */
   height: 4.5em;
 }
 .soccer-timeline-line {
@@ -40,6 +40,11 @@
   border-radius: 3px;
   z-index: 1;
 }
+
+.soccer-timeline-logos {
+  margin-left: -2rem;
+}
+
 .soccer-timeline-row {
   position: absolute;
   left: 4%;
@@ -80,6 +85,7 @@
   font-size: 0.8em;
   color: #006633;
   margin-bottom: 2px;
+  display: none;
 }
 .timeline-goal { color: #388e3c; }
 .timeline-yellow { color: #fbc02d; }

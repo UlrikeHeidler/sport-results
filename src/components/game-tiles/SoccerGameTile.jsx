@@ -25,43 +25,76 @@ const SoccerGameTile = (props) => {
         {/* Timeline */}
         {timeline && timeline.length > 0 && (
           <div className="soccer-timeline-outer">
-            <div className="soccer-timeline-row soccer-timeline-away">
-              {timeline.map((event, idx) =>
-                event.team === game.awayTeam.id ? (
-                  <span
-                    key={idx}
-                    className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
-                    style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
-                    title={event.description}
-                  >
-                    {event.minute && <span className="timeline-minute">{event.minute}</span>}
-                    {event.type.text.toLowerCase().includes('goal') && '⚽'}
-                    {event.type.text.toLowerCase().includes('yellow') && '🟨'}
-                    {event.type.text.toLowerCase().includes('red') && '🟥'}
-                    {event.type.text.toLowerCase().includes('substitution') && '🔄'}
-                  </span>
-                ) : null
-              )}
-            </div>
-            <div className="soccer-timeline-line" />
-            <div className="soccer-timeline-row soccer-timeline-home">
-              {timeline.map((event, idx) =>
-                event.team === game.homeTeam.id ? (
-                  <span
-                    key={idx}
-                    className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
-                    style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
-                    title={event.description}
-                  >
-                    {event.minute && <span className="timeline-minute">{event.minute}</span>}
-                    {event.type.text.toLowerCase().includes('goal') && '⚽'}
-                    {event.type.text.toLowerCase().includes('yellow') && '🟨'}
-                    {event.type.text.toLowerCase().includes('red') && '🟥'}
-                    {event.type.text.toLowerCase().includes('substitution') && '🔄'}
-                  </span>
-                ) : null
-              )}
-            </div>
+             
+              <div className="soccer-timeline-content">
+                
+                <div className="soccer-timeline-row soccer-timeline-home">
+                  <div className="soccer-timeline-logos">
+                {game.homeTeam?.logo && (
+                  <img
+                    src={game.homeTeam.logo}
+                    alt={game.homeTeam.name + ' logo'}
+                    className="soccer-timeline-logo home"
+                    width={16}
+                    height={16}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )}
+              </div>
+                  {timeline.map((event, idx) =>
+                    event.team === game.homeTeam.id ? (
+                      <span
+                        key={idx}
+                        className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
+                        style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
+                        title={`${event.minute} - ${event.description}`}
+                      >
+                        {event.minute && <span className="timeline-minute">{event.minute}</span>}
+                        {event.type.text.toLowerCase().includes('goal') && '⚽'}
+                        {event.type.text.toLowerCase().includes('yellow') && '🟨'}
+                        {event.type.text.toLowerCase().includes('red') && '🟥'}
+                        {event.type.text.toLowerCase().includes('substitution') && '🔄'}
+                      </span>
+                    ) : null
+                  )}
+                </div>
+                <div className="soccer-timeline-line" />
+                <div className="soccer-timeline-row soccer-timeline-away">
+                  <div className="soccer-timeline-logos">
+                {game.awayTeam?.logo && (
+                  <img
+                    src={game.awayTeam.logo}
+                    alt={game.awayTeam.name + ' logo'}
+                    className="soccer-timeline-logo away"
+                    width={16}
+                    height={16}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )}
+              </div>
+                  {timeline.map((event, idx) =>
+                    event.team === game.awayTeam.id ? (
+                      <span
+                        key={idx}
+                        className={`timeline-event timeline-${event.type.text.toLowerCase().replace(/\s/g, '-')}`.trim()}
+                        style={{ left: `calc(${getTimelinePosition(event.minute)}% - 1em)` }}
+                        title={`${event.minute} - ${event.description}`}
+                      >
+                        {event.minute && <span className="timeline-minute">{event.minute}</span>}
+                        {event.type.text.toLowerCase().includes('goal') && '⚽'}
+                        {event.type.text.toLowerCase().includes('yellow') && '🟨'}
+                        {event.type.text.toLowerCase().includes('red') && '🟥'}
+                        {event.type.text.toLowerCase().includes('substitution') && '🔄'}
+                      </span>
+                    ) : null
+                  )}
+                </div>
+              </div>
+              
           </div>
         )}
       </div>
