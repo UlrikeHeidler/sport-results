@@ -157,38 +157,35 @@ const BaseGameTile = ({
   };
 
   const renderTeamName = (team, isHome) => {
-    // Determine possession for this team. Prefer the normalized `possessionWhich`
-    // field (set to 'home'|'away') if available. Fall back to string matching
-    // against team name or possession label when necessary.
-    const situation = game.situation || null;
+  // Only show possession indicator for football (NFL, FBS, NCAAF, CFB, etc)
+  const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(game.league || '');
     let hasPossessionMarker = false;
-    if (situation) {
-      // Prefer explicit normalized ownership
-      if (situation.possessionWhich) {
-        if (situation.possessionWhich === 'home') hasPossessionMarker = !!isHome;
-        else if (situation.possessionWhich === 'away') hasPossessionMarker = !isHome;
-      } else if (situation?.lastPlay && situation?.lastPlay?.team?.id) {
-        // Some feeds provide a lastPlay.team.id we can match against
-        if (situation.lastPlay.team.id === team?.id) hasPossessionMarker = true;
-      } else {
-        // Fallback: string matching against possession label or team abbreviation/name
-        const poss = situation.possession || situation.possessionLabel || null;
-        if (poss) {
-          const normalize = v => (v == null ? '' : String(v).toLowerCase());
-          const possNorm = normalize(poss);
-          const teamNorms = [team?.abbreviation, team?.name, team?.displayName].map(normalize);
-          if (teamNorms.includes(possNorm)) hasPossessionMarker = true;
+    if (isFootball) {
+      const situation = game.situation || null;
+      if (situation) {
+        if (situation.possessionWhich) {
+          if (situation.possessionWhich === 'home') hasPossessionMarker = !!isHome;
+          else if (situation.possessionWhich === 'away') hasPossessionMarker = !isHome;
+        } else if (situation?.lastPlay && situation?.lastPlay?.team?.id) {
+          if (situation.lastPlay.team.id === team?.id) hasPossessionMarker = true;
+        } else {
+          const poss = situation.possession || situation.possessionLabel || null;
+          if (poss) {
+            const normalize = v => (v == null ? '' : String(v).toLowerCase());
+            const possNorm = normalize(poss);
+            const teamNorms = [team?.abbreviation, team?.name, team?.displayName].map(normalize);
+            if (teamNorms.includes(possNorm)) hasPossessionMarker = true;
+          }
         }
       }
     }
-
     return (
       <div className="team-details">
-        <div className={`team-name ${hasPossessionMarker ? 'has-possession' : ''}`}>
+        <div className={`team-name${isFootball && hasPossessionMarker ? ' has-possession' : ''}`}>
           <span className="abbrev">{team?.abbreviation}</span>
           {showTeamForm && team?.id && renderTeamForm(team)}
           {/* Possession marker: show a small football emoji when this team has possession */}
-          {hasPossessionMarker && (
+          {isFootball && hasPossessionMarker && (
             <span className="possession-marker" aria-hidden title="Has possession">🏈</span>
           )}
           <span className="tooltip">{team?.name}</span>
