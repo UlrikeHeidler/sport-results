@@ -57,22 +57,24 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Baseball (MLB)
   if (ln === 'mlb' || ln.includes('baseball')) {
+    console.log(`#####Normalizing baseball situation:`, situation?.batter?.athlete?.displayName  );
     return {
       inning: situation.inning || competition.status?.period || null,
-      isTopInning: situation.isTopInning || situation.inningState === 'top' || false,
+      isTopInning: competition.status?.type?.detail?.toLowerCase().includes('top') || false,
       balls: typeof situation.balls === 'number' ? situation.balls : null,
       strikes: typeof situation.strikes === 'number' ? situation.strikes : null,
       outs: typeof situation.outs === 'number' ? situation.outs : null,
       onFirst: !!situation.onFirst || !!situation.onBase?.first,
       onSecond: !!situation.onSecond || !!situation.onBase?.second,
       onThird: !!situation.onThird || !!situation.onBase?.third,
-      onBase: !!situation.onFirst || !!situation.onSecond || !!situation.onThird || Boolean(situation.onBase)
+      onBase: !!situation.onFirst || !!situation.onSecond || !!situation.onThird || Boolean(situation.onBase),
+      currentBatter: situation.batter?.athlete?.displayName || null,
+      currentPitcher: situation.pitcher?.athlete?.displayName || null
     };
   }
 
   // Basketball
   if (ln === 'nba' || ln === 'ncaaw' || ln.includes('basketball')) {
-    console.log(`#####Normalizing basketball situation:`, competition.status);
     return {
       lastPlay: situation.lastPlay || null,
       time: getElapsedGameTime(competition.status?.clock || 0, competition.status?.period || 1)
