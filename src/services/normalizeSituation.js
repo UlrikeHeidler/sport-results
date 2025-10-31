@@ -83,11 +83,30 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Hockey
   if (ln === 'nhl' || ln.includes('hockey')) {
-    console.log(`#####Normalizing hockey situation:`, situation);
-    console.log(`situation.lastPlay:`, situation.lastPlay);
-    console.log(`competition:`, competition);
+    console.log('Normalizing hockey competition:', competition);
+    console.log('Normalizing hockey situation.lastPlay:', situation.lastPlay);
+    // Build a timeline of main events (goals, penalties) from lastPlay and, if available, a play history
+    const timeline = [];
+    // If the API ever provides a play history, use it; otherwise, just use lastPlay
+    const plays = situation.plays || (situation.lastPlay ? [situation.lastPlay] : []);
+    for (const play of plays) {
+      if (!play || !play.text) continue;
+      const text = play.type?.text.toLowerCase();
+      if (text.includes('goal') || text.includes('penalty')) {
+        timeline.push({
+          type: text.includes('goal') ? 'goal' : 'penalty',
+          text: play.text,
+          team: play.team?.id || null,
+          athlete: play.athletesInvolved?.displayName || play.athletesInvolved?.name || null,
+          period: competition.status?.period || null,
+          clock: competition.status?.clock || null,
+          id: play.id || null
+        });
+      }
+    }
     return {
-      lastPlay: situation.lastPlay?.text || null
+      lastPlay: situation.lastPlay?.text || null,
+      timeline
     };
   }
 

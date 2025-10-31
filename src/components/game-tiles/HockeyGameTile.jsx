@@ -9,36 +9,63 @@ const HockeyGameTile = (props) => {
   // Hockey-specific additional info renderer
   const renderAdditionalInfo = () => {
     if (!game.situation) return null;
-    // normalize shot counts for display
     const shotHome = getShotCount(true);
     const shotAway = getShotCount(false);
-
-    // period and clock info from status
     const status = game.status || {};
     const lastPlay = game.situation.lastPlay || null;
-    const displayClock = status.displayClock || status.clock || null;
-    const period = status.period || status.periodNumber || null;
-    const periodLabel = (() => {
-      if (!period) return null;
-      if (status.type && typeof status.type === 'string' && status.type.toLowerCase().includes('shootout')) return 'SO';
-      // numeric periods 1..3 -> P1..P3
-      if (period === 4 || (status.type && String(status.type).toLowerCase().includes('overtime'))) return 'OT';
-      return `P${period}`;
-    })();
+    const timeline = Array.isArray(game.situation.timeline) ? game.situation.timeline : [];
+
+    // Helper: convert period/clock to elapsed seconds (regulation: 3x20min, OT: 5min, ignore SO)
+    const getElapsedSeconds = (period, clock) => {
+      const periodNum = Number(period) || 1;
+      // Parse clock as mm:ss
+      let secondsLeft = 0;
+      if (typeof clock === 'string' && clock.includes(':')) {
+        const [min, sec] = clock.split(':').map(Number);
+        secondsLeft = (min || 0) * 60 + (sec || 0);
+      }
+      // Each period is 20min (1200s), OT is 5min (300s)
+      const periodLength = periodNum > 3 ? 300 : 1200;
+      const periodsCompleted = Math.max(0, periodNum - 1);
+      const elapsed = periodsCompleted * 1200 + (periodLength - secondsLeft);
+      return elapsed;
+    };
+
+    // Timeline rendering: horizontal line, home events above, away below, position by time
+    const renderTimeline = () => {
+      if (!timeline.length) return null;
+      const totalGameSeconds = 3 * 1200 + 300; // 3 periods + OT
+      return (
+        <div className="hockey-timeline">
+          <div className="timeline-line" />
+          {timeline.map((event, idx) => {
+            const isHome = event.team && game.homeTeam && (event.team === game.homeTeam.abbreviation || event.team === game.homeTeam.name || event.team === game.homeTeam.displayName);
+            const isAway = event.team && game.awayTeam && (event.team === game.awayTeam.abbreviation || event.team === game.awayTeam.name || event.team === game.awayTeam.displayName);
+            const elapsed = getElapsedSeconds(event.period, event.clock);
+            const left = `${Math.max(0, Math.min(1, elapsed / totalGameSeconds)) * 100}%`;
+            const markerClass = `timeline-marker ${event.type} ${isHome ? 'home' : isAway ? 'away' : ''}`;
+            return (
+              <div
+                key={event.id || idx}
+                className={markerClass}
+                style={{ left, top: isHome ? '-18px' : isAway ? '18px' : '0' }}
+                title={`${left + ': '}${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' - ' + event.team : ''}${event.athlete ? ' - ' + event.athlete : ''}${event.text ? ': ' + event.text : ''}`}
+                aria-label={`${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' by ' + event.team : ''}${event.athlete ? ' (' + event.athlete + ')' : ''}`}
+              >
+                {event.type === 'goal' ? '🥅' : '🚫'}
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
 
     return (
       <div className="hockey-info">
-        {/* Period & clock */}
-        {(periodLabel || displayClock) && false && (
-          <div className="period-clock" aria-hidden>
-            {periodLabel && <span className="period">{periodLabel}</span>}
-            {displayClock && <span className="clock">{displayClock}</span>}
-          </div>
-        )}
+        {renderTimeline()}
         <div className="lastPlay" aria-hidden>
-            {lastPlay && <span className="last-play">{lastPlay}</span>}
-          </div>
-
+          {lastPlay && <span className="last-play">{lastPlay}</span>}
+        </div>
         {game.situation.powerPlay && (
           <div
             className="power-play"
@@ -52,15 +79,12 @@ const HockeyGameTile = (props) => {
             )}
           </div>
         )}
-
         {(shotHome != null || shotAway != null) && (
           <div className="shots-on-goal">
             <div className="shots away">SOG: {shotAway != null ? shotAway : '-'}</div>
             <div className="shots home">SOG: {shotHome != null ? shotHome : '-'}</div>
           </div>
         )}
-
-        {/* On-demand details: empty net / goalie info */}
         {renderSummarySection()}
       </div>
     );
