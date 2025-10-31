@@ -83,6 +83,9 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Hockey
   if (ln === 'nhl' || ln.includes('hockey')) {
+    console.log(`#####Normalizing hockey situation:`, situation);
+    console.log(`situation.lastPlay:`, situation.lastPlay);
+    console.log(`competition:`, competition);
     return {
       lastPlay: situation.lastPlay?.text || null
     };

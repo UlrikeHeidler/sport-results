@@ -123,6 +123,10 @@ class IncrementalUpdatesManager {
    * Get games with incremental update logic
    */
   async getGamesIncremental(leagues, forceRefresh = false) {
+    // Defensive: Only fetch for valid, unique, non-empty string leagues
+    const enabledLeagues = Array.isArray(leagues)
+      ? [...new Set(leagues.filter(l => typeof l === 'string' && l.trim()))]
+      : [];
     const results = {};
     const updatePromises = [];
 
@@ -130,7 +134,7 @@ class IncrementalUpdatesManager {
     // previously tracked leagues that are not in the requested list so the
     // periodic updater doesn't continue polling them.
     try {
-      const requestedSet = new Set(leagues);
+      const requestedSet = new Set(enabledLeagues);
       for (const tracked of Array.from(this.lastFetch.keys())) {
         if (!requestedSet.has(tracked)) {
           this.lastFetch.delete(tracked);
@@ -140,7 +144,7 @@ class IncrementalUpdatesManager {
       // ignore pruning errors
     }
 
-    for (const league of leagues) {
+    for (const league of enabledLeagues) {
       const cacheKey = `games_${league}`;
       const lastFetchTime = this.lastFetch.get(league) || 0;
       const now = Date.now();

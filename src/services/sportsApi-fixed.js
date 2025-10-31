@@ -1,22 +1,13 @@
-// Re-export sortGames for compatibility with existing imports
 export { sortGames };
-// ESPN API endpoints for sports data
 import { debug } from '../utils/logger';
 import API_ENDPOINTS from './apiEndpoints';
 import { normalizeStatus } from './normalizeStatus';
 import { normalizeSituation } from './normalizeSituation';
 import { getDateInCurrentUsersTimezone, shouldMoveToBottom, sortGames, extractTeams, getLeagueColors, isGameOngoing } from './gameUtils';
-// Re-export extractTeams for compatibility with existing imports
 export { extractTeams };
 import { handleError } from '../utils/errorHandler';
 
-/**
- * Detect which team has possession from a competition payload and team objects.
- * @param {Object} competitionObj - ESPN competition object
- * @param {Object} homeTeamObj - Home team info (id, abbreviation, name, displayName)
- * @param {Object} awayTeamObj - Away team info (id, abbreviation, name, displayName)
- * @returns {{ which: 'home'|'away'|null, label: string|null }}
- */
+// Detect which team has possession from a competition payload and team objects.
 export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
   if (!competitionObj) return { which: null, label: null };
 
@@ -80,24 +71,9 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
   return { which: null, label: raw ?? null };
 };
 
-/**
- * Get a date object in the current user's timezone
- * @param  {String} dateStr        A date string saved in a specific timezone
- * @param  {String} serverTimezone The timezone the dateStr is in
- * @return {Date}                  A date object, adjusted to user's timezone
- */
-// getDateInCurrentUsersTimezone now imported from gameUtils
 
-/**
- * Fetch games for a specific league
- * @param {string} league - The league to fetch games for (nfl, nhl)
- * @returns {Promise<Array>} Array of game objects
- */
-/**
- * Fetch games for a specific league
- * @param {string} league - The league to fetch games for (e.g. 'nfl', 'nhl')
- * @returns {Promise<Array>} Array of game objects
- */
+
+// Fetch games for a specific league (e.g. 'nfl', 'nhl')
 export const fetchGames = async (league) => {
   try {
     const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
@@ -133,18 +109,7 @@ export const fetchGames = async (league) => {
   }
 };
 
-/**
- * Parse the ESPN API response into a standardized format
- * @param {Object} data - Raw API response
- * @param {string} league - League identifier
- * @returns {Array} Parsed games array
- */
-/**
- * Parse the ESPN API response into a standardized format
- * @param {Object} data - Raw API response
- * @param {string} league - League identifier
- * @returns {Array} Parsed games array
- */
+// Parse the ESPN API response into a standardized format
 const parseGamesData = (data, league) => {
   if (!data.events || !Array.isArray(data.events)) {
     debug(`No events found for ${league}`);
@@ -202,24 +167,24 @@ const parseGamesData = (data, league) => {
       handleError(error, `parseGamesData (event: ${event.id})`);
       return null;
     }
-  }).filter(game => game !== null); // Remove any failed parses
+  }).filter(game => game !== null);
 };
 
-/**
- * Get games for all supported leagues
- * @param {Array} selectedLeagues - Array of league names to fetch
- * @returns {Promise<Object>} Object with games grouped by league
- */
-/**
- * Get games for all supported leagues
- * @param {Array} [selectedLeagues] - Array of league names to fetch
- * @returns {Promise<Object>} Object with games grouped by league
- */
-export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'nba', 'mls', 'ncaaw']) => {
+// Get games for all supported leagues (only those enabled by user)
+export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'ucl', 'dfb_pokal', 'nba', 'mls', 'ncaaw']) => {
   try {
-    debug('Fetching games for leagues:', selectedLeagues);
-    
-    const promises = selectedLeagues.map(league => 
+  // Only fetch leagues that are actually enabled (skip falsy/duplicates)
+    const enabledLeagues = Array.isArray(selectedLeagues)
+      ? [...new Set(selectedLeagues.filter(l => typeof l === 'string' && l.trim()))]
+      : [];
+    console.log('Fetching games for leagues:', enabledLeagues);
+
+    if (!enabledLeagues.length) {
+      debug('No leagues enabled, skipping all fetches.');
+      return {};
+    }
+
+    const promises = enabledLeagues.map(league =>
       fetchGames(league).then(games => ({ league, games }))
     );
 
@@ -236,7 +201,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
       }
     });
 
-    // Filter games to only include today's games
+  // Only include today's games
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const endOfToday = new Date(today);
@@ -256,20 +221,7 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl', 'fcs', 'fbs
   }
 };
 
-/**
- * Fetch per-game summary / boxscore for a specific event.
- * This is an on-demand, optional fetch used to enrich tiles (goalie stats, penalties, play-by-play).
- * @param {string} league - league key (e.g., 'nhl')
- * @param {string} eventId - ESPN event id
- * @returns {Promise<Object|null>} parsed JSON or null on error
- */
-/**
- * Fetch per-game summary / boxscore for a specific event.
- * This is an on-demand, optional fetch used to enrich tiles (goalie stats, penalties, play-by-play).
- * @param {string} league - league key (e.g., 'nhl')
- * @param {string} eventId - ESPN event id
- * @returns {Promise<Object|null>} parsed JSON or null on error
- */
+// Fetch per-game summary / boxscore for a specific event (on-demand, optional)
 export const fetchGameSummary = async (league, eventId) => {
   try {
     const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
@@ -297,18 +249,7 @@ export const fetchGameSummary = async (league, eventId) => {
   }
 };
 
-/**
- * Normalize raw game summary/boxscore payloads into a compact shape used by
- * UI components. Different ESPN endpoints return different shapes; this adapter
- * extracts goalie and empty-net info for home/away in a stable form.
- * @param {Object} raw - raw JSON from summary endpoint
- * @returns {Object} normalized summary { teams: { home: {...}, away: {...} } }
- */
-/**
- * Normalize a raw game summary/boxscore payload for downstream use
- * @param {Object} raw - Raw summary/boxscore data
- * @returns {Object|null} Normalized summary or null
- */
+// Normalize a raw game summary/boxscore payload for downstream use
 export const normalizeGameSummary = (raw) => {
   if (!raw) return null;
 
@@ -373,18 +314,7 @@ export const normalizeGameSummary = (raw) => {
   return null;
 };
 
-/**
- * Format game time for display
- * @param {Date} date - Game date
- * @param {Object} status - Game status
- * @returns {string} Formatted time string
- */
-/**
- * Format game time for display
- * @param {Date} date - Game date
- * @param {Object} status - Game status
- * @returns {string} Formatted time string
- */
+// Format game time for display
 export const formatGameTime = (date, status) => {
   if (status.completed) {
     return 'Final';
@@ -402,16 +332,7 @@ export const formatGameTime = (date, status) => {
   return status.type.replace('STATUS_', '').replace('_', ' ');
 };
 
-/**
- * Get status class for styling
- * @param {Object} status - Game status
- * @returns {string} CSS class name
- */
-/**
- * Get status class for styling
- * @param {Object} status - Game status
- * @returns {string} CSS class name
- */
+// Get status class for styling
 export const getStatusClass = (status) => {
   if (status.completed) {
     return 'final';
@@ -422,30 +343,10 @@ export const getStatusClass = (status) => {
   return 'scheduled';
 };
 
-/**
- * Get league color theme
- * @param {string} league - League identifier
- * @returns {Object} Color theme object
- */
 // getLeagueColors now imported from gameUtils
 
-/**
- * Check if a game should be moved to bottom (finished > 2 minutes ago)
- * @param {Object} game - Game object
- * @returns {boolean} Whether game should be at bottom
- */
 // shouldMoveToBottom now imported from gameUtils
 
-/**
- * Sort games with smart ordering
- * @param {Array} games - Array of games
- * @returns {Array} Sorted games array
- */
 // sortGames now imported from gameUtils
 
-/**
- * Extract all unique teams from games data
- * @param {Object} gamesData - Games data grouped by league
- * @returns {Array} Array of team objects
- */
 // extractTeams now imported from gameUtils
