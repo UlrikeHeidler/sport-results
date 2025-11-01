@@ -97,7 +97,7 @@ const BasketballGameTile = (props) => {
       });
     }
     return (
-      <div className="win-prob-graph" style={{ margin: '0.5rem 0', width: '100%' }}>
+      <div className="win-prob-graph" style={{ margin: '0', width: '100%' }}>
         {/* <div style={{ fontSize: '0.8rem', marginBottom: 2 }} title="The x-axis shows game time (clock at each play/event)">Win Probability Differential <span style={{fontSize:'0.7em',color:'#888'}}>(x-axis: game time at each play)</span></div> */}
         <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} style={{ background: '#f8f9fa', borderRadius: 6, border: '1px solid #eee', width: '100%' }} preserveAspectRatio="none">
           {/* Fill area above center for home favored */}
