@@ -186,6 +186,7 @@ const parseGamesData = (data, league) => {
         id: event.id,
         league: league.toUpperCase(),
         status: normalizeStatus(competition.status),
+        broadcast: competition.broadcast ? competition.broadcast : null,
         homeTeam: {
           id: homeTeam.id,
           name: homeTeam.team.displayName || homeTeam.team.name,

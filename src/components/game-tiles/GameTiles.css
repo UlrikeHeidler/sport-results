@@ -57,6 +57,12 @@
   border-radius: 4px;
 }
 
+.broadcast-info {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+}
+
 .possession-marker {
   margin-left: 4px;
   font-size: 0.95em;
