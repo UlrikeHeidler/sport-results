@@ -218,11 +218,24 @@ const BaseGameTile = ({
         <div className="team-info">
           {renderTeamLogo(team)}
           {renderTeamName(team, isHome)}
+          {renderTeamRanking(team)}
         </div>
         {renderTeamScore(team, isHome, animations)}
       </div>
     );
   };
+
+  const renderTeamRanking = (team) => {
+    //console.log('Rendering ranking for team:', team);
+    if (team?.ranking != null && !isNaN(team.ranking) && team.ranking < 26) {
+      return (
+        <div className="team-ranking" title={`Ranked #${team.ranking}`}>
+          #{team.ranking}
+        </div>
+      );
+    }
+    return null;
+  }
 
   const renderBroadcastInfo = () => {
     if (game.broadcast) {

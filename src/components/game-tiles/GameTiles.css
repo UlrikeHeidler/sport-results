@@ -57,6 +57,10 @@
   border-radius: 4px;
 }
 
+.team-ranking {
+  font-size: 0.55rem;
+} 
+
 .broadcast-info {
   text-align: center;
   font-size: 0.6rem;
