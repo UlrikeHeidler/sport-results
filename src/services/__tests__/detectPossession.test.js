@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectPossession } from '../sportsApi-fixed';
+import { detectPossession } from '../sportsApi';
 
 // Since parseGamesData expects full ESPN-like responses, we will instead
 // import the helper by requiring the file and extracting the function via

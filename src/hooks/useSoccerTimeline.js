@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchGameSummary } from '../services/sportsApi-fixed';
+import { fetchGameSummary } from '../services/sportsApi';
 
 /**
  * Hook to fetch and filter timeline events for a soccer game

@@ -1,119 +1,46 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import GameTile from './components/game-tiles/GameTileFactory';
 import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
 import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
-import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
-import {
-  fetchAllGames,
-  sortGames,
-  extractTeams
-} from './services/sportsApi-fixed';
-import { loadSettings, saveSettings, clearSettings } from './utils/storage';
 import Toast from './components/Toast';
+import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
+import { useSettings } from './hooks/useSettings';
+import { useUIState } from './hooks/useUIState';
+import { useGameFiltering } from './hooks/useGameFiltering';
+import { useDragAndDrop } from './hooks/useDragAndDrop';
+import { fetchAllGames, extractTeams } from './services/sportsApi';
+import { AVAILABLE_LEAGUES } from './config/constants';
 
 function App() {
-  // Header expand/collapse state
-  const [headerExpanded, setHeaderExpanded] = useState(false);
+  // Custom hooks for state management
+  const { settings, handleSettingsChange, handleLeagueToggle, handleClearSettings } = useSettings();
+  const {
+    headerExpanded,
+    setHeaderExpanded,
+    showSettings,
+    setShowSettings,
+    showIncrementalMonitor,
+    setShowIncrementalMonitor,
+    toasts,
+    addToast,
+    removeToast
+  } = useUIState();
 
-  // Close header when clicking outside
-  useEffect(() => {
-    if (!headerExpanded) return;
-    function handleClick(e) {
-      const header = document.querySelector('.header');
-      if (header && !header.contains(e.target)) {
-        setHeaderExpanded(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [headerExpanded]);
+  // Game data state
   const [filteredGames, setFilteredGames] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showIncrementalMonitor, setShowIncrementalMonitor] = useState(false);
   const [availableTeams, setAvailableTeams] = useState([]);
   const [useIncrementalMode, setUseIncrementalMode] = useState(true);
 
-  // Settings state
-  const [settings, setSettings] = useState({
-    refreshInterval: 30,
-    selectedLeagues: [
-      // Football
-      'nfl', 'fbs', 'fcs',
-      // Hockey
-      'nhl',
-      // Baseball
-      'mlb',
-      // Soccer
-      'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
-      // Basketball
-      'nba', 'ncaaw'
-    ],
-    hiddenTeams: [],
-    colorCoding: true
-  });
-
-  // Custom game order (for drag and drop)
-  const [gameOrder, setGameOrder] = useState([]);
-  
-  // Sorting mode: 'custom' or 'startTime'
-  const [sortMode, setSortMode] = useState('custom');
-
-  const availableLeagues = [
-    // Football
-    'nfl', 'fbs', 'fcs',
-    // Hockey
-    'nhl',
-    // Baseball
-    'mlb',
-    // Soccer
-    'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
-    // Basketball
-    'nba', 'ncaaw'
-  ];
-
-  // Toast notifications
-  const [toasts, setToasts] = useState([]);
-  const addToast = (message, type = 'success', ttl = 4000) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-    const t = { id, message, type };
-    setToasts(prev => [t, ...prev]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(x => x.id !== id));
-    }, ttl);
-  };
-  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
-
-  // Load settings from localStorage, fall back to cookie
-  useEffect(() => {
-    try {
-      const saved = loadSettings();
-      if (saved) {
-        setSettings(prev => ({ ...prev, ...saved }));
-        if (saved.darkMode && typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  }, []);
-
-  // Save settings to localStorage and cookie
-  const handleSettingsChange = (newSettings) => {
-    setSettings(newSettings);
-    try {
-      saveSettings(newSettings);
-    } catch (e) {
-      console.error('Failed to persist settings:', e);
-    }
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', newSettings.darkMode ? 'dark' : 'light');
-    }
-    // notify user
-    try { addToast('Settings saved'); } catch (e) { /* ignore */ }
-  };
+  // Drag and drop functionality
+  const {
+    gameOrder,
+    setGameOrder,
+    sortMode,
+    setSortMode,
+    handleDragEnd
+  } = useDragAndDrop(filteredGames, setFilteredGames);
 
   // Incremental updates hook
   const {
@@ -121,7 +48,6 @@ function App() {
     loading: incrementalLoading,
     error: incrementalError,
     lastUpdated: incrementalLastUpdated,
-    loadGames: incrementalLoadGames,
     forceRefresh: incrementalForceRefresh,
     updateStats,
     recentChanges,
@@ -162,6 +88,20 @@ function App() {
   const currentError = useIncrementalMode ? incrementalError : error;
   const currentLastUpdated = useIncrementalMode ? incrementalLastUpdated : lastUpdated;
 
+  // Game filtering and sorting
+  const { filteredGames: processedGames } = useGameFiltering({
+    games: currentGames,
+    selectedLeagues: settings.selectedLeagues,
+    hiddenTeams: settings.hiddenTeams,
+    gameOrder,
+    sortMode
+  });
+
+  // Update filteredGames when processed games change
+  useEffect(() => {
+    setFilteredGames(processedGames);
+  }, [processedGames]);
+
   // Extract teams when games change
   useEffect(() => {
     if (Object.keys(currentGames).length > 0) {
@@ -188,153 +128,35 @@ function App() {
     }
   }, [loadGames, settings.refreshInterval, useIncrementalMode]);
 
-  // Memoized filtered and sorted games to prevent unnecessary recalculations
-  const filteredAndSortedGames = useMemo(() => {
-    const allGames = [];
-    
-    // Combine all games from selected leagues
-    settings.selectedLeagues.forEach(league => {
-      if (currentGames[league]) {
-        allGames.push(...currentGames[league]);
-      }
-    });
-
-    // Filter out hidden teams
-    const visibleGames = allGames.filter(game => {
-      const homeTeamHidden = settings.hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.homeTeam.id).toLowerCase());
-      const awayTeamHidden = settings.hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.awayTeam.id).toLowerCase());
-      return !homeTeamHidden && !awayTeamHidden;
-    });
-
-    let finalGames = [];
-    
-    if (sortMode === 'startTime') {
-      // Sort by game status: Ongoing (live/intermission), Scheduled, Final
-      finalGames = visibleGames.sort((a, b) => {
-        // Define game status categories
-        const getGameCategory = (game) => {
-          // Ongoing games (live or in intermission)
-          if (game.status.type === 'STATUS_IN_PROGRESS' ||
-              game.status.type === 'STATUS_HALFTIME' ||
-              game.status.type === 'STATUS_HALFTTIME_ET' ||
-              game.status.type === 'STATUS_OVERTIME' ||
-              game.status.type === 'STATUS_BREAK' ||
-              game.status.type === 'STATUS_INTERMISSION' ||
-              game.status.type === 'STATUS_END_PERIOD') {
-            return 1; // Ongoing - highest priority
-          }
-          // Final games
-          else if (game.status.type === 'STATUS_FINAL' ||
-                   game.status.type === 'STATUS_FINAL_OT' ||
-                   game.status.type === 'STATUS_FINAL_SO') {
-            return 3; // Final - lowest priority
-          }
-          // Scheduled games (not started yet)
-          else {
-            return 2; // Scheduled - middle priority
-          }
-        };
-        
-        const aCat = getGameCategory(a);
-        const bCat = getGameCategory(b);
-        
-        // Sort by category first
-        if (aCat !== bCat) {
-          return aCat - bCat;
-        }
-        
-        // Within same category, sort by start time
-        return new Date(a.date) - new Date(b.date);
-      });
-    } else {
-      // Custom sort mode - use smart ordering and custom order
-      const sortedGames = sortGames(visibleGames);
-      
-      // Apply custom order if it exists and is valid
-      if (gameOrder.length > 0) {
-        const orderedGames = [];
-        const gameMap = new Map(sortedGames.map(game => [`${game.league}-${game.id}`, game]));
-        
-        // Add games in custom order
-        gameOrder.forEach(gameId => {
-          if (gameMap.has(gameId)) {
-            orderedGames.push(gameMap.get(gameId));
-            gameMap.delete(gameId);
-          }
-        });
-        
-        // Add any remaining games that weren't in the custom order
-        orderedGames.push(...Array.from(gameMap.values()));
-        
-        finalGames = orderedGames;
-      } else {
-        finalGames = sortedGames;
-      }
-    }
-    
-    return finalGames;
-  }, [currentGames, settings.selectedLeagues, settings.hiddenTeams, gameOrder, sortMode]);
-
-  // Update filteredGames when the memoized value changes
-  useEffect(() => {
-    setFilteredGames(filteredAndSortedGames);
-  }, [filteredAndSortedGames]);
-
-  // Handle league selection toggle
-  const handleLeagueToggle = (league) => {
-    const newLeagues = settings.selectedLeagues.includes(league)
-      ? settings.selectedLeagues.filter(l => l !== league)
-      : [...settings.selectedLeagues, league];
-    
-    handleSettingsChange({
-      ...settings,
-      selectedLeagues: newLeagues
-    });
-  };
-
-  // Handle drag and drop
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-    
-    // Only allow drag and drop in custom sort mode
-    if (sortMode !== 'custom') {
-      return;
-    }
-
-    const items = Array.from(filteredGames);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update the custom order
-    const newOrder = items.map(game => `${game.league}-${game.id}`);
-    setGameOrder(newOrder);
-    setFilteredGames(items);
-  };
-
-  // Handle sort mode toggle
-  const handleSortModeToggle = () => {
-    const newMode = sortMode === 'startTime' ? 'custom' : 'startTime';
-    setSortMode(newMode);
-    
-    // Clear custom order when switching to start time mode
-    if (newMode === 'startTime') {
-      setGameOrder([]);
-    }
-  };
-
   // Toggle between incremental and traditional mode
-  const toggleUpdateMode = () => {
+  const toggleUpdateMode = useCallback(() => {
     setUseIncrementalMode(prev => !prev);
-  };
+  }, []);
 
   // Handle force refresh
-  const handleForceRefresh = () => {
+  const handleForceRefresh = useCallback(() => {
     if (useIncrementalMode) {
       incrementalForceRefresh();
     } else {
       loadGames();
     }
-  };
+  }, [useIncrementalMode, incrementalForceRefresh, loadGames]);
+
+  // Enhanced settings change handler with toast notification
+  const handleSettingsChangeWithToast = useCallback((newSettings) => {
+    handleSettingsChange(newSettings);
+    try { 
+      addToast('Settings saved'); 
+    } catch (e) { 
+      /* ignore */ 
+    }
+  }, [handleSettingsChange, addToast]);
+
+  // Enhanced clear settings handler with toast notification
+  const handleClearSettingsWithToast = useCallback(() => {
+    handleClearSettings();
+    addToast('Cleared saved settings');
+  }, [handleClearSettings, addToast]);
 
   return (
     <div className="App">
@@ -374,7 +196,7 @@ function App() {
                   <LeagueSelector
                     selectedLeagues={settings.selectedLeagues}
                     onLeagueToggle={handleLeagueToggle}
-                    availableLeagues={availableLeagues}
+                    availableLeagues={AVAILABLE_LEAGUES}
                   />
                   <div className="sort-controls">
                     <button 
@@ -421,7 +243,6 @@ function App() {
       </header>
 
       <main className="container">
-
         {currentLoading && (
           <div className="loading">
             <div className="loading-spinner">⏳</div>
@@ -507,12 +328,13 @@ function App() {
 
       <Settings
         settings={settings}
-        onSettingsChange={handleSettingsChange}
+        onSettingsChange={handleSettingsChangeWithToast}
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         availableTeams={availableTeams}
-        onClearStorage={() => { clearSettings(); addToast('Cleared saved settings'); }}
+        onClearStorage={handleClearSettingsWithToast}
       />
+      
       <Toast toasts={toasts} onRemove={removeToast} />
 
       <IncrementalUpdatesMonitor

@@ -1,7 +1,7 @@
 // Incremental Updates Service for Sports Results App
 // Provides efficient data synchronization with minimal API calls and optimal user experience
 
-import { fetchGames } from './sportsApi-fixed';
+import { fetchGames } from './sportsApi';
 import { isGameOngoing } from './gameUtils';
 // Debug logger
 const debug = (...args) => { if (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('debugIncremental') === '1') { console.log('[IncrementalUpdates]', ...args); } };

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { incrementalUpdatesManager } from '../incrementalUpdates';
-import * as api from '../sportsApi-fixed';
+import * as api from '../sportsApi';
 
 describe('IncrementalUpdatesManager', () => {
   beforeEach(() => {

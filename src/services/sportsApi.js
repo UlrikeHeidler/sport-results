@@ -1,52 +1,36 @@
-// ESPN API endpoints for sports data
-const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports';
+/**
+ * Unified Sports API Service
+ * Consolidates functionality from sportsApi.js and sportsApi-fixed.js
+ * Provides efficient data fetching, parsing, and utilities for sports data
+ */
 
-// API endpoints for different leagues
-const API_ENDPOINTS = {
-  nfl: `${ESPN_BASE_URL}/football/nfl/scoreboard`,
-  nhl: `${ESPN_BASE_URL}/hockey/nhl/scoreboard`,
-  nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
-  mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
-  ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
-  mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
-};
+import { debug } from '../utils/logger';
+import { handleError } from '../utils/errorHandler';
+import { 
+  API_ENDPOINTS, 
+  STATUS_TYPES, 
+  LEAGUE_COLORS, 
+  TIMING_CONSTANTS,
+  isGameOngoing,
+  isGameInBreak,
+  isGameFinal,
+  getLeagueColors 
+} from '../config/constants';
+import { normalizeStatus } from './normalizeStatus';
+import { normalizeSituation } from './normalizeSituation';
 
-// Known ongoing status types
-const ongoingTypes = new Set([
-  'STATUS_IN_PROGRESS',
-  'STATUS_HALFTIME',
-  'STATUS_HALFTIME_ET',
-  'STATUS_OVERTIME',
-  'STATUS_FIRST_HALF',
-  'STATUS_END OF_REGULATION',
-  'STATUS_SECOND_HALF',
-  'STATUS_EXTRA_TIME',
-  'STATUS_PENALTIES',
-  'STATUS_BREAK',
-  'STATUS_INTERMISSION',
-  'STATUS_END_PERIOD'
-]);
-
-const inBreakTypes = new Set([
-  'STATUS_HALFTIME',
-  'STATUS_HALFTIME_ET',
-  'STATUS_END OF_REGULATION',
-  'STATUS_END_PERIOD',
-  'STATUS_BREAK',
-  'STATUS_INTERMISSION'
-]);
-
-// Date utilities
+/**
+ * Date utilities for API requests
+ */
 const getDateString = (date) => {
   return date.toISOString().split('T')[0].replace(/-/g, '');
 };
 
-const getDateRange = () => {
+const getDateRange = (days = 4) => {
   const today = new Date();
   const dates = [];
   
-  // Get today + next 3 days
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < days; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
     dates.push(getDateString(date));
@@ -56,20 +40,101 @@ const getDateRange = () => {
 };
 
 /**
- * Fetch games for a specific league with date filtering
- * @param {string} league - The league to fetch games for (nfl, nhl)
+ * Detect which team has possession from competition data
+ * @param {Object} competitionObj - Competition object from API
+ * @param {Object} homeTeamObj - Home team object
+ * @param {Object} awayTeamObj - Away team object
+ * @returns {Object} Possession information
+ */
+export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
+  if (!competitionObj) return { which: null, label: null };
+
+  const sit = competitionObj.situation || {};
+  
+  let raw = sit.possession ?? sit.possessionText ?? null;
+  if (competitionObj.drives && competitionObj.drives.currentPlay) {
+    const cp = competitionObj.drives.currentPlay;
+    if (cp.team && (cp.team.id || cp.team.abbreviation || cp.team.displayName)) {
+      raw = cp.team.id || cp.team.abbreviation || cp.team.displayName || raw;
+    } else if (cp.possessionTeamId) {
+      raw = cp.possessionTeamId;
+    }
+  }
+
+  if (raw && typeof raw === 'object') {
+    if (raw.id) raw = String(raw.id);
+    else if (raw.abbreviation) raw = String(raw.abbreviation);
+    else if (raw.displayName) raw = String(raw.displayName);
+  }
+
+  const normalize = v => (v == null ? null : String(v).toLowerCase());
+  const rawNorm = normalize(raw);
+
+  const candidates = (team) => [team?.id, team?.abbreviation, team?.name, team?.displayName].map(normalize).filter(Boolean);
+  const homeCandidates = new Set(candidates(homeTeamObj));
+  const awayCandidates = new Set(candidates(awayTeamObj));
+
+  // Prefer lastPlay.team when available
+  if (sit.lastPlay && sit.lastPlay.team) {
+    let lp = sit.lastPlay.team;
+    let rawLp = lp.id || lp.abbreviation || lp.displayName || lp.name || null;
+    if (rawLp) {
+      const normalizeLp = (v) => (v == null ? null : String(v).toLowerCase());
+      const lpNorm = normalizeLp(rawLp);
+      if (lpNorm && homeCandidates.has(lpNorm)) return { which: 'home', label: rawLp };
+      if (lpNorm && awayCandidates.has(lpNorm)) return { which: 'away', label: rawLp };
+    }
+  }
+
+  if (rawNorm && homeCandidates.has(rawNorm)) return { which: 'home', label: raw };
+  if (rawNorm && awayCandidates.has(rawNorm)) return { which: 'away', label: raw };
+
+  if (rawNorm === 'home' || rawNorm === 'away') return { which: rawNorm, label: raw };
+
+  if (typeof sit.possessionText === 'string') {
+    const txt = sit.possessionText.toLowerCase();
+    if (txt.includes('home')) return { which: 'home', label: sit.possessionText };
+    if (txt.includes('away')) return { which: 'away', label: sit.possessionText };
+  }
+
+  if (sit.possessionTeamId) {
+    const pid = normalize(sit.possessionTeamId);
+    if (homeCandidates.has(pid)) return { which: 'home', label: sit.possessionTeamId };
+    if (awayCandidates.has(pid)) return { which: 'away', label: sit.possessionTeamId };
+  }
+
+  return { which: null, label: raw ?? null };
+};
+
+/**
+ * Fetch games for a specific league
+ * @param {string} league - The league to fetch games for
  * @param {string} dateFilter - Optional date filter (YYYYMMDD format)
  * @returns {Promise<Array>} Array of game objects
  */
 export const fetchGames = async (league, dateFilter = null) => {
   try {
-    const endpoint = API_ENDPOINTS[league.toLowerCase()];
-    if (!endpoint) {
+    const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
+    if (!baseEndpoint) {
       throw new Error(`Unsupported league: ${league}`);
     }
 
-    // Add date parameter if provided
-    const url = dateFilter ? `${endpoint}?dates=${dateFilter}` : endpoint;
+    // Use provided date filter or today's date
+    let url = baseEndpoint;
+    if (dateFilter) {
+      const separator = baseEndpoint.includes('?') ? '&' : '?';
+      url = `${baseEndpoint}${separator}dates=${dateFilter}`;
+    } else {
+      // Default to today's games
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${today.getFullYear()}${month}${day}`;
+      const separator = baseEndpoint.includes('?') ? '&' : '?';
+      url = `${baseEndpoint}${separator}dates=${dateStr}`;
+    }
+    
+    debug(`Fetching ${league} games from:`, url);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -77,10 +142,11 @@ export const fetchGames = async (league, dateFilter = null) => {
     }
 
     const data = await response.json();
+    debug(`${league} API response:`, data);
     return parseGamesData(data, league);
   } catch (error) {
-    console.error(`Error fetching ${league} games:`, error);
-    throw error;
+    handleError(error, `fetchGames (${league})`);
+    return []; // Return empty array instead of throwing
   }
 };
 
@@ -92,105 +158,168 @@ export const fetchGames = async (league, dateFilter = null) => {
  */
 const parseGamesData = (data, league) => {
   if (!data.events || !Array.isArray(data.events)) {
+    debug(`No events found for ${league}`);
     return [];
   }
 
-  return data.events.map(event => {
-    const competition = event.competitions[0];
-    const competitors = competition.competitors;
-    
-    // Find home and away teams
-    const homeTeam = competitors.find(comp => comp.homeAway === 'home');
-    const awayTeam = competitors.find(comp => comp.homeAway === 'away');
+  debug(`Parsing ${data.events.length} events for ${league}`);
 
-    return {
-      id: event.id,
-      league: league.toUpperCase(),
-      status: {
-        type: competition.status.type.name,
-        displayClock: competition.status.displayClock,
-        period: competition.status.period,
-        completed: competition.status.type.completed,
-        description: competition.status.description || competition.status.type.description || ''
-      },
-      homeTeam: {
-        id: homeTeam.id,
-        name: homeTeam.team.displayName,
-        abbreviation: homeTeam.team.abbreviation,
-        score: homeTeam.score,
-        logo: homeTeam.team.logo
-      },
-      awayTeam: {
-        id: awayTeam.id,
-        name: awayTeam.team.displayName,
-        abbreviation: awayTeam.team.abbreviation,
-        score: awayTeam.score,
-        logo: awayTeam.team.logo
-      },
-      date: new Date(event.date),
-      venue: competition.venue ? competition.venue.fullName : 'TBD',
-      finishedAt: competition.status.type.completed ? new Date() : null
-    };
-  });
+  return data.events.map(event => {
+    try {
+      const competition = event.competitions[0];
+      const competitors = competition.competitors;
+      
+      // Find home and away teams
+      const homeTeam = competitors.find(comp => comp.homeAway === 'home');
+      const awayTeam = competitors.find(comp => comp.homeAway === 'away');
+
+      if (!homeTeam || !awayTeam) {
+        handleError(`Missing team data for event: ${event.id}`, 'parseGamesData');
+        return null;
+      }
+
+      // Extract situation data
+      const situation = competition.situation || {};
+      debug(`Game ${event.id} situation data:`, situation);
+
+      return {
+        id: event.id,
+        league: league.toUpperCase(),
+        status: normalizeStatus(competition.status),
+        homeTeam: {
+          id: homeTeam.id,
+          name: homeTeam.team.displayName || homeTeam.team.name,
+          abbreviation: homeTeam.team.abbreviation,
+          score: homeTeam.score || '0',
+          logo: homeTeam.team.logo || ''
+        },
+        awayTeam: {
+          id: awayTeam.id,
+          name: awayTeam.team.displayName || awayTeam.team.name,
+          abbreviation: awayTeam.team.abbreviation,
+          score: awayTeam.score || '0',
+          logo: awayTeam.team.logo || ''
+        },
+        situation: normalizeSituation(league, situation, competition, homeTeam, awayTeam),
+        date: new Date(event.date),
+        venue: competition.venue ? competition.venue.fullName : 'TBD',
+        finishedAt: competition.status.type.completed ? new Date() : null
+      };
+    } catch (error) {
+      handleError(error, `parseGamesData (event: ${event.id})`);
+      return null;
+    }
+  }).filter(game => game !== null);
 };
 
 /**
- * Get games for all supported leagues with date filtering
+ * Get games for all supported leagues
  * @param {Array} selectedLeagues - Array of league names to fetch
+ * @param {boolean} includeMultipleDays - Whether to fetch multiple days of games
  * @returns {Promise<Object>} Object with games grouped by league
  */
-export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl']) => {
+export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = false) => {
   try {
-    const dateRange = getDateRange();
-    const allPromises = [];
+    // Only fetch leagues that are actually enabled
+    const enabledLeagues = Array.isArray(selectedLeagues)
+      ? [...new Set(selectedLeagues.filter(l => typeof l === 'string' && l.trim()))]
+      : [];
+    
+    console.log('Fetching games for leagues:', enabledLeagues);
 
-    // Fetch games for each league and each date in range
-    selectedLeagues.forEach(league => {
-      dateRange.forEach(date => {
-        allPromises.push(
-          fetchGames(league, date).then(games => ({ league, games, date }))
-        );
+    if (!enabledLeagues.length) {
+      debug('No leagues enabled, skipping all fetches.');
+      return {};
+    }
+
+    let promises;
+    
+    if (includeMultipleDays) {
+      // Fetch multiple days (legacy behavior)
+      const dateRange = getDateRange();
+      const allPromises = [];
+
+      enabledLeagues.forEach(league => {
+        dateRange.forEach(date => {
+          allPromises.push(
+            fetchGames(league, date).then(games => ({ league, games, date }))
+          );
+        });
       });
-    });
 
-    const results = await Promise.allSettled(allPromises);
-    const gamesData = {};
+      const results = await Promise.allSettled(allPromises);
+      const gamesData = {};
 
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        const { league, games } = result.value;
-        if (!gamesData[league]) {
-          gamesData[league] = [];
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const { league, games } = result.value;
+          if (!gamesData[league]) {
+            gamesData[league] = [];
+          }
+          gamesData[league].push(...games);
+        } else {
+          handleError(result.reason, 'fetchAllGames (Promise.allSettled)');
         }
-        gamesData[league].push(...games);
-      } else {
-        console.error('Failed to fetch games for a league:', result.reason);
-      }
-    });
+      });
 
-    // Remove duplicates and filter by date range
-    Object.keys(gamesData).forEach(league => {
-      const uniqueGames = gamesData[league].filter((game, index, self) =>
-        index === self.findIndex(g => g.id === game.id)
+      // Remove duplicates and filter by date range
+      Object.keys(gamesData).forEach(league => {
+        const uniqueGames = gamesData[league].filter((game, index, self) =>
+          index === self.findIndex(g => g.id === game.id)
+        );
+        
+        // Filter to only include today + next 3 days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 3);
+        
+        gamesData[league] = uniqueGames.filter(game => {
+          const gameDate = new Date(game.date);
+          gameDate.setHours(0, 0, 0, 0);
+          return gameDate >= today && gameDate <= maxDate;
+        });
+      });
+
+      return gamesData;
+    } else {
+      // Fetch only today's games (optimized behavior)
+      promises = enabledLeagues.map(league =>
+        fetchGames(league).then(games => ({ league, games }))
       );
-      
-      // Filter to only include today + next 3 days
+
+      const results = await Promise.allSettled(promises);
+      const gamesData = {};
+
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const { league, games } = result.value;
+          gamesData[league] = games;
+          debug(`Successfully fetched ${games.length} games for ${league}`);
+        } else {
+          handleError(result.reason, 'fetchAllGames (Promise.allSettled)');
+        }
+      });
+
+      // Filter to today's games only
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const maxDate = new Date(today);
-      maxDate.setDate(today.getDate() + 3);
-      
-      gamesData[league] = uniqueGames.filter(game => {
-        const gameDate = new Date(game.date);
-        gameDate.setHours(0, 0, 0, 0);
-        return gameDate >= today && gameDate <= maxDate;
-      });
-    });
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
 
-    return gamesData;
+      Object.keys(gamesData).forEach(league => {
+        gamesData[league] = gamesData[league].filter(game => {
+          const gameDate = new Date(game.date);
+          return gameDate >= today && gameDate <= endOfToday;
+        });
+        debug(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
+      });
+
+      return gamesData;
+    }
   } catch (error) {
-    console.error('Error fetching all games:', error);
-    throw error;
+    handleError(error, 'fetchAllGames', true);
+    return {};
   }
 };
 
@@ -198,13 +327,14 @@ export const fetchAllGames = async (selectedLeagues = ['nfl', 'nhl']) => {
  * Format game time for display
  * @param {Date} date - Game date
  * @param {Object} status - Game status
+ * @param {string} league - League identifier
  * @returns {string} Formatted time string
  */
 export const formatGameTime = (date, status = {}, league = '') => {
   try {
-    // For MLB, don't show anything, because we will display the score in a diamond.
+    // For MLB, don't show time during live games
     if (league && String(league).toLowerCase() === 'mlb') {
-      if (ongoingTypes.has(status.type) || status.completed) {
+      if (isGameOngoing(status) || isGameFinal(status)) {
         return '';
       }
       if (date instanceof Date) {
@@ -217,19 +347,21 @@ export const formatGameTime = (date, status = {}, league = '') => {
       return String(date);
     }
 
-    if (status && status.completed) {
+    if (isGameFinal(status)) {
       return 'Final';
     }
     
-    if (status && inBreakTypes.has(status.type)) {
+    if (isGameInBreak(status)) {
       return 'Intermission';
     }
 
-    if (status && ongoingTypes.has(status.type)) {
-      return `${status.displayClock || ''}`.trim() ? `${status.displayClock} - Period ${status.period}` : `Live`;
+    if (isGameOngoing(status)) {
+      return `${status.displayClock || ''}`.trim() ? 
+        `${status.displayClock} - Period ${status.period}` : 
+        'Live';
     }
 
-    if (status && status.type === 'STATUS_SCHEDULED') {
+    if (status && status.type === STATUS_TYPES.SCHEDULED) {
       if (date instanceof Date) {
         return date.toLocaleTimeString('en-US', {
           hour: 'numeric',
@@ -240,13 +372,14 @@ export const formatGameTime = (date, status = {}, league = '') => {
       return String(date);
     }
 
-    return status && status.type ? String(status.type).replace('STATUS_', '').replace('_', ' ') : '';
+    return status && status.type ? 
+      String(status.type).replace('STATUS_', '').replace('_', ' ') : 
+      '';
   } catch (e) {
     console.error('formatGameTime error', e, date, status, league);
     return '';
   }
 };
-
 
 /**
  * Get status class for styling
@@ -254,42 +387,15 @@ export const formatGameTime = (date, status = {}, league = '') => {
  * @returns {string} CSS class name
  */
 export const getStatusClass = (status) => {
-
-
-
-  if (status.completed) {
+  if (isGameFinal(status)) {
     return 'final';
   }
   
-  if (ongoingTypes.has(status.type)) {
+  if (isGameOngoing(status)) {
     return 'live';
   }
   
   return 'scheduled';
-};
-
-/**
- * Get league color theme
- * @param {string} league - League identifier
- * @returns {Object} Color theme object
- */
-export const getLeagueColors = (league) => {
-  const themes = {
-    nfl: {
-      primary: '#013369',
-      secondary: '#D50A0A',
-      accent: '#FFB612',
-      background: '#f8f9ff'
-    },
-    nhl: {
-      primary: '#000000',
-      secondary: '#C8102E',
-      accent: '#FCB514',
-      background: '#f5f5f5'
-    }
-  };
-  
-  return themes[league.toLowerCase()] || themes.nfl;
 };
 
 /**
@@ -298,15 +404,14 @@ export const getLeagueColors = (league) => {
  * @returns {boolean} Whether game should be at bottom
  */
 export const shouldMoveToBottom = (game) => {
-  if (!game.status.completed || !game.finishedAt) {
+  if (!isGameFinal(game.status) || !game.finishedAt) {
     return false;
   }
   
   const now = new Date();
   const timeSinceFinished = now - new Date(game.finishedAt);
-  const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
   
-  return timeSinceFinished > twoMinutes;
+  return timeSinceFinished > TIMING_CONSTANTS.MOVE_TO_BOTTOM_DELAY;
 };
 
 /**
@@ -325,8 +430,10 @@ export const sortGames = (games) => {
     
     // Live games first (among non-bottom games)
     if (!aToBottom && !bToBottom) {
-      if (a.status.type === 'STATUS_IN_PROGRESS' && b.status.type !== 'STATUS_IN_PROGRESS') return -1;
-      if (b.status.type === 'STATUS_IN_PROGRESS' && a.status.type !== 'STATUS_IN_PROGRESS') return 1;
+      const aIsLive = isGameOngoing(a.status);
+      const bIsLive = isGameOngoing(b.status);
+      if (aIsLive && !bIsLive) return -1;
+      if (bIsLive && !aIsLive) return 1;
     }
     
     // Then by date
@@ -346,10 +453,11 @@ export const extractTeams = (gamesData) => {
   Object.entries(gamesData).forEach(([league, games]) => {
     games.forEach(game => {
       [game.homeTeam, game.awayTeam].forEach(team => {
-        if (!teamIds.has(team.id)) {
-          teamIds.add(team.id);
+        const uniqueId = league + team.id;
+        if (!teamIds.has(uniqueId)) {
+          teamIds.add(uniqueId);
           teams.push({
-            id: team.id,
+            id: uniqueId,
             name: team.name,
             abbreviation: team.abbreviation,
             league: league.toUpperCase()
@@ -361,3 +469,105 @@ export const extractTeams = (gamesData) => {
   
   return teams.sort((a, b) => a.name.localeCompare(b.name));
 };
+
+/**
+ * Fetch per-game summary/boxscore for a specific event
+ * @param {string} league - League identifier
+ * @param {string} eventId - Event ID
+ * @returns {Promise<Object|null>} Game summary data
+ */
+export const fetchGameSummary = async (league, eventId) => {
+  try {
+    const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
+    if (!baseEndpoint) {
+      handleError(`Unsupported league: ${league}`, 'fetchGameSummary');
+      return null;
+    }
+
+    // Replace /scoreboard with /summary and append event id param
+    const summaryEndpoint = baseEndpoint.includes('/scoreboard')
+      ? baseEndpoint.replace('/scoreboard', `/summary?event=${encodeURIComponent(eventId)}`)
+      : `${baseEndpoint}/summary?event=${encodeURIComponent(eventId)}`;
+
+    const res = await fetch(summaryEndpoint);
+    if (!res.ok) {
+      handleError(`fetchGameSummary failed: ${res.status}`, 'fetchGameSummary');
+      return null;
+    }
+    
+    const data = await res.json();
+    debug('fetchGameSummary success:', { league, eventId, data });
+    return data;
+  } catch (err) {
+    handleError(err, 'fetchGameSummary');
+    return null;
+  }
+};
+
+/**
+ * Normalize a raw game summary/boxscore payload
+ * @param {Object} raw - Raw summary data
+ * @returns {Object|null} Normalized summary data
+ */
+export const normalizeGameSummary = (raw) => {
+  if (!raw) return null;
+
+  const src = raw.boxscore || raw.gamepackageJSON?.boxscore || raw.boxScore || raw;
+  const teamsArr = src?.teams || (Array.isArray(src) ? src : null);
+
+  const normalizeTeam = (tRaw) => {
+    if (!tRaw) return null;
+
+    const goalies = tRaw.goalies || 
+      (tRaw.players ? tRaw.players.filter(p => p.position && p.position.abbreviation === 'G') : null) || 
+      [];
+    const goalie = goalies[0] || tRaw.goalie || null;
+
+    const name = goalie?.person?.fullName || goalie?.name || goalie?.playerName || goalie?.person?.displayName || null;
+    const saves = goalie?.stats?.saves ?? goalie?.saves ?? goalie?.statistics?.saves ?? null;
+    const shots = goalie?.stats?.shotsAgainst ?? goalie?.shotsAgainst ?? goalie?.statistics?.shotsAgainst ?? goalie?.statistics?.shots ?? null;
+
+    const emptyNet = !!tRaw.emptyNet || !!tRaw.isEmptyNet || !!tRaw.goaliePulled || false;
+
+    return {
+      id: tRaw.team?.id || tRaw.teamId || tRaw.id || null,
+      name: tRaw.team?.displayName || tRaw.team?.name || tRaw.team?.shortName || null,
+      goalie: name ? { name, saves, shots } : null,
+      emptyNet
+    };
+  };
+
+  // Handle different response formats
+  if (Array.isArray(teamsArr) && teamsArr.length >= 2) {
+    return {
+      teams: {
+        home: normalizeTeam(teamsArr[0]),
+        away: normalizeTeam(teamsArr[1])
+      }
+    };
+  }
+
+  if (src && src.teams && (src.teams.home || src.teams.away)) {
+    return {
+      teams: {
+        home: normalizeTeam(src.teams.home),
+        away: normalizeTeam(src.teams.away)
+      }
+    };
+  }
+
+  if (src && src.teamsById) {
+    const ids = Object.keys(src.teamsById);
+    return {
+      teams: {
+        home: normalizeTeam(src.teamsById[ids[0]]),
+        away: normalizeTeam(src.teamsById[ids[1]])
+      }
+    };
+  }
+
+  return null;
+};
+
+// Export utility functions from constants for backward compatibility
+export { getLeagueColors, isGameOngoing };

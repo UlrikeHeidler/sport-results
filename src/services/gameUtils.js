@@ -1,27 +1,12 @@
-/**
- * Check if a game status is ongoing (live, halftime, overtime, etc.)
- * @param {Object} status - Game status object
- * @returns {boolean} True if the game is ongoing/live
- */
-export function isGameOngoing(status) {
-  if (!status || !status.type) return false;
-  return [
-    'STATUS_IN_PROGRESS',
-    'STATUS_HALFTIME',
-    'STATUS_HALFTIME_ET',
-    'STATUS_OVERTIME',
-    'STATUS_FIRST_HALF',
-    'STATUS_SECOND_HALF',
-    'STATUS_END_OF_EXTRATIME',
-    'STATUS_EXTRA_TIME',
-    'STATUS_PENALTIES',
-    'STATUS_SHOOTOUT',
-    'STATUS_BREAK',
-    'STATUS_INTERMISSION',
-    'STATUS_END OF_REGULATION',
-    'STATUS_END_PERIOD'
-  ].includes(status.type);
-}
+// Re-export utility functions from centralized constants
+export {
+  isGameOngoing,
+  isGameInBreak,
+  isGameFinal,
+  isGameScheduled,
+  getLeagueColors,
+  getLeagueInfo
+} from '../config/constants';
 // Utility functions for game data
 
 /**
@@ -109,44 +94,4 @@ export function extractTeams(gamesData) {
  * @param {string} league - League identifier
  * @returns {{primary: string, secondary: string, accent: string, background: string}} Color theme object
  */
-export function getLeagueColors(league) {
-  const themes = {
-    nfl: {
-      primary: '#013369', secondary: '#D50A0A', accent: '#FFB612', background: '#f0f8ff'
-    },
-    nhl: {
-      primary: '#000000', secondary: '#C8102E', accent: '#FCB514', background: '#f0f8ff'
-    },
-    fcs: {
-      primary: '#8B0000', secondary: '#FFD700', accent: '#228B22', background: '#f0f8ff'
-    },
-    fbs: {
-      primary: '#FF8C00', secondary: '#4169E1', accent: '#32CD32', background: '#f0f8ff'
-    },
-    mlb: {
-      primary: '#002D72', secondary: '#D50032', accent: '#FFFFFF', background: '#f0f8ff'
-    },
-    bundesliga1: {
-      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#f0f8ff'
-    },
-    bundesliga2: {
-      primary: '#005CA9', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
-    },
-    dfb_pokal: {
-      primary: '#008751', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0f8ff'
-    },
-    ucl: {
-      primary: '#1B1E3C', secondary: '#FFFFFF', accent: '#FFD700', background: '#f0f8ff'
-    },
-    nba: {
-      primary: '#614304', secondary: '#FFFFFF', accent: '#FFFFFF', background: '#f0f8ff'
-    },
-    mls: {
-      primary: '#D20515', secondary: '#000000', accent: '#FFCC02', background: '#f0f8ff'
-    },
-    ncaaw: {
-      primary: '#614304', secondary: '#FFFFFF', accent: '#E30613', background: '#f0f8ff'
-    }
-  };
-  return themes[league.toLowerCase()] || themes.nfl;
-}
+// League colors now imported from constants

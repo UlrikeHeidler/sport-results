@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Settings.css';
+import { LEAGUE_INFO, SPORT_GROUPS, DEFAULT_SETTINGS } from '../config/constants';
 
 const Settings = ({
   settings,
@@ -30,26 +31,7 @@ const Settings = ({
   };
 
   const handleReset = () => {
-    const defaultSettings = {
-      refreshInterval: 30,
-      selectedLeagues: [
-        // Football
-        'nfl', 'fbs', 'fcs',
-        // Hockey
-        'nhl',
-        // Baseball
-        'mlb',
-        // Soccer
-        'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
-        // Basketball
-        'nba', 'ncaaw'
-      ],
-      hiddenTeams: [],
-      colorCoding: true,
-      showTeamForm: true,
-      darkMode: false
-    };
-    setLocalSettings(defaultSettings);
+    setLocalSettings(DEFAULT_SETTINGS);
   };
 
   const handleClearStorage = () => {
@@ -59,20 +41,8 @@ const Settings = ({
     }
 
     // Reset UI to defaults and immediately persist the defaults
-    const defaultSettings = {
-      refreshInterval: 30,
-      selectedLeagues: [
-        'nfl', 'nhl', 'fcs', 'fbs', 'mlb',
-        'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl',
-        'nba', 'mls', 'ncaaw'
-      ],
-      hiddenTeams: [],
-      colorCoding: true,
-      showTeamForm: true,
-      darkMode: false
-    };
-    setLocalSettings(defaultSettings);
-    if (typeof onSettingsChange === 'function') onSettingsChange(defaultSettings);
+    setLocalSettings(DEFAULT_SETTINGS);
+    if (typeof onSettingsChange === 'function') onSettingsChange(DEFAULT_SETTINGS);
   };
 
   const toggleHiddenTeam = (teamId) => {
@@ -84,28 +54,7 @@ const Settings = ({
     }));
   };
 
-  const leagueInfo = {
-    nfl: { name: 'NFL', fullName: 'National Football League', emoji: '🏈', sport: 'Football' },
-    fbs: { name: 'FBS', fullName: 'College Football FBS Division', emoji: '🏈', sport: 'Football' },
-    fcs: { name: 'FCS', fullName: 'College Football FCS Division', emoji: '🏈', sport: 'Football' },
-    nhl: { name: 'NHL', fullName: 'National Hockey League', emoji: '🏒', sport: 'Hockey' },
-    mlb: { name: 'MLB', fullName: 'Major League Baseball', emoji: '⚾', sport: 'Baseball' },
-    bundesliga1: { name: 'BL1', fullName: 'German Bundesliga 1', emoji: '⚽', sport: 'Soccer' },
-    bundesliga2: { name: 'BL2', fullName: 'German Bundesliga 2', emoji: '⚽', sport: 'Soccer' },
-    dfb_pokal: { name: 'DFB', fullName: 'German Cup (DFB Pokal)', emoji: '⚽', sport: 'Soccer' },
-    ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⚽', sport: 'Soccer' },
-    mls: { name: 'MLS', fullName: 'Major League Soccer', emoji: '⚽', sport: 'Soccer' },
-    nba: { name: 'NBA', fullName: 'National Basketball Association', emoji: '🏀', sport: 'Basketball' },
-    ncaaw: { name: 'NCAAW', fullName: 'Womens College Basketball', emoji: '🏀', sport: 'Basketball' },
-  };
-
-  const sportGroups = [
-    { sport: 'Football', leagues: ['nfl', 'fbs', 'fcs'] },
-    { sport: 'Hockey', leagues: ['nhl'] },
-    { sport: 'Baseball', leagues: ['mlb'] },
-    { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls'] },
-    { sport: 'Basketball', leagues: ['nba', 'ncaaw'] },
-  ];
+  // League info and sport groups now imported from constants
 
   const toggleLeague = (league) => {
     setLocalSettings(prev => ({
@@ -152,12 +101,12 @@ const Settings = ({
           {/* League Selection */}
           <div className="setting-group">
             <h3>🏆 Leagues</h3>
-            {sportGroups.map(group => (
+            {SPORT_GROUPS.map(group => (
               <div key={group.sport} className="league-group">
                 <div className="league-group-title">{group.sport}</div>
                 <div className="league-options">
                   {group.leagues.map(league => {
-                    const info = leagueInfo[league];
+                    const info = LEAGUE_INFO[league];
                     const isSelected = localSettings.selectedLeagues.includes(league);
                     return (
                       <label key={league} className="league-option">
