@@ -70,16 +70,17 @@ const BasketballGameTile = (props) => {
       const y = centerY - Math.min(0, diff) * (height - 2 * pad);
       return `${x},${y}`;
     }).join(' ');
-    // X-axis ticks: show first, middle, last, format seconds as MM:SS
-    // Show tick labels every 3 minutes (180 seconds)
+    // X-axis ticks: show first, middle, last, format seconds as MM'
+    // Show tick labels based on tickInterval
     const formatSeconds = (s) => {
       if (typeof s !== 'number' || isNaN(s)) return '';
       const m = Math.floor(s / 60);
-      const sec = Math.floor(s % 60);
-      return `${m}:${sec.toString().padStart(2, '0')}`;
+      //const sec = Math.floor(s % 60);
+      //return `${m}:${sec.toString().padStart(2, '0')}`;
+      return `${m}'`;
     };
     const tickLabels = [];
-    const tickInterval = 180; // 3 minutes
+    const tickInterval = 240; // 4 minutes
     const start = 0;
     const end = maxTime;
     for (let t = start; t <= end; t += tickInterval) {

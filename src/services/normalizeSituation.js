@@ -2,15 +2,15 @@
 import { detectPossession } from './sportsApi';
 
 /**
- * Returns the total elapsed game time in seconds for basketball.
- * @param {number} secondsLeftInQuarter - Seconds left in the current quarter.
- * @param {number} quarter - The current quarter number (1-based).
+ * Returns the total elapsed game time in seconds.
+ * @param {number} secondsLeftInPeriod - Seconds left in the current period.
+ * @param {number} period - The current period number (1-based).
  * @returns {number} Elapsed seconds since game start.
  */
-function getElapsedGameTime(secondsLeftInQuarter, quarter) {
-  const quarterLength = 12 * 60; // 12 minutes per quarter
-  const quartersCompleted = Math.max(0, quarter - 1);
-  const elapsed = quartersCompleted * quarterLength + (quarterLength - secondsLeftInQuarter);
+function getElapsedGameTime(secondsLeftInPeriod, period, periodLengthInMinutes) {
+  const periodLength = periodLengthInMinutes * 60; // periodLengthInMinutes minutes per period
+  const periodsCompleted = Math.max(0, period - 1);
+  const elapsed = periodsCompleted * periodLength + (periodLength - secondsLeftInPeriod);
   return elapsed;
 }
 
@@ -77,7 +77,7 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
   if (ln === 'nba' || ln === 'ncaaw' || ln.includes('basketball')) {
     return {
       lastPlay: situation.lastPlay || null,
-      time: getElapsedGameTime(competition.status?.clock || 0, competition.status?.period || 1)
+      time: getElapsedGameTime(competition.status?.clock || 0, competition.status?.period || 1, 12)
     };
   }
 
