@@ -1,5 +1,6 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
+import { GameTileErrorBoundary } from '../ErrorBoundary';
 import BaseGameTile from './BaseGameTile';
 import BaseballGameTile from './BaseballGameTile';
 import BasketballGameTile from './BasketballGameTile';
@@ -65,13 +66,15 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
       {...provided?.dragHandleProps}
       className={`game-wrapper ${snapshot?.isDragging ? 'dragging' : ''}`}
     >
-      <TileComponent
-        {...componentProps}
-        colorCoding={colorCoding}
-        isDragDisabled={isDragDisabled}
-        isDragging={snapshot?.isDragging}
-        animations={game.animations}
-      />
+      <GameTileErrorBoundary game={game}>
+        <TileComponent
+          {...componentProps}
+          colorCoding={colorCoding}
+          isDragDisabled={isDragDisabled}
+          isDragging={snapshot?.isDragging}
+          animations={game.animations}
+        />
+      </GameTileErrorBoundary>
     </div>
   );
 };

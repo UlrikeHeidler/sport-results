@@ -3,8 +3,14 @@
 
 import { fetchGames } from './sportsApi';
 import { isGameOngoing } from './gameUtils';
-// Debug logger
-const debug = (...args) => { if (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('debugIncremental') === '1') { console.log('[IncrementalUpdates]', ...args); } };
+import { debug } from '../utils/logger';
+
+// Enhanced debug logger for incremental updates
+const debugIncremental = (...args) => {
+  if (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('debugIncremental') === '1') {
+    debug('[IncrementalUpdates]', ...args);
+  }
+};
 
 /**
  * Incremental Updates Manager
@@ -97,7 +103,7 @@ class IncrementalUpdatesManager {
    * Initialize the incremental updates system
    */
   initialize(userRefreshInterval = 30) {
-    debug('Initializing IncrementalUpdatesManager with refreshInterval:', userRefreshInterval);
+    debugIncremental('Initializing IncrementalUpdatesManager with refreshInterval:', userRefreshInterval);
     this.userRefreshInterval = userRefreshInterval || 30;
     this.loadCacheFromStorage();
     this.startPeriodicUpdates();
@@ -413,7 +419,7 @@ class IncrementalUpdatesManager {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
-    debug('Starting periodic updates with interval:', (this.userRefreshInterval || 30) * 1000, 'ms');
+    debugIncremental('Starting periodic updates with interval:', (this.userRefreshInterval || 30) * 1000, 'ms');
     this.updateInterval = setInterval(() => {
       if (!document.hidden && !this.isUpdating) {
         this.performScheduledUpdates();

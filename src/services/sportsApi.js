@@ -146,6 +146,14 @@ export const fetchGames = async (league, dateFilter = null) => {
     return parseGamesData(data, league);
   } catch (error) {
     handleError(error, `fetchGames (${league})`);
+    
+    // Return empty array with error context for better debugging
+    console.warn(`Failed to fetch ${league} games:`, {
+      error: error.message,
+      url,
+      timestamp: new Date().toISOString()
+    });
+    
     return []; // Return empty array instead of throwing
   }
 };
@@ -174,7 +182,13 @@ const parseGamesData = (data, league) => {
       const awayTeam = competitors.find(comp => comp.homeAway === 'away');
 
       if (!homeTeam || !awayTeam) {
-        handleError(`Missing team data for event: ${event.id}`, 'parseGamesData');
+        console.warn(`Missing team data for event ${event.id}:`, {
+          eventId: event.id,
+          competitors: competitors?.length || 0,
+          homeTeam: !!homeTeam,
+          awayTeam: !!awayTeam,
+          league
+        });
         return null;
       }
 
@@ -206,7 +220,13 @@ const parseGamesData = (data, league) => {
         finishedAt: competition.status.type.completed ? new Date() : null
       };
     } catch (error) {
-      handleError(error, `parseGamesData (event: ${event.id})`);
+      console.warn(`Failed to parse game data for event ${event.id}:`, {
+        eventId: event.id,
+        league,
+        error: error.message,
+        hasCompetition: !!competition,
+        hasCompetitors: !!competitors
+      });
       return null;
     }
   }).filter(game => game !== null);

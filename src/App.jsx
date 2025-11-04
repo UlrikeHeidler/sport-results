@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import ErrorBoundary from './components/ErrorBoundary';
 import GameTile from './components/game-tiles/GameTileFactory';
 import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
@@ -159,7 +160,14 @@ function App() {
   }, [handleClearSettings, addToast]);
 
   return (
-    <div className="App">
+    <ErrorBoundary
+      message="The sports results application encountered an unexpected error. Please refresh the page to try again."
+      onError={(error, errorInfo) => {
+        console.error('App-level error:', error, errorInfo);
+        // Could send to error reporting service here
+      }}
+    >
+      <div className="App">
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
           <div className="header-minimized" onClick={() => setHeaderExpanded(true)}>
@@ -346,7 +354,8 @@ function App() {
         liveGamesCount={liveGamesCount}
         recentChanges={recentChanges}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

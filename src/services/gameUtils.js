@@ -73,7 +73,7 @@ export function extractTeams(gamesData) {
   Object.entries(gamesData).forEach(([league, games]) => {
     games.forEach(game => {
       [game.homeTeam, game.awayTeam].forEach(team => {
-        var uniqueId = league + team.id;
+        const uniqueId = league + team.id;
         if (!teamIds.has(uniqueId)) {
           teamIds.add(uniqueId);
           teams.push({

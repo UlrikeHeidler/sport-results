@@ -1,0 +1,165 @@
+/* Error Boundary Styles */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 20px;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.error-boundary-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-boundary h3 {
+  color: #e53e3e;
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error-boundary p {
+  color: #744210;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.error-retry-button {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.error-retry-button:hover {
+  background-color: #2c5aa0;
+}
+
+.error-retry-button:active {
+  background-color: #2a4d8d;
+}
+
+.error-details {
+  margin-top: 20px;
+  text-align: left;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.error-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+.error-details pre {
+  background-color: #1a202c;
+  color: #f7fafc;
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Game Tile Error State */
+.game-tile.error-state {
+  background-color: #fff5f5;
+  border-left: 4px solid #e53e3e;
+  opacity: 0.8;
+}
+
+.game-tile.error-state .league-badge.error {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.game-tile.error-state .game-status.error {
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+.game-tile.error-state .team-score {
+  color: #a0aec0;
+  font-weight: normal;
+}
+
+.game-tile.error-state .team-name .abbrev {
+  color: #718096;
+}
+
+.game-tile.error-state .game-time {
+  color: #a0aec0;
+  font-style: italic;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .error-boundary {
+  background-color: #2d1b1b;
+  border-color: #63171b;
+}
+
+[data-theme="dark"] .error-boundary h3 {
+  color: #fc8181;
+}
+
+[data-theme="dark"] .error-boundary p {
+  color: #d69e2e;
+}
+
+[data-theme="dark"] .error-details {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .error-details summary {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .game-tile.error-state {
+  background-color: #2d1b1b;
+  border-left-color: #fc8181;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .error-boundary {
+    min-height: 150px;
+    padding: 15px;
+  }
+  
+  .error-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  
+  .error-boundary h3 {
+    font-size: 16px;
+  }
+  
+  .error-retry-button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
