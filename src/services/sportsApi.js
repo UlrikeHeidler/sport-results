@@ -194,16 +194,18 @@ const parseGamesData = (data, league) => {
 
       // Extract situation data
       const situation = competition.situation || {};
-      debug(`Game ${event.id} situation data:`, situation);
+  
 
       return {
         id: event.id,
         league: league.toUpperCase(),
         status: normalizeStatus(competition.status),
+        broadcast: competition.broadcast ? competition.broadcast : null,
         homeTeam: {
           id: homeTeam.id,
           name: homeTeam.team.displayName || homeTeam.team.name,
           abbreviation: homeTeam.team.abbreviation,
+          ranking: competition.competitors[0]?.curatedRank?.current || null,
           score: homeTeam.score || '0',
           logo: homeTeam.team.logo || ''
         },
@@ -211,6 +213,7 @@ const parseGamesData = (data, league) => {
           id: awayTeam.id,
           name: awayTeam.team.displayName || awayTeam.team.name,
           abbreviation: awayTeam.team.abbreviation,
+          ranking: competition.competitors[1]?.curatedRank?.current || null,
           score: awayTeam.score || '0',
           logo: awayTeam.team.logo || ''
         },

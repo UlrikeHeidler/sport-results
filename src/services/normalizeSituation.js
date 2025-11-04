@@ -57,7 +57,7 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Baseball (MLB)
   if (ln === 'mlb' || ln.includes('baseball')) {
-    console.log(`#####Normalizing baseball situation:`, situation?.batter?.athlete?.displayName  );
+    console.log(`#####Normalizing baseball situation:`, situation  );
     return {
       inning: situation.inning || competition.status?.period || null,
       isTopInning: competition.status?.type?.detail?.toLowerCase().includes('top') || false,
@@ -68,8 +68,10 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
       onSecond: !!situation.onSecond || !!situation.onBase?.second,
       onThird: !!situation.onThird || !!situation.onBase?.third,
       onBase: !!situation.onFirst || !!situation.onSecond || !!situation.onThird || Boolean(situation.onBase),
-      currentBatter: situation.batter?.athlete?.displayName || null,
-      currentPitcher: situation.pitcher?.athlete?.displayName || null
+      currentBatter: situation.batter?.athlete || null,
+      currentBatterStats: situation.batter?.summary || null,
+      currentPitcher: situation.pitcher?.athlete || null,
+      currentPitcherStats: situation.pitcher?.summary || null
     };
   }
 

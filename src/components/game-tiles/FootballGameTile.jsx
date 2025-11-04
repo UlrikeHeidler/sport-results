@@ -37,8 +37,8 @@ const FootballGameTile = (props) => {
 
   // Football-specific additional info renderer (compact)
   const renderAdditionalInfo = (game) => {
-  debug('Rendering football additional info for game:', game.id);
-  debug('Rendering football additional info :', game.situation);
+    debug('Rendering football additional info for game:', game.id);
+    debug('Rendering football additional info :', game.situation);
     const situation = game.situation;
     if (!situation) {
       debug('No situation data for game:', game.id);

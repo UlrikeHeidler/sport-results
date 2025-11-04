@@ -6,6 +6,27 @@ import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi
 const HockeyGameTile = (props) => {
   const { game } = props;
 
+  // Persist timeline events across updates
+  const timelineRef = useRef([]);
+
+  // On every update, accumulate new timeline events (by id/text)
+  useEffect(() => {
+    if (!game?.situation?.timeline) return;
+    const prev = timelineRef.current;
+    const seen = new Set(prev.map(e => e.id || e.text));
+    const newEvents = game.situation.timeline.filter(e => {
+      const key = e.id || e.text;
+      return key && !seen.has(key);
+    });
+    if (newEvents.length > 0) {
+      timelineRef.current = [...prev, ...newEvents];
+    }
+    // If timeline is reset (e.g. new game), allow clearing
+    if (game.situation.timeline.length === 0) {
+      timelineRef.current = [];
+    }
+  }, [game?.situation?.timeline]);
+
   // Hockey-specific additional info renderer
   const renderAdditionalInfo = () => {
     if (!game.situation) return null;
@@ -13,7 +34,7 @@ const HockeyGameTile = (props) => {
     const shotAway = getShotCount(false);
     const status = game.status || {};
     const lastPlay = game.situation.lastPlay || null;
-    const timeline = Array.isArray(game.situation.timeline) ? game.situation.timeline : [];
+  const timeline = timelineRef.current;
 
     // Helper: convert period/clock to elapsed seconds (regulation: 3x20min, OT: 5min, ignore SO)
     const getElapsedSeconds = (period, clock) => {
@@ -42,6 +63,8 @@ const HockeyGameTile = (props) => {
             const isHome = event.team && game.homeTeam && (event.team === game.homeTeam.abbreviation || event.team === game.homeTeam.name || event.team === game.homeTeam.displayName);
             const isAway = event.team && game.awayTeam && (event.team === game.awayTeam.abbreviation || event.team === game.awayTeam.name || event.team === game.awayTeam.displayName);
             const elapsed = getElapsedSeconds(event.period, event.clock);
+            const elapsedMinutes = Math.floor(elapsed / 60);
+            //console.log('Event elapsed minutes:', elapsedMinutes, event.period, event.clock);
             const left = `${Math.max(0, Math.min(1, elapsed / totalGameSeconds)) * 100}%`;
             const markerClass = `timeline-marker ${event.type} ${isHome ? 'home' : isAway ? 'away' : ''}`;
             return (
@@ -49,7 +72,7 @@ const HockeyGameTile = (props) => {
                 key={event.id || idx}
                 className={markerClass}
                 style={{ left, top: isHome ? '-18px' : isAway ? '18px' : '0' }}
-                title={`${left + ': '}${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' - ' + event.team : ''}${event.athlete ? ' - ' + event.athlete : ''}${event.text ? ': ' + event.text : ''}`}
+                title={`${elapsedMinutes + ': '}${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' - ' + event.team : ''}${event.athlete ? ' - ' + event.athlete : ''}${event.text ? ': ' + event.text : ''}`}
                 aria-label={`${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' by ' + event.team : ''}${event.athlete ? ' (' + event.athlete + ')' : ''}`}
               >
                 {event.type === 'goal' ? '🥅' : '🚫'}

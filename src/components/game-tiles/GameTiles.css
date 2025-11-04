@@ -57,6 +57,16 @@
   border-radius: 4px;
 }
 
+.team-ranking {
+  font-size: 0.55rem;
+} 
+
+.broadcast-info {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+}
+
 .possession-marker {
   margin-left: 4px;
   font-size: 0.95em;
@@ -650,70 +660,9 @@
   margin-top: 0.5rem;
 }
 
-.basketball-info {
-  background: linear-gradient(to bottom, #fff 0%, #FFF4EE 100%);
-  border: 1px solid rgba(248, 88, 0, 0.1);
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-}
-
-.quarter-info {
-  text-align: center;
-  font-weight: bold;
-  color: #F85800;
-  font-size: 1.1rem;
-}
-
-.shot-clock {
-  text-align: center;
-  color: #F85800;
-  font-family: monospace;
-  font-size: 1.2rem;
-  margin-top: 0.5rem;
-  background: rgba(248, 88, 0, 0.1);
-  padding: 0.3rem;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
 .penalties {
   font-size: 0.85rem;
   color: #666;
-}
-
-.team-fouls {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
-}
-
-.bonus-indicator {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
-}
-
-.bonus {
-  background: #FFC107;
-  color: black;
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
-  font-weight: bold;
-}
-
-.quarter-scores {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 0.25rem;
-}
-
-.quarter-score {
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
 }
 
 /* Respect user motion preferences */

@@ -218,20 +218,45 @@ const BaseGameTile = ({
         <div className="team-info">
           {renderTeamLogo(team)}
           {renderTeamName(team, isHome)}
+          {renderTeamRanking(team)}
         </div>
         {renderTeamScore(team, isHome, animations)}
       </div>
     );
   };
+
+  const renderTeamRanking = (team) => {
+    //console.log('Rendering ranking for team:', team);
+    if (team?.ranking != null && !isNaN(team.ranking) && team.ranking < 26) {
+      return (
+        <div className="team-ranking" title={`Ranked #${team.ranking}`}>
+          #{team.ranking}
+        </div>
+      );
+    }
+    return null;
+  }
+
+  const renderBroadcastInfo = () => {
+    if (game.broadcast) {
+      return (
+        <div className="broadcast-info">
+              {game.broadcast}
+        </div>
+      );
+    }
+    return null;
+  }
   
   const renderGameStatus = () => (
-    <div className={`game-header aloha ${game.id}`}>
+    <div className={`game-header ${game.id}`}>
       <span title={game.id} className={`league-badge`} style={colorCoding ? {
         backgroundColor: leagueColors.primary,
         color: 'white'
       } : {}}>
         {game.league}
       </span>
+      {renderBroadcastInfo()}
       <span className={`game-status ${statusClass} ${animations.status ? 'status-changed' : ''}`}>
         {getDisplayStatus(game.status, game.situation)}
       </span>
