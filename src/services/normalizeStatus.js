@@ -21,8 +21,12 @@ export function getLiveStateLabel(state) {
     'END_PERIOD': 'End of period',
     'STATUS_IN_PROGRESS': 'In progress',
   };
-  const key = state.toUpperCase();
-  return map[key] || key.replace(/^STATUS_/, '').replace(/_/g, ' ').toLowerCase();
+  const key = state.type?.toUpperCase();
+  let label = (map[key] || key.replace(/^STATUS_/, '').replace(/_/g, ' ').toLowerCase());
+  if (key=== 'STATUS_END_PERIOD' && state.period) {
+    label = label + ' ('+ (state.period || '') + ')';
+  }
+  return label;
 }
 /**
  * Normalize ESPN status object to app status

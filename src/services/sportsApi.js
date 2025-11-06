@@ -376,7 +376,7 @@ export const formatGameTime = (date, status = {}, league = '') => {
     
     
     if (isGameInBreak(status)) {
-      return getLiveStateLabel(status.type);
+      return getLiveStateLabel(status);
     }
 
     if (isGameOngoing(status)) {
