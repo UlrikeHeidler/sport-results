@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatGameTime, getStatusClass, shouldMoveToBottom } from '../../services/sportsApi';
+import { formatGameTime, getStatusClass } from '../../services/sportsApi';
 import { getTeamForm, getFormColor } from '../../services/teamStats';
-import { getLeagueColors, isGameOngoing } from '../../services/gameUtils';
+import { getLeagueColors, isGameOngoing, isGameFinal } from '../../services/gameUtils';
 
 
 const getDisplayStatus = (status, situation) => {
@@ -55,7 +55,7 @@ const BaseGameTile = ({
   const statusClass = getStatusClass(game.status || {});
   const timeDisplay = formatGameTime(game.date || new Date(), game.status || {}, game.league);
   const leagueColors = getLeagueColors(game.league || 'nfl');
-  const isMovedToBottom = shouldMoveToBottom(game || {});
+  const isMovedToBottom = isGameFinal(game.status || {});
   
   // Track previous values for animations
   // Safe accessors: support both legacy top-level homeTeam/awayTeam and new teams.home/away
@@ -294,11 +294,6 @@ const BaseGameTile = ({
         </div>
       )}
 
-      {isMovedToBottom && (
-        <div className="bottom-indicator">
-          Game finished 2+ minutes ago
-        </div>
-      )}
     </div>
   );
 };

@@ -16,7 +16,7 @@ import {
   isGameFinal,
   getLeagueColors 
 } from '../config/constants';
-import { normalizeStatus } from './normalizeStatus';
+import { normalizeStatus, getLiveStateLabel } from './normalizeStatus';
 import { normalizeSituation } from './normalizeSituation';
 
 /**
@@ -134,7 +134,7 @@ export const fetchGames = async (league, dateFilter = null) => {
       url = `${baseEndpoint}${separator}dates=${dateStr}`;
     }
     
-    debug(`Fetching ${league} games from:`, url);
+    // debug(`Fetching ${league} games from:`, url);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -142,7 +142,7 @@ export const fetchGames = async (league, dateFilter = null) => {
     }
 
     const data = await response.json();
-    debug(`${league} API response:`, data);
+    // debug(`${league} API response:`, data);
     return parseGamesData(data, league);
   } catch (error) {
     handleError(error, `fetchGames (${league})`);
@@ -170,7 +170,7 @@ const parseGamesData = (data, league) => {
     return [];
   }
 
-  debug(`Parsing ${data.events.length} events for ${league}`);
+  // debug(`Parsing ${data.events.length} events for ${league}`);
 
   return data.events.map(event => {
     try {
@@ -318,7 +318,7 @@ export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = 
         if (result.status === 'fulfilled') {
           const { league, games } = result.value;
           gamesData[league] = games;
-          debug(`Successfully fetched ${games.length} games for ${league}`);
+          // debug(`Successfully fetched ${games.length} games for ${league}`);
         } else {
           handleError(result.reason, 'fetchAllGames (Promise.allSettled)');
         }
@@ -335,7 +335,7 @@ export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = 
           const gameDate = new Date(game.date);
           return gameDate >= today && gameDate <= endOfToday;
         });
-        debug(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
+        // debug(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
       });
 
       return gamesData;
@@ -374,8 +374,9 @@ export const formatGameTime = (date, status = {}, league = '') => {
       return 'Final';
     }
     
+    
     if (isGameInBreak(status)) {
-      return 'Intermission';
+      return getLiveStateLabel(status);
     }
 
     if (isGameOngoing(status)) {
@@ -421,48 +422,6 @@ export const getStatusClass = (status) => {
   return 'scheduled';
 };
 
-/**
- * Check if a game should be moved to bottom (finished > 2 minutes ago)
- * @param {Object} game - Game object
- * @returns {boolean} Whether game should be at bottom
- */
-export const shouldMoveToBottom = (game) => {
-  if (!isGameFinal(game.status) || !game.finishedAt) {
-    return false;
-  }
-  
-  const now = new Date();
-  const timeSinceFinished = now - new Date(game.finishedAt);
-  
-  return timeSinceFinished > TIMING_CONSTANTS.MOVE_TO_BOTTOM_DELAY;
-};
-
-/**
- * Sort games with smart ordering
- * @param {Array} games - Array of games
- * @returns {Array} Sorted games array
- */
-export const sortGames = (games) => {
-  return games.sort((a, b) => {
-    // Check if games should be moved to bottom
-    const aToBottom = shouldMoveToBottom(a);
-    const bToBottom = shouldMoveToBottom(b);
-    
-    if (aToBottom && !bToBottom) return 1;
-    if (!aToBottom && bToBottom) return -1;
-    
-    // Live games first (among non-bottom games)
-    if (!aToBottom && !bToBottom) {
-      const aIsLive = isGameOngoing(a.status);
-      const bIsLive = isGameOngoing(b.status);
-      if (aIsLive && !bIsLive) return -1;
-      if (bIsLive && !aIsLive) return 1;
-    }
-    
-    // Then by date
-    return new Date(a.date) - new Date(b.date);
-  });
-};
 
 /**
  * Extract all unique teams from games data
@@ -493,6 +452,7 @@ export const extractTeams = (gamesData) => {
   return teams.sort((a, b) => a.name.localeCompare(b.name));
 };
 
+
 /**
  * Fetch per-game summary/boxscore for a specific event
  * @param {string} league - League identifier
@@ -519,7 +479,7 @@ export const fetchGameSummary = async (league, eventId) => {
     }
     
     const data = await res.json();
-    debug('fetchGameSummary success:', { league, eventId, data });
+    // debug('fetchGameSummary success:', { league, eventId, data });
     return data;
   } catch (err) {
     handleError(err, 'fetchGameSummary');

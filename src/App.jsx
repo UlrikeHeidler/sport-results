@@ -10,7 +10,6 @@ import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
 import { useSettings } from './hooks/useSettings';
 import { useUIState } from './hooks/useUIState';
 import { useGameFiltering } from './hooks/useGameFiltering';
-import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { fetchAllGames, extractTeams } from './services/sportsApi';
 import { AVAILABLE_LEAGUES } from './config/constants';
 
@@ -34,14 +33,6 @@ function App() {
   const [availableTeams, setAvailableTeams] = useState([]);
   const [useIncrementalMode, setUseIncrementalMode] = useState(true);
 
-  // Drag and drop functionality
-  const {
-    gameOrder,
-    setGameOrder,
-    sortMode,
-    setSortMode,
-    handleDragEnd
-  } = useDragAndDrop(filteredGames, setFilteredGames);
 
   // Incremental updates hook
   const {
@@ -93,9 +84,7 @@ function App() {
   const { filteredGames: processedGames } = useGameFiltering({
     games: currentGames,
     selectedLeagues: settings.selectedLeagues,
-    hiddenTeams: settings.hiddenTeams,
-    gameOrder,
-    sortMode
+    hiddenTeams: settings.hiddenTeams
   });
 
   // Update filteredGames when processed games change
@@ -206,20 +195,6 @@ function App() {
                     onLeagueToggle={handleLeagueToggle}
                     availableLeagues={AVAILABLE_LEAGUES}
                   />
-                  <div className="sort-controls">
-                    <button 
-                      className={`sort-button ${sortMode === 'custom' ? 'active' : ''}`}
-                      onClick={() => setSortMode('custom')}
-                    >
-                      Custom Order
-                    </button>
-                    <button 
-                      className={`sort-button ${sortMode === 'startTime' ? 'active' : ''}`}
-                      onClick={() => setSortMode('startTime')}
-                    >
-                      By Start Time
-                    </button>
-                  </div>
                 </div>
                 <div className="header-buttons">
                   <button
@@ -271,7 +246,7 @@ function App() {
         {!currentLoading && !currentError && (
           <>
             {filteredGames.length > 0 ? (
-              <DragDropContext onDragEnd={handleDragEnd}>
+              <DragDropContext>
                 <Droppable droppableId="games">
                   {(provided) => (
                     <div
@@ -285,7 +260,7 @@ function App() {
                           game={{ ...game, refreshInterval: settings.refreshInterval }}
                           index={index}
                           colorCoding={settings.colorCoding}
-                          isDragDisabled={sortMode === 'startTime'}
+                          isDragDisabled={false}
                           draggableId={`${game.league}-${game.id}`}
                           showTeamForm={settings.showTeamForm}
                         />

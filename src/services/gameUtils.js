@@ -24,43 +24,6 @@ export function getDateInCurrentUsersTimezone(dateStr, serverTimezone) {
   return new Date(adjustedTimestamp);
 }
 
-/**
- * Check if a game should be moved to bottom (finished > 2 minutes ago)
- * @param {Object} game - Game object
- * @param {Object} game.status - Game status object
- * @param {Date|string} game.finishedAt - Date/time the game finished
- * @returns {boolean} Whether game should be at bottom
- */
-export function shouldMoveToBottom(game) {
-  if (!game.status.completed || !game.finishedAt) {
-    return false;
-  }
-  const now = new Date();
-  const timeSinceFinished = now - new Date(game.finishedAt);
-  const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
-  return timeSinceFinished > twoMinutes;
-}
-
-/**
- * Sort games with smart ordering
- * @param {Array<Object>} games - Array of game objects
- * @returns {Array<Object>} Sorted games array
- */
-export function sortGames(games) {
-  return games.sort((a, b) => {
-    const aToBottom = shouldMoveToBottom(a);
-    const bToBottom = shouldMoveToBottom(b);
-    if (aToBottom && !bToBottom) return 1;
-    if (!aToBottom && bToBottom) return -1;
-    if (!aToBottom && !bToBottom) {
-      const aIsLive = isGameOngoing(a.status);
-      const bIsLive = isGameOngoing(b.status);
-      if (aIsLive && !bIsLive) return -1;
-      if (bIsLive && !aIsLive) return 1;
-    }
-    return new Date(a.date) - new Date(b.date);
-  });
-}
 
 /**
  * Extract all unique teams from games data

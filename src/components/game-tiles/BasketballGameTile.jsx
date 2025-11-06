@@ -12,7 +12,7 @@ const BasketballGameTile = (props) => {
   // Accumulate win probability history as the game progresses
   useEffect(() => {
     const prob = game?.situation?.lastPlay?.probability;
-    console.log(game.id, 'BasketballGameTile win probability data:', game?.situation);
+    // console.log(game.id, 'BasketballGameTile win probability data:', game?.situation);
     const playId = game?.situation?.lastPlay?.id;
     if (!prob || !playId) return;
     if (lastPlayIdRef.current === playId) return; // Don't add duplicate
@@ -130,7 +130,7 @@ const BasketballGameTile = (props) => {
 
   // Basketball-specific additional info renderer
   const renderAdditionalInfo = () => {
-    console.log(game.id, 'Rendering basketball additional info with situation:', game.situation);
+    // console.log(game.id, 'Rendering basketball additional info with situation:', game.situation);
     if (!game.situation) return null;
     return (
       <div className="basketball-info">

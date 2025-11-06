@@ -4,15 +4,12 @@
  */
 
 import { useMemo } from 'react';
-import { sortGames } from '../services/sportsApi';
-import { isGameOngoing } from '../config/constants';
+import { isGameOngoing, isGameFinal } from '../config/constants';
 
 export const useGameFiltering = ({ 
   games, 
   selectedLeagues, 
-  hiddenTeams, 
-  gameOrder, 
-  sortMode 
+  hiddenTeams
 }) => {
   const filteredAndSortedGames = useMemo(() => {
     const allGames = [];
@@ -33,26 +30,17 @@ export const useGameFiltering = ({
 
     let finalGames = [];
     
-    if (sortMode === 'startTime') {
       // Sort by game status: Ongoing (live/intermission), Scheduled, Final
       finalGames = visibleGames.sort((a, b) => {
         // Define game status categories
         const getGameCategory = (game) => {
           // Ongoing games (live or in intermission)
-          if (game.status.type === 'STATUS_IN_PROGRESS' ||
-              game.status.type === 'STATUS_HALFTIME' ||
-              game.status.type === 'STATUS_HALFTTIME_ET' ||
-              game.status.type === 'STATUS_OVERTIME' ||
-              game.status.type === 'STATUS_BREAK' ||
-              game.status.type === 'STATUS_INTERMISSION' ||
-              game.status.type === 'STATUS_END_PERIOD') {
+          if (isGameOngoing(game.status)) {
             return 1; // Ongoing - highest priority
           }
           // Final games
-          else if (game.status.type === 'STATUS_FINAL' ||
-                   game.status.type === 'STATUS_FINAL_OT' ||
-                   game.status.type === 'STATUS_FINAL_SO') {
-            return 3; // Final - lowest priority
+          else if (isGameFinal(game.status)) {
+             return 3; // Final - lowest priority
           }
           // Scheduled games (not started yet)
           else {
@@ -71,34 +59,9 @@ export const useGameFiltering = ({
         // Within same category, sort by start time
         return new Date(a.date) - new Date(b.date);
       });
-    } else {
-      // Custom sort mode - use smart ordering and custom order
-      const sortedGames = sortGames(visibleGames);
-      
-      // Apply custom order if it exists and is valid
-      if (gameOrder.length > 0) {
-        const orderedGames = [];
-        const gameMap = new Map(sortedGames.map(game => [`${game.league}-${game.id}`, game]));
-        
-        // Add games in custom order
-        gameOrder.forEach(gameId => {
-          if (gameMap.has(gameId)) {
-            orderedGames.push(gameMap.get(gameId));
-            gameMap.delete(gameId);
-          }
-        });
-        
-        // Add any remaining games that weren't in the custom order
-        orderedGames.push(...Array.from(gameMap.values()));
-        
-        finalGames = orderedGames;
-      } else {
-        finalGames = sortedGames;
-      }
-    }
     
     return finalGames;
-  }, [games, selectedLeagues, hiddenTeams, gameOrder, sortMode]);
+  }, [games, selectedLeagues, hiddenTeams]);
 
   // Get live games count
   const liveGamesCount = useMemo(() => {

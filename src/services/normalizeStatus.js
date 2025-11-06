@@ -1,4 +1,30 @@
 /**
+ * Map ESPN live state/status code to a human-readable label
+ * @param {string} state - ESPN status type/state (e.g., 'STATUS_OVERTIME')
+ * @returns {string} Human-readable label (e.g., 'overtime')
+ */
+export function getLiveStateLabel(state) {
+  if (!state) return '';
+  const map = {
+    'STATUS_OVERTIME': 'Overtime',
+    'STATUS_HALFTIME': 'Halftime',
+    'STATUS_HALFTIME_ET': 'Halftime (ET)',
+    'STATUS_BREAK': 'Break',
+    'STATUS_INTERMISSION': 'Intermission',
+    'STATUS_FIRST_HALF': '1st HT',
+    'STATUS_SECOND_HALF': '2nd HT',
+    'STATUS_END_PERIOD': 'End of period',
+    'STATUS_END_OF_REGULATION': 'End of regulation',
+    'STATUS_PLAYING': 'Playing',
+    'IN_PROGRESS': 'In progress',
+    'HALFTIME': 'Halftime',
+    'END_PERIOD': 'End of period',
+    'STATUS_IN_PROGRESS': 'In progress',
+  };
+  const key = state.toUpperCase();
+  return map[key] || key.replace(/^STATUS_/, '').replace(/_/g, ' ').toLowerCase();
+}
+/**
  * Normalize ESPN status object to app status
  * @param {Object} status - ESPN status object
  * @param {Object} status.type - Status type object

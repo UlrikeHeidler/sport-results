@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { formatGameTime, getStatusClass, getLeagueColors, shouldMoveToBottom } from '../services/sportsApi';
-import { isGameOngoing } from '../services/gameUtils';
+import { formatGameTime, getStatusClass, getLeagueColors } from '../services/sportsApi';
+import { isGameOngoing, isGameFinal} from '../services/gameUtils';
 
 const getDisplayStatus = (status) => {
   if (isGameOngoing(status)) {
@@ -16,8 +16,8 @@ const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, drag
   const statusClass = getStatusClass(game.status);
   const timeDisplay = formatGameTime(game.date, game.status, game.league);
   const leagueColors = getLeagueColors(game.league);
-  const isMovedToBottom = shouldMoveToBottom(game);
-  
+  const isMovedToBottom = isGameFinal(game.status);
+
   // Track previous values for animations
   const prevValues = useRef({
     homeScore: game.homeTeam.score,
@@ -195,14 +195,6 @@ const GameTile = ({ game, index, colorCoding = true, isDragDisabled = true, drag
       <div className="game-time">
         {timeDisplay}
       </div>
-
-         
-
-          {isMovedToBottom && (
-            <div className="bottom-indicator">
-              Game finished 2+ minutes ago
-            </div>
-          )}
         </div>
       )}
     </Draggable>

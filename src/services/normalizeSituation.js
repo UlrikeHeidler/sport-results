@@ -57,7 +57,6 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Baseball (MLB)
   if (ln === 'mlb' || ln.includes('baseball')) {
-    console.log(`#####Normalizing baseball situation:`, situation  );
     return {
       inning: situation.inning || competition.status?.period || null,
       isTopInning: competition.status?.type?.detail?.toLowerCase().includes('top') || false,
@@ -85,8 +84,6 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Hockey
   if (ln === 'nhl' || ln.includes('hockey')) {
-    console.log('Normalizing hockey competition:', competition);
-    console.log('Normalizing hockey situation.lastPlay:', situation.lastPlay);
     // Build a timeline of main events (goals, penalties) from lastPlay and, if available, a play history
     const timeline = [];
     // If the API ever provides a play history, use it; otherwise, just use lastPlay

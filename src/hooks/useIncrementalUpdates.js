@@ -39,7 +39,7 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
    * Handle real-time changes from the incremental updates system
    */
   const handleChanges = useCallback((changes) => {
-    debug('Received incremental changes:', changes);
+    // debug('Received incremental changes:', changes);
     
     // Update recent changes for debugging/monitoring
     setRecentChanges(prev => {
