@@ -16,6 +16,7 @@ export function useSoccerTimeline(league, eventId, refreshInterval = 30) {
 
     async function fetchTimeline() {
       const summary = await fetchGameSummary(league, eventId);
+      console.log('Fetched soccer summary for', eventId, summary);
       if (!summary || !summary.keyEvents) return;
       // console.log('Fetched soccer summary for', eventId, summary);
       // Filter for goals, cards, substitutions

@@ -65,9 +65,9 @@ const SoccerGameTile = (props) => {
                         title={`${event.minute} - ${event.description}`}
                       >
                         {event.minute && <span className="timeline-minute">{event.minute}</span>}
-                        {event.type.text.toLowerCase().includes('goal') && '⚽'}
-                        {event.type.text.toLowerCase().includes('yellow') && '🟨'}
-                        {event.type.text.toLowerCase().includes('red') && '🟥'}
+                        {((event.type.text.toLowerCase().includes('goal') || event.type.text.toLowerCase().includes('scored')) && '⚽')}
+                        {event.type.text.toLowerCase().includes('yellow card') && '🟨'}
+                        {event.type.text.toLowerCase().includes('red card') && '🟥'}
                         {event.type.text.toLowerCase().includes('substitution') && '🔄'}
                       </span>
                     ) : null
@@ -98,9 +98,9 @@ const SoccerGameTile = (props) => {
                         title={`${event.minute} - ${event.description}`}
                       >
                         {event.minute && <span className="timeline-minute">{event.minute}</span>}
-                        {event.type.text.toLowerCase().includes('goal') && '⚽'}
-                        {event.type.text.toLowerCase().includes('yellow') && '🟨'}
-                        {event.type.text.toLowerCase().includes('red') && '🟥'}
+                        {((event.type.text.toLowerCase().includes('goal') || event.type.text.toLowerCase().includes('scored')) && '⚽')}
+                        {event.type.text.toLowerCase().includes('yellow card') && '🟨'}
+                        {event.type.text.toLowerCase().includes('red card') && '🟥'}
                         {event.type.text.toLowerCase().includes('substitution') && '🔄'}
                       </span>
                     ) : null
