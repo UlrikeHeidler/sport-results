@@ -48,10 +48,6 @@ body {
   padding: 20px;
 }
 
-.App main.container {
-  margin-top: 1rem;
-}
-
 .header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
