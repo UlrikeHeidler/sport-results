@@ -110,7 +110,7 @@ const HockeyGameTile = (props) => {
                     decoding="async"
                     onError={e => { e.target.style.display = 'none'; }}
                   />
-                )} 
+                )}&nbsp;
           {lastPlay && <span className="last-play">{lastPlay}</span>}
         </div>
         {game.situation.powerPlay && (

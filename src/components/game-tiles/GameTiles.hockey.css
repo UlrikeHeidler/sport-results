@@ -13,6 +13,13 @@
   font-size: 0.9rem;
 }
 
+.lastPlay {
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0.4rem;
+}
+
 .period-clock {
   display: flex;
   justify-content: center;
