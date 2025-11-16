@@ -8,7 +8,7 @@ const HockeyGameTile = (props) => {
 
   // Persist timeline events across updates
   const timelineRef = useRef([]);
-
+  console.log('HockeyGameTile rendering:', game.id, game.situation);
   // On every update, accumulate new timeline events (by id/text)
   useEffect(() => {
     if (!game?.situation?.timeline) return;
@@ -34,6 +34,9 @@ const HockeyGameTile = (props) => {
     const shotAway = getShotCount(false);
     const status = game.status || {};
     const lastPlay = game.situation.lastPlay || null;
+    const lastPlayTeam = game.situation.lastPlayTeam || null;
+    const lastPlayTime = game.situation.lastPlayTime || null;
+    let eventLogo = null;
   const timeline = timelineRef.current;
 
     // Helper: convert period/clock to elapsed seconds (regulation: 3x20min, OT: 5min, ignore SO)
@@ -51,6 +54,15 @@ const HockeyGameTile = (props) => {
       const elapsed = periodsCompleted * 1200 + (periodLength - secondsLeft);
       return elapsed;
     };
+
+    //
+    if (lastPlayTeam == game.awayTeam?.id) {
+        eventLogo = game.awayTeam?.logo;
+    } else if (lastPlayTeam == game.homeTeam?.id) {
+        eventLogo = game.homeTeam?.logo;
+    }
+
+    
 
     // Timeline rendering: horizontal line, home events above, away below, position by time
     const renderTimeline = () => {
@@ -87,6 +99,18 @@ const HockeyGameTile = (props) => {
       <div className="hockey-info">
         {renderTimeline()}
         <div className="lastPlay" aria-hidden>
+          {eventLogo && (
+                  <img
+                    src={eventLogo}
+                    alt={lastPlayTeam + ' logo'}
+                    className="nhl-timeline-logo"
+                    width={16}
+                    height={16}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )} 
           {lastPlay && <span className="last-play">{lastPlay}</span>}
         </div>
         {game.situation.powerPlay && (
