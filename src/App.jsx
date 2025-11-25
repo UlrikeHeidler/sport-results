@@ -102,7 +102,7 @@ function App() {
   }, []);
 
   // Zoom helpers (buttons/keyboard)
-  const zoomStep = 0.1;
+  const zoomStep = 0.05;
   const clamp = (v) => Math.max(0.5, Math.min(2.0, v));
   const zoomIn = useCallback(() => setScale(s => clamp(Number((s + zoomStep).toFixed(2)))), []);
   const zoomOut = useCallback(() => setScale(s => clamp(Number((s - zoomStep).toFixed(2)))), []);
