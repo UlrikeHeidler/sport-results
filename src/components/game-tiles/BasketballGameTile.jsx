@@ -21,8 +21,8 @@ const BasketballGameTile = (props) => {
       ...prev,
       {
         time: game?.situation?.time ?? null,
-        home: prob.homeWinPercentage*100 ?? null,
-        away: prob.awayWinPercentage*100 ?? null
+        home: (prob?.homeWinPercentage != null) ? (prob.homeWinPercentage * 100) : null,
+        away: (prob?.awayWinPercentage != null) ? (prob.awayWinPercentage * 100) : null
       }
     ]);
   }, [game?.situation?.lastPlay?.id]);
