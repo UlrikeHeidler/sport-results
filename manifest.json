@@ -1,12 +1,12 @@
 {
   "name": "Sports Results",
-  "short_name": "Scores",
+  "short_name": "Scores 2",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "description": "Live sports scores and compact game tiles.",
+  "description": "Live sports scores - no ads, no betting.",
   "icons": [
     {
       "src": "icons/icon-192.svg",
