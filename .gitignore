@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# SCA/SAST scanner directories and files
+.codesight/*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
