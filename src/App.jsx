@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRef } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import ErrorBoundary from './components/ErrorBoundary';
 import GameTile from './components/game-tiles/GameTileFactory';
@@ -47,6 +48,53 @@ function App() {
     liveGamesCount,
     updateFrequency
   } = useIncrementalUpdates(settings.selectedLeagues, settings.refreshInterval);
+
+  // Zoom state (scale factor). Persist in localStorage so user's zoom survives reloads
+  const ZOOM_KEY = 'sportsAppZoom';
+  const [scale, setScale] = useState(() => {
+    try {
+      const v = localStorage.getItem(ZOOM_KEY);
+      return v ? Number(v) : 1;
+    } catch (e) {
+      return 1;
+    }
+  });
+  const wrapperRef = useRef(null);
+  // For pinch handling
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
+
+  useEffect(() => {
+    try { localStorage.setItem(ZOOM_KEY, String(scale)); } catch (e) { /* ignore */ }
+  }, [scale]);
+
+  // Touch handlers for pinch-to-zoom
+  const onTouchStart = useCallback((e) => {
+    if (e.touches && e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = { active: true, startDist: Math.hypot(dx, dy), startScale: scale };
+    }
+  }, [scale]);
+
+  const onTouchMove = useCallback((e) => {
+    if (pinchRef.current.active && e.touches && e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / (pinchRef.current.startDist || dist || 1);
+      let newScale = pinchRef.current.startScale * ratio;
+      // clamp
+      newScale = Math.max(0.5, Math.min(2.0, newScale));
+      setScale(newScale);
+      e.preventDefault();
+    }
+  }, []);
+
+  const onTouchEnd = useCallback((e) => {
+    if (pinchRef.current.active) {
+      pinchRef.current.active = false;
+    }
+  }, []);
 
   // Fallback to traditional loading
   const [games, setGames] = useState({});
@@ -156,7 +204,14 @@ function App() {
         // Could send to error reporting service here
       }}
     >
-      <div className="App">
+      <div
+        className="App"
+        ref={wrapperRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
+      >
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
           <div className="header-minimized" onClick={() => setHeaderExpanded(true)}>
@@ -204,6 +259,10 @@ function App() {
                   >
                     {useIncrementalMode ? '🔄' : '⏱️'}
                   </button>
+                  {/* Zoom percentage display */}
+                  <div className="zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>
+                    {Math.round(scale * 100)}%
+                  </div>
                   <button
                     className="monitor-button"
                     onClick={() => setShowIncrementalMonitor(true)}

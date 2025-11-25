@@ -201,6 +201,26 @@ body {
   margin-top: 1rem;
 }
 
+/* Zoom UI */
+.zoom-display {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 0 8px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Wrapper for applying scale transform cleanly */
+.App {
+  transition: transform 0.08s linear;
+  transform-origin: top center;
+}
+
 .header-buttons button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
