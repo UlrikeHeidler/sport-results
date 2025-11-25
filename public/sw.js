@@ -3,11 +3,11 @@
 
 const CACHE_NAME = 'sport-results-shell-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg'
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.svg',
+  './icons/icon-512.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,6 +25,8 @@ self.addEventListener('fetch', (event) => {
   // Network falling back to cache for navigation and app shell resources
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request)).then((resp) => resp || caches.match('/index.html'))
+    fetch(event.request)
+      .catch(() => caches.match(event.request))
+      .then((resp) => resp || caches.match('./index.html'))
   );
 });
