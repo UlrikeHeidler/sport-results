@@ -15,8 +15,14 @@
   },
   "keywords": [
     "sports",
-    "nhl",
+    "vibe-coding",
     "nfl",
+    "nhl",
+    "nba",
+    "mlb",
+    "scores",
+    "mls",
+    "soccer",
     "real-time",
     "react",
     "vite"
@@ -35,6 +41,6 @@
     "@vitejs/plugin-react": "^4.0.0",
     "jsdom": "^27.0.1",
     "vite": "^7.1.12",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.14"
   }
 }
