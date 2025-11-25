@@ -41,6 +41,7 @@ body {
 /* Scale the app responsively by changing base font-size using --app-scale. */
 html {
   font-size: calc(16px * var(--app-scale));
+  scroll-behavior: smooth;
 }
 
 #root {
@@ -1643,4 +1644,26 @@ html {
 .system-info div {
   margin-bottom: 0.5rem;
   color: #333;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.settings-modal-overlay,
+.info-modal-overlay {
+  backdrop-filter: blur(4px);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--hover-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
 }

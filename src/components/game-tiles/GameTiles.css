@@ -1,16 +1,12 @@
 /* Design tokens and global variables (centralized) */
+/* Note: --card-bg, --hover-bg, --border-color, --text-color, --text-secondary 
+   are inherited from the global theme in index.css and will adapt to dark mode */
 :root {
-  /* Palette */
-  --card-bg: #ffffff;
-  --hover-bg: #f7f7f8;
-  --border-color: rgba(0,0,0,0.08);
-  --text-color: #222222;
-  --text-secondary: #666666;
+  /* Game tile specific colors */
   --accent-color: #4CAF50;
 
   /* League colors (override per-tile via inline style) */
   --league-primary: #0077cc;
-  --league-background: #ffffff;
 
   /* Spacing & sizing */
   --space-xs: 4px;
