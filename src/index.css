@@ -13,6 +13,7 @@
   --hover-bg: #f0f0f0;
   --score-color: #111;
   --status-color: #444;
+  --app-scale: 1;
 }
 
 [data-theme="dark"] {
@@ -34,8 +35,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-color);
   color: var(--text-color);
-  padding-top: 60px;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Scale the app responsively by changing base font-size using --app-scale. */
+html {
+  font-size: calc(16px * var(--app-scale));
 }
 
 #root {
@@ -299,9 +304,10 @@ body {
 
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  /* Tile min width scales with the app scale so layout adapts instead of using a transform */
+  grid-template-columns: repeat(auto-fill, minmax(calc(350px * var(--app-scale)), 1fr));
+  gap: calc(1.5rem * var(--app-scale));
+  margin-top: calc(2rem * var(--app-scale));
 }
 
 @media (max-width: 767px) {

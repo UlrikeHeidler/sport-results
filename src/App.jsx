@@ -66,6 +66,7 @@ function App() {
 
   useEffect(() => {
     try { localStorage.setItem(ZOOM_KEY, String(scale)); } catch (e) { /* ignore */ }
+    try { document.documentElement.style.setProperty('--app-scale', String(scale)); } catch (e) { /* ignore */ }
   }, [scale]);
 
   // Touch handlers for pinch-to-zoom
@@ -264,7 +265,6 @@ function App() {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{ transform: `scale(${scale})`, transformOrigin }}
       >
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
