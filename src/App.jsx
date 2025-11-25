@@ -294,7 +294,7 @@ function App() {
               <div className="header-content">
                 <div className="header-text">
                   <h1>🏆 Live Sports Results</h1>
-                  <p>Real-time scores for NFL, NHL, College Football, MLB, and German Bundesliga</p>
+                  <p>Real-time scores for Major American Sports and German Soccer.</p>
                   {currentLastUpdated && (
                     <div className="last-updated">
                       Last updated: {currentLastUpdated.toLocaleTimeString()}
@@ -331,7 +331,7 @@ function App() {
                     <button className="zoom-btn" onClick={zoomOut} title="Zoom out">➖</button>
                     <div className="zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>{Math.round(scale * 100)}%</div>
                     <button className="zoom-btn" onClick={zoomIn} title="Zoom in">➕</button>
-                    <button className="zoom-reset" onClick={resetZoom} title="Reset zoom">100%</button>
+                    <button className="zoom-reset" onClick={resetZoom} title="Reset zoom">↺</button>
                   </div>
                   <button
                     className="monitor-button"
