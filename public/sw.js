@@ -5,9 +5,9 @@ const CACHE_NAME = 'sport-results-shell-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-192.svg',
-  './icons/icon-512.svg'
+  './public/manifest.json',
+  './public/icons/icon-192.svg',
+  './public/icons/icon-512.svg'
 ];
 
 self.addEventListener('install', (event) => {
