@@ -1080,6 +1080,24 @@ html {
   background: #5a6fd8;
 }
 
+.clear-storage-button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #ff9800;
+  border-radius: 6px;
+  background: transparent;
+  color: #ff9800;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.clear-storage-button:hover {
+  background: #ff9800;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
 @media (max-width: 768px) {
   .header h1 {
     font-size: 2rem;
