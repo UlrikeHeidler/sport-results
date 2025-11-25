@@ -385,7 +385,7 @@ class IncrementalUpdatesManager {
     } catch (e) {
       // If comparison fails for any reason, don't block other change detection
       // but log for debugging.
-      console.warn('Failed to compare situation objects for game', oldGame?.id, e);
+      console.warn('Failed to compare situation objects for game', oldGame.id, e);
     }
 
     return changes;

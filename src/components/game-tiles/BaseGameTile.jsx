@@ -33,7 +33,6 @@ const getDisplayStatus = (status, situation) => {
 
   if (isOngoingType || situationIndicatesLive) {
     // Prefer explicit in-progress type; otherwise consider it live
-    if (status && status.type === 'STATUS_IN_PROGRESS') return 'LIVE';
     return 'LIVE';
   }
 

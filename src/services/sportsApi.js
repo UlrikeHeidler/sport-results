@@ -184,7 +184,7 @@ const parseGamesData = (data, league) => {
       if (!homeTeam || !awayTeam) {
         console.warn(`Missing team data for event ${event.id}:`, {
           eventId: event.id,
-          competitors: competitors?.length || 0,
+          competitors: competitors.length || 0,
           homeTeam: !!homeTeam,
           awayTeam: !!awayTeam,
           league
