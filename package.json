@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:copy-public": "cp -R public dist || true",
     "preview": "vite preview",
     "test": "vitest",
     "test:ci": "vitest --run",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build && npm run build:copy-public",
     "deploy": "gh-pages -d dist"
   },
   "keywords": [
