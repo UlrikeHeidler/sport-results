@@ -1,14 +1,16 @@
 {
   "name": "sports-results-app",
   "version": "1.0.0",
-  "description": "Real-time sports results webapp for NHL and NFL",
+  "description": "Vibe Coding Challenge - Sports Results App",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [
     "sports",
@@ -20,6 +22,7 @@
   ],
   "author": "",
   "license": "ISC",
+  "homepage": "https://UlrikeHeidler.github.io/sport-results",
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "react": "^18.2.0",
