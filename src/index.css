@@ -251,7 +251,7 @@ html {
 /* Minimized header zoom controls */
 .minimized-controls {
   position: absolute;
-  right: 8px;
+  right: -108px;
   top: 8px;
   display: flex;
   gap: 4px;
