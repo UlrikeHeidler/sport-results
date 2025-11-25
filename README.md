@@ -1,3 +1,6 @@
+[![CI](https://github.com/UlrikeHeidler/sport-results/actions/workflows/ci.yml/badge.svg)](https://github.com/UlrikeHeidler/sport-results/actions/workflows/ci.yml)
+[![Pages Deploy](https://github.com/UlrikeHeidler/sport-results/actions/workflows/deploy.yml/badge.svg)](https://github.com/UlrikeHeidler/sport-results/actions/workflows/deploy.yml)
+
 # Sports Results — Vibe-Coding Project
 
 > This repository is a vibe-coding experiment — a learning playground, not a production example.
