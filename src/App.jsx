@@ -268,9 +268,14 @@ function App() {
       >
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
-          <div className="header-minimized" onClick={() => setHeaderExpanded(true)}>
-            <div className="header-menu-icon">
+          <div className="header-minimized">
+            <div className="header-menu-icon" onClick={() => setHeaderExpanded(true)}>
               <span>🏆</span>
+            </div>
+            <div className="minimized-controls" onClick={(e) => e.stopPropagation()}>
+              <button className="min-zoom-btn" onClick={(e) => { e.stopPropagation(); zoomOut(); }} title="Zoom out">➖</button>
+              <div className="min-zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>{Math.round(scale * 100)}%</div>
+              <button className="min-zoom-btn" onClick={(e) => { e.stopPropagation(); zoomIn(); }} title="Zoom in">➕</button>
             </div>
           </div>
         )}

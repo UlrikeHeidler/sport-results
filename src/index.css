@@ -248,6 +248,33 @@ html {
 }
 .zoom-reset:hover { background: rgba(255,255,255,0.16); }
 
+/* Minimized header zoom controls */
+.minimized-controls {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.min-zoom-btn {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.min-zoom-btn:hover { background: rgba(255,255,255,0.18); }
+.min-zoom-display {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 700;
+  color: white;
+}
+
 .header-buttons button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
