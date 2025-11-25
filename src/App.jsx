@@ -7,6 +7,7 @@ import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
 import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
 import Toast from './components/Toast';
+import InfoModal from './components/InfoModal';
 import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
 import { useSettings } from './hooks/useSettings';
 import { useUIState } from './hooks/useUIState';
@@ -24,6 +25,8 @@ function App() {
     setShowSettings,
     showIncrementalMonitor,
     setShowIncrementalMonitor,
+    showInfo,
+    setShowInfo,
     toasts,
     addToast,
     removeToast
@@ -268,16 +271,21 @@ function App() {
       >
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
-          <div className="header-minimized">
+          <div className="header-content-minimized">
+            <div className="header-minimized">
+
+            </div>
             <div className="header-menu-icon" onClick={() => setHeaderExpanded(true)}>
               <span>🏆</span>
             </div>
             <div className="minimized-controls" onClick={(e) => e.stopPropagation()}>
+              <button className="min-info-btn" onClick={(e) => { e.stopPropagation(); setShowInfo(true); }} title="About & License">ℹ️</button>
               <button className="min-zoom-btn" onClick={(e) => { e.stopPropagation(); zoomOut(); }} title="Zoom out">➖</button>
               <div className="min-zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>{Math.round(scale * 100)}%</div>
               <button className="min-zoom-btn" onClick={(e) => { e.stopPropagation(); zoomIn(); }} title="Zoom in">➕</button>
             </div>
           </div>
+          
         )}
         {headerExpanded && (
           <div className="header-expanded">
@@ -331,6 +339,13 @@ function App() {
                     title="Incremental Updates Monitor"
                   >
                     📊
+                  </button>
+                  <button
+                    className="info-button"
+                    onClick={() => setShowInfo(true)}
+                    title="About & License"
+                  >
+                    ℹ️
                   </button>
                   <button
                     className="settings-button"
@@ -422,11 +437,6 @@ function App() {
               <p>🔴 {liveGamesCount} live game{liveGamesCount !== 1 ? 's' : ''} active</p>
             )}
           </div>
-          {useIncrementalMode && (
-            <div className="incremental-info">
-              <p>⚡ Incremental updates enabled - Real-time score changes</p>
-            </div>
-          )}
         </div>
       </main>
 
@@ -437,6 +447,11 @@ function App() {
         onClose={() => setShowSettings(false)}
         availableTeams={availableTeams}
         onClearStorage={handleClearSettingsWithToast}
+      />
+
+      <InfoModal
+        isOpen={showInfo}
+        onClose={() => setShowInfo(false)}
       />
       
       <Toast toasts={toasts} onRemove={removeToast} />

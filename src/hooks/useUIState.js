@@ -12,6 +12,7 @@ export const useUIState = () => {
   // Modal states
   const [showSettings, setShowSettings] = useState(false);
   const [showIncrementalMonitor, setShowIncrementalMonitor] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   
   // Toast notifications
   const [toasts, setToasts] = useState([]);
@@ -52,6 +53,7 @@ export const useUIState = () => {
   const closeAllModals = useCallback(() => {
     setShowSettings(false);
     setShowIncrementalMonitor(false);
+    setShowInfo(false);
   }, []);
 
   return {
@@ -64,6 +66,8 @@ export const useUIState = () => {
     setShowSettings,
     showIncrementalMonitor,
     setShowIncrementalMonitor,
+    showInfo,
+    setShowInfo,
     closeAllModals,
     
     // Toast notifications

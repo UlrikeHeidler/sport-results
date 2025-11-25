@@ -251,13 +251,14 @@ html {
 /* Minimized header zoom controls */
 .minimized-controls {
   position: absolute;
-  right: -108px;
+  right: 0px;
   top: 8px;
   display: flex;
   gap: 4px;
   align-items: center;
 }
-.min-zoom-btn {
+.min-zoom-btn,
+.min-info-btn {
   background: rgba(255,255,255,0.12);
   color: white;
   border: none;
@@ -268,6 +269,7 @@ html {
   cursor: pointer;
 }
 .min-zoom-btn:hover { background: rgba(255,255,255,0.18); }
+.min-info-btn:hover { background: rgba(74, 158, 255, 0.3); }
 .min-zoom-display {
   min-width: 36px;
   text-align: center;
@@ -551,6 +553,7 @@ html {
 
 .settings-button,
 .monitor-button,
+.info-button,
 .update-mode-button {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -574,6 +577,11 @@ html {
 
 .monitor-button:hover {
   background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.info-button:hover {
+  background: rgba(74, 158, 255, 0.3);
   transform: scale(1.1);
 }
 

@@ -1,0 +1,55 @@
+Creative Commons Attribution-NonCommercial 4.0 International License
+
+Copyright (c) 2025 UlrikeHeidler
+
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 
+International License.
+
+YOU ARE FREE TO:
+- Share: copy and redistribute the material in any medium or format
+- Adapt: remix, transform, and build upon the material
+
+UNDER THE FOLLOWING TERMS:
+- Attribution: You must give appropriate credit, provide a link to the license,
+  and indicate if changes were made
+- NonCommercial: You may NOT use the material for commercial purposes or 
+  monetary gain
+- No Additional Restrictions: You may not apply legal terms or technological 
+  measures that legally restrict others from doing anything the license permits
+
+NO WARRANTIES:
+This software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+This is a LEARNING/EDUCATIONAL PROJECT and is not intended for commercial use.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+---
+
+## Third-Party Data Notice
+
+This application displays sports data retrieved from ESPN's public API. All sports
+data, including but not limited to scores, statistics, team information, and game
+schedules, is the property of ESPN and/or its licensors. 
+
+The developer of this software:
+- Does not own, claim ownership of, or have any rights to the sports data
+- Provides this software as-is for educational and informational purposes
+- Makes no representations or warranties regarding the accuracy, completeness, 
+  or reliability of any data obtained from third-party sources
+- Is not affiliated with, endorsed by, or sponsored by ESPN
+
+Users of this software are responsible for:
+- Complying with ESPN's Terms of Use and API usage policies
+- Understanding that sports data is provided by third parties and may be subject 
+  to their own terms and conditions
+- Using the data in accordance with all applicable laws and regulations
+
+ESPN is a trademark of ESPN, Inc. This project is not affiliated with or 
+endorsed by ESPN.
