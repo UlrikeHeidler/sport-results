@@ -60,6 +60,7 @@ function App() {
     }
   });
   const wrapperRef = useRef(null);
+  const [transformOrigin, setTransformOrigin] = useState('top center');
   // For pinch handling
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
 
@@ -94,6 +95,59 @@ function App() {
     if (pinchRef.current.active) {
       pinchRef.current.active = false;
     }
+  }, []);
+
+  // Zoom helpers (buttons/keyboard)
+  const zoomStep = 0.1;
+  const clamp = (v) => Math.max(0.5, Math.min(2.0, v));
+  const zoomIn = useCallback(() => setScale(s => clamp(Number((s + zoomStep).toFixed(2)))), []);
+  const zoomOut = useCallback(() => setScale(s => clamp(Number((s - zoomStep).toFixed(2)))), []);
+  const resetZoom = useCallback(() => setScale(1), []);
+
+  // Keyboard shortcuts and wheel (trackpad pinch) support
+  useEffect(() => {
+    const onKey = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      if (e.key === '+' || e.key === '=' ) { // '=' also for '+' without shift in some keyboards
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-') {
+        e.preventDefault();
+        zoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        resetZoom();
+      }
+    };
+
+    const onWheel = (e) => {
+      // when user pinches on trackpad in many browsers, ctrlKey is true
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      const delta = -e.deltaY; // positive to zoom in
+      const factor = delta > 0 ? 1 + zoomStep : 1 - zoomStep;
+      setScale(s => clamp(Number((s * factor).toFixed(2))));
+    };
+
+    window.addEventListener('keydown', onKey, { passive: false });
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('wheel', onWheel);
+    };
+  }, [zoomIn, zoomOut, resetZoom]);
+
+  // Dynamic transform origin for better UX across sizes
+  useEffect(() => {
+    const updateOrigin = () => {
+      const w = window.innerWidth || 1024;
+      // On small screens, keep origin centered to keep header aligned; on wide screens, use left top
+      setTransformOrigin(w < 768 ? 'top center' : 'top left');
+    };
+    updateOrigin();
+    window.addEventListener('resize', updateOrigin);
+    return () => window.removeEventListener('resize', updateOrigin);
   }, []);
 
   // Fallback to traditional loading
@@ -210,7 +264,7 @@ function App() {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
+        style={{ transform: `scale(${scale})`, transformOrigin }}
       >
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
@@ -259,9 +313,12 @@ function App() {
                   >
                     {useIncrementalMode ? '🔄' : '⏱️'}
                   </button>
-                  {/* Zoom percentage display */}
-                  <div className="zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>
-                    {Math.round(scale * 100)}%
+                  {/* Zoom controls and percentage display */}
+                  <div style={{display: 'flex', alignItems: 'center', gap: '0.4rem'}}>
+                    <button className="zoom-btn" onClick={zoomOut} title="Zoom out">➖</button>
+                    <div className="zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>{Math.round(scale * 100)}%</div>
+                    <button className="zoom-btn" onClick={zoomIn} title="Zoom in">➕</button>
+                    <button className="zoom-reset" onClick={resetZoom} title="Reset zoom">100%</button>
                   </div>
                   <button
                     className="monitor-button"

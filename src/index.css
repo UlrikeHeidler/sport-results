@@ -221,6 +221,28 @@ body {
   transform-origin: top center;
 }
 
+.zoom-btn {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.zoom-btn:hover { background: rgba(255,255,255,0.18); transform: scale(1.05); }
+.zoom-reset {
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.zoom-reset:hover { background: rgba(255,255,255,0.16); }
+
 .header-buttons button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
