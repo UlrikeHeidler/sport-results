@@ -13,9 +13,10 @@ const InfoModal = ({ isOpen, onClose }) => {
       const fetchContent = async () => {
         setLoading(true);
         try {
+          const baseUrl = import.meta.env.BASE_URL || '/';
           const [readmeRes, licenseRes] = await Promise.all([
-            fetch('/README.md'),
-            fetch('/LICENSE')
+            fetch(`${baseUrl}README.md`),
+            fetch(`${baseUrl}LICENSE`)
           ]);
           
           const readmeText = await readmeRes.text();
