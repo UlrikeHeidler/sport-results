@@ -5,6 +5,7 @@ const InfoModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('readme');
   const [readmeContent, setReadmeContent] = useState('');
   const [licenseContent, setLicenseContent] = useState('');
+  const [privacyContent, setPrivacyContent] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,20 +15,24 @@ const InfoModal = ({ isOpen, onClose }) => {
         setLoading(true);
         try {
           const baseUrl = import.meta.env.BASE_URL || '/';
-          const [readmeRes, licenseRes] = await Promise.all([
+          const [readmeRes, licenseRes, privacyRes] = await Promise.all([
             fetch(`${baseUrl}README.md`),
-            fetch(`${baseUrl}LICENSE`)
+            fetch(`${baseUrl}LICENSE`),
+            fetch(`${baseUrl}PRIVACY.md`)
           ]);
           
           const readmeText = await readmeRes.text();
           const licenseText = await licenseRes.text();
+          const privacyText = await privacyRes.text();
           
           setReadmeContent(readmeText);
           setLicenseContent(licenseText);
+          setPrivacyContent(privacyText);
         } catch (error) {
           console.error('Error fetching documentation:', error);
           setReadmeContent('Error loading README content.');
           setLicenseContent('Error loading LICENSE content.');
+          setPrivacyContent('Error loading PRIVACY content.');
         } finally {
           setLoading(false);
         }
@@ -81,6 +86,12 @@ const InfoModal = ({ isOpen, onClose }) => {
             About
           </button>
           <button
+            className={`info-tab ${activeTab === 'privacy' ? 'active' : ''}`}
+            onClick={() => setActiveTab('privacy')}
+          >
+            Privacy
+          </button>
+          <button
             className={`info-tab ${activeTab === 'license' ? 'active' : ''}`}
             onClick={() => setActiveTab('license')}
           >
@@ -97,6 +108,12 @@ const InfoModal = ({ isOpen, onClose }) => {
                 <div 
                   className="info-content readme-content"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(readmeContent) }}
+                />
+              )}
+              {activeTab === 'privacy' && (
+                <div 
+                  className="info-content readme-content"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(privacyContent) }}
                 />
               )}
               {activeTab === 'license' && (
