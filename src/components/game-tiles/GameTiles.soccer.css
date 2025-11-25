@@ -2,6 +2,7 @@
 .soccer-info {
   background: linear-gradient(to bottom, #fff 0%, #F5FFE6 100%);
   border: 1px solid rgba(0, 102, 51, 0.1);
+  margin: 0 1rem;
 }
 
 .match-time {
@@ -42,7 +43,7 @@
 }
 
 .soccer-timeline-logos {
-  margin-left: -2rem;
+  margin-left: -2.2rem;
 }
 
 .soccer-timeline-row {

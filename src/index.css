@@ -234,7 +234,7 @@ html {
 /* Minimized header zoom controls */
 .minimized-controls {
   position: absolute;
-  right: 0px;
+  right: 10px;
   top: 8px;
   display: flex;
   gap: 4px;
@@ -331,7 +331,7 @@ html {
 .game-tile {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -341,13 +341,13 @@ html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .game-status {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 15px;
   background: #e3f2fd;
   color: #1976d2;
@@ -367,7 +367,7 @@ html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem 0;
+  margin: 0.5rem 0;
 }
 
 .team {
@@ -495,7 +495,7 @@ html {
   text-align: center;
   font-size: 0.9rem;
   color: #666;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .loading {
@@ -704,9 +704,9 @@ html {
 }
 
 .league-badge {
-  padding: 0.35rem 0.75rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 12px;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   font-weight: 600;
   transition: all 0.3s ease;
   display: flex;

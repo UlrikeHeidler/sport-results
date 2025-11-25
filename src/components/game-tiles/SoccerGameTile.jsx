@@ -1,6 +1,7 @@
 import BaseGameTile from './BaseGameTile';
 import { useSoccerTimeline } from '../../hooks/useSoccerTimeline';
 import './GameTiles.soccer.css';
+import { isGameOngoing } from '../../services/gameUtils';
 
 // Helper to convert minute string to percentage of match duration (0-100)
 function getTimelinePosition(minuteStr, overTime) {
@@ -36,7 +37,7 @@ const SoccerGameTile = (props) => {
     return (
       <div className="soccer-info">
         {/* Timeline */}
-        {timeline && timeline.length > 0 && (
+        {isGameOngoing(game.status) && (
           <div className="soccer-timeline-outer">
              
               <div className="soccer-timeline-content">
@@ -56,7 +57,7 @@ const SoccerGameTile = (props) => {
                   />
                 )}
               </div>
-                  {timeline.map((event, idx) =>
+                  {timeline && timeline.length > 0 && timeline.map((event, idx) =>
                     event.team === game.homeTeam.id ? (
                       <span
                         key={idx}
@@ -89,7 +90,7 @@ const SoccerGameTile = (props) => {
                   />
                 )}
               </div>
-                  {timeline.map((event, idx) =>
+                  {timeline && timeline.length > 0 && timeline.map((event, idx) =>
                     event.team === game.awayTeam.id ? (
                       <span
                         key={idx}
