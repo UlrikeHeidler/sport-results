@@ -65,7 +65,9 @@ const BaseballGameTile = (props) => {
             </span>
             <span className="count-info condensed" aria-hidden>
               <span className="count">B:<b>{s.balls != null ? s.balls : '-'}</b> S:<b>{s.strikes != null ? s.strikes : '-'}</b></span>
+              <span className="simple-count" aria-hidden>{(s.balls != null ? s.balls : '-') + '-' + (s.strikes != null ? s.strikes : '-')}</span>
               <span className="outs">O:<b>{s.outs != null ? `${s.outs}` : '—'}</b></span>
+              <span className="outs-text">{s.outs != null ? `${s.outs} out` : ''}</span>
             </span>
           </div>
         </div>

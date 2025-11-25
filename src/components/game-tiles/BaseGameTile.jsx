@@ -158,7 +158,8 @@ const BaseGameTile = ({
 
   const renderTeamName = (team, isHome) => {
   // Only show possession indicator for football (NFL, FBS, NCAAF, CFB, etc)
-  const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(game.league || '');
+  const leagueOrSport = (game.league || game.sport || '');
+  const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(leagueOrSport);
     let hasPossessionMarker = false;
     if (isFootball) {
       const situation = game.situation || null;

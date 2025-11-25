@@ -97,6 +97,10 @@ const HockeyGameTile = (props) => {
 
     return (
       <div className="hockey-info">
+        {/* show current period/clock prominently in the additional-info area */}
+        {status && status.displayClock && (
+          <div className="period-clock" aria-hidden>{status.displayClock}{status.period ? ` • P${status.period}` : ''}</div>
+        )}
         {renderTimeline()}
         <div className="lastPlay" aria-hidden>
           {eventLogo && (
