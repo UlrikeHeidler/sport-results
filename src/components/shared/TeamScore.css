@@ -1,0 +1,199 @@
+/* TeamScore Component Styles */
+
+.team-score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.team-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  min-width: 2rem;
+  text-align: right;
+  transition: all 0.3s ease;
+}
+
+/* Animation classes */
+.team-score.score-changed {
+  animation: scoreChange 15s ease-out;
+}
+
+.team-score.score-highlight {
+  animation: scoreHighlight 2s ease-out;
+}
+
+@keyframes scoreChange {
+  0% {
+    background-color: var(--score-change-bg, #fef3c7);
+    transform: scale(1.1);
+    color: var(--score-change-color, #d97706);
+  }
+  10% {
+    background-color: var(--score-change-bg, #fef3c7);
+    transform: scale(1.05);
+    color: var(--score-change-color, #d97706);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+    color: var(--text-primary, #1f2937);
+  }
+}
+
+@keyframes scoreHighlight {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: var(--score-highlight-bg, #dbeafe);
+    transform: scale(1.05);
+  }
+}
+
+/* Sport-specific score styles */
+.baseball-score {
+  color: var(--baseball-primary, #002D72);
+}
+
+.basketball-score {
+  color: var(--basketball-primary, #614304);
+}
+
+.football-score {
+  color: var(--football-primary, #013369);
+}
+
+.hockey-score {
+  color: var(--hockey-primary, #000000);
+}
+
+.soccer-score {
+  color: var(--soccer-primary, #D20515);
+}
+
+/* Quarter scores for basketball */
+.quarter-scores {
+  display: flex;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.quarter-score {
+  padding: 0.1rem 0.25rem;
+  background: var(--quarter-bg, #f3f4f6);
+  border-radius: 2px;
+  min-width: 1.25rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Inning scores for baseball */
+.inning-scores {
+  display: flex;
+  gap: 0.125rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary, #6b7280);
+  max-width: 8rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.inning-score {
+  padding: 0.05rem 0.2rem;
+  background: var(--inning-bg, #f9fafb);
+  border-radius: 2px;
+  min-width: 1rem;
+  text-align: center;
+  font-weight: 500;
+  border: 1px solid var(--inning-border, #e5e7eb);
+}
+
+/* Winner styling */
+.team-score.winner {
+  color: var(--winner-color, #059669);
+  font-weight: 800;
+}
+
+.team-score.loser {
+  color: var(--loser-color, #6b7280);
+  opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .team-score {
+    font-size: 1.25rem;
+    min-width: 1.75rem;
+  }
+  
+  .quarter-scores,
+  .inning-scores {
+    font-size: 0.65rem;
+  }
+  
+  .quarter-score,
+  .inning-score {
+    min-width: 1rem;
+    padding: 0.05rem 0.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-score {
+    font-size: 1.1rem;
+    min-width: 1.5rem;
+  }
+  
+  .quarter-scores,
+  .inning-scores {
+    display: none; /* Hide detailed scores on very small screens */
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .team-score {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+  
+  .quarter-score {
+    background: var(--quarter-bg-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+  
+  .inning-score {
+    background: var(--inning-bg-dark, #1f2937);
+    border-color: var(--inning-border-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .team-score {
+    font-weight: 900;
+  }
+  
+  .quarter-score,
+  .inning-score {
+    border-width: 2px;
+    font-weight: 700;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .team-score {
+    transition: none;
+  }
+  
+  .team-score.score-changed,
+  .team-score.score-highlight {
+    animation: none;
+    background-color: var(--score-change-bg, #fef3c7);
+  }
+}

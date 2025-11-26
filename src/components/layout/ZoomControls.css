@@ -1,0 +1,209 @@
+/* ZoomControls Component Styles */
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.zoom-controls.minimal {
+  gap: 0.25rem;
+}
+
+.zoom-btn {
+  background: var(--button-bg, #f3f4f6);
+  border: 1px solid var(--button-border, #d1d5db);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-btn:hover {
+  background: var(--button-hover-bg, #e5e7eb);
+  border-color: var(--button-hover-border, #9ca3af);
+}
+
+.zoom-btn:active {
+  background: var(--button-active-bg, #d1d5db);
+  transform: scale(0.95);
+}
+
+.zoom-btn:focus {
+  outline: 2px solid var(--focus-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.zoom-btn.minimal {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+}
+
+.zoom-display {
+  background: var(--display-bg, #ffffff);
+  border: 1px solid var(--display-border, #d1d5db);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  min-width: 3rem;
+  text-align: center;
+  user-select: none;
+}
+
+.zoom-display.minimal {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  min-width: 2.5rem;
+}
+
+.zoom-reset {
+  background: var(--reset-bg, #f59e0b);
+  border: 1px solid var(--reset-border, #d97706);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-reset:hover {
+  background: var(--reset-hover-bg, #d97706);
+  border-color: var(--reset-hover-border, #b45309);
+}
+
+.zoom-reset:active {
+  background: var(--reset-active-bg, #b45309);
+  transform: scale(0.95);
+}
+
+.zoom-reset:focus {
+  outline: 2px solid var(--focus-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.zoom-wrapper {
+  width: 100%;
+  height: 100%;
+  transform-origin: top center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .zoom-controls {
+    gap: 0.25rem;
+  }
+  
+  .zoom-btn,
+  .zoom-reset {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+    min-width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .zoom-display {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+    min-width: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .zoom-controls {
+    gap: 0.2rem;
+  }
+  
+  .zoom-btn,
+  .zoom-reset {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .zoom-display {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+    min-width: 2rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .zoom-btn {
+    background: var(--button-bg-dark, #374151);
+    border-color: var(--button-border-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+  
+  .zoom-btn:hover {
+    background: var(--button-hover-bg-dark, #4b5563);
+    border-color: var(--button-hover-border-dark, #6b7280);
+  }
+  
+  .zoom-btn:active {
+    background: var(--button-active-bg-dark, #6b7280);
+  }
+  
+  .zoom-display {
+    background: var(--display-bg-dark, #1f2937);
+    border-color: var(--display-border-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .zoom-btn,
+  .zoom-reset,
+  .zoom-display {
+    border-width: 2px;
+    font-weight: 700;
+  }
+  
+  .zoom-btn:focus,
+  .zoom-reset:focus {
+    outline-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .zoom-btn,
+  .zoom-reset,
+  .zoom-wrapper {
+    transition: none;
+  }
+  
+  .zoom-btn:active,
+  .zoom-reset:active {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .zoom-controls {
+    display: none;
+  }
+  
+  .zoom-wrapper {
+    transform: none !important;
+  }
+}

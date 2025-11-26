@@ -1,0 +1,400 @@
+/* Unified Game Tile Styles */
+
+.unified-game-tile {
+  background: var(--tile-bg, #ffffff);
+  border: 1px solid var(--tile-border, #e5e7eb);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.unified-game-tile:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.unified-game-tile.dragging {
+  transform: rotate(5deg);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.unified-game-tile.drag-disabled {
+  cursor: default;
+}
+
+/* Game Status Header */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.league-badge {
+  background: var(--league-primary, #3b82f6);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.broadcast-info {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  background: var(--broadcast-bg, #f3f4f6);
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  flex: 1;
+  text-align: center;
+}
+
+.game-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+}
+
+.game-status.live {
+  background: var(--status-live-bg, #ef4444);
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+.game-status.final {
+  background: var(--status-final-bg, #6b7280);
+  color: white;
+}
+
+.game-status.scheduled {
+  background: var(--status-scheduled-bg, #f3f4f6);
+  color: var(--text-secondary, #6b7280);
+}
+
+.game-status.status-changed {
+  animation: statusChange 3s ease-out;
+}
+
+@keyframes statusChange {
+  0% {
+    background-color: var(--status-change-bg, #fbbf24);
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Teams Display */
+.teams {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.team.winner {
+  font-weight: 700;
+  color: var(--winner-color, #059669);
+}
+
+.vs {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  flex-shrink: 0;
+}
+
+/* Game Time */
+.game-time {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 0.5rem;
+}
+
+/* Additional Info Wrapper */
+.additional-info-wrapper {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--divider-color, #f3f4f6);
+}
+
+/* Sport-specific tile styles */
+.sport-football {
+  --tile-accent: var(--football-primary, #013369);
+}
+
+.sport-baseball {
+  --tile-accent: var(--baseball-primary, #002D72);
+}
+
+.sport-basketball {
+  --tile-accent: var(--basketball-primary, #614304);
+}
+
+.sport-hockey {
+  --tile-accent: var(--hockey-primary, #000000);
+}
+
+.sport-soccer {
+  --tile-accent: var(--soccer-primary, #D20515);
+}
+
+/* League-specific overrides */
+.league-nfl {
+  --league-primary: #013369;
+}
+
+.league-nhl {
+  --league-primary: #000000;
+}
+
+.league-mlb {
+  --league-primary: #002D72;
+}
+
+.league-nba {
+  --league-primary: #614304;
+}
+
+.league-bundesliga1,
+.league-bundesliga2,
+.league-mls {
+  --league-primary: #D20515;
+}
+
+.league-fbs {
+  --league-primary: #FF8C00;
+}
+
+.league-fcs {
+  --league-primary: #8B0000;
+}
+
+.league-ucl {
+  --league-primary: #1B1E3C;
+}
+
+.league-dfb_pokal {
+  --league-primary: #008751;
+}
+
+.league-ncaaw {
+  --league-primary: #614304;
+}
+
+/* Game wrapper for drag and drop */
+.game-wrapper {
+  transition: transform 0.2s ease;
+}
+
+.game-wrapper.dragging {
+  z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .unified-game-tile {
+    padding: 0.75rem;
+  }
+  
+  .game-header {
+    margin-bottom: 0.5rem;
+    gap: 0.375rem;
+  }
+  
+  .league-badge,
+  .game-status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .broadcast-info {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.3rem;
+  }
+  
+  .teams {
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .team {
+    gap: 0.375rem;
+  }
+  
+  .vs {
+    font-size: 0.8rem;
+  }
+  
+  .game-time {
+    font-size: 0.8rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .additional-info-wrapper {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .unified-game-tile {
+    padding: 0.5rem;
+  }
+  
+  .game-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+  
+  .league-badge,
+  .game-status {
+    text-align: center;
+  }
+  
+  .teams {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  
+  .vs {
+    align-self: center;
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .unified-game-tile {
+    background: var(--tile-bg-dark, #1f2937);
+    border-color: var(--tile-border-dark, #374151);
+  }
+  
+  .unified-game-tile:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  }
+  
+  .broadcast-info {
+    background: var(--broadcast-bg-dark, #374151);
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+  
+  .game-status.scheduled {
+    background: var(--status-scheduled-bg-dark, #374151);
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+  
+  .vs {
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+  
+  .game-time {
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+  
+  .additional-info-wrapper {
+    border-top-color: var(--divider-color-dark, #374151);
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .unified-game-tile {
+    border-width: 2px;
+  }
+  
+  .league-badge,
+  .game-status {
+    border: 1px solid currentColor;
+    font-weight: 700;
+  }
+  
+  .team.winner {
+    font-weight: 900;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .unified-game-tile,
+  .game-status,
+  .game-wrapper {
+    transition: none;
+  }
+  
+  .unified-game-tile:hover {
+    transform: none;
+  }
+  
+  .unified-game-tile.dragging {
+    transform: none;
+  }
+  
+  .game-status.live {
+    animation: none;
+  }
+  
+  .game-status.status-changed {
+    animation: none;
+    background-color: var(--status-change-bg, #fbbf24);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .unified-game-tile {
+    background: white;
+    border: 1px solid #000;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .league-badge,
+  .game-status {
+    background: white;
+    color: #000;
+    border: 1px solid #000;
+  }
+  
+  .broadcast-info {
+    background: white;
+    color: #666;
+  }
+  
+  .vs,
+  .game-time {
+    color: #666;
+  }
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
