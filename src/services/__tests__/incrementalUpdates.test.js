@@ -5,19 +5,24 @@ import * as api from '../sportsApi';
 describe('IncrementalUpdatesManager', () => {
   beforeEach(() => {
     // Provide a simple in-memory mock for localStorage (vitest/node env)
-    global.localStorage = (function () {
-      let store = Object.create(null);
-      return {
-        getItem(key) { return store[key] ?? null; },
-        setItem(key, value) { store[key] = String(value); },
-        removeItem(key) { delete store[key]; },
-        clear() { store = Object.create(null); }
-      };
-    })();
+    Object.defineProperty(global, 'localStorage', {
+      value: (function () {
+        let store = Object.create(null);
+        return {
+          getItem(key) { return store[key] ?? null; },
+          setItem(key, value) { store[key] = String(value); },
+          removeItem(key) { delete store[key]; },
+          clear() { store = Object.create(null); },
+        };
+      })(),
+      writable: true,
+    });
 
     // clear cache and listeners
     incrementalUpdatesManager.clearCache();
-    incrementalUpdatesManager.changeListeners && incrementalUpdatesManager.changeListeners.clear();
+    if (incrementalUpdatesManager.changeListeners) {
+      incrementalUpdatesManager.changeListeners.clear();
+    }
     // reset lastFetch
     incrementalUpdatesManager.lastFetch = new Map();
   });
@@ -34,12 +39,12 @@ describe('IncrementalUpdatesManager', () => {
       homeTeam: { id: 'h1', name: 'Home', score: 1 },
       awayTeam: { id: 'a1', name: 'Away', score: 0 },
       status: { type: 'STATUS_IN_PROGRESS', displayClock: '5:00', period: 5 },
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
     };
 
     const newGame = {
       ...oldGame,
-      homeTeam: { ...oldGame.homeTeam, score: 2 }
+      homeTeam: { ...oldGame.homeTeam, score: 2 },
     };
 
     // Seed cache with the old game (simulate previously cached data)
@@ -86,12 +91,12 @@ describe('IncrementalUpdatesManager', () => {
       awayTeam: { id: 'a2', name: 'Away2', score: 0 },
       status: { type: 'STATUS_IN_PROGRESS', displayClock: '6:00', period: 3 },
       date: new Date().toISOString(),
-      situation: { balls: 1, strikes: 0, outs: 0 }
+      situation: { balls: 1, strikes: 0, outs: 0 },
     };
 
     const updatedGame = {
       ...baseGame,
-      situation: { balls: 3, strikes: 2, outs: 1 }
+      situation: { balls: 3, strikes: 2, outs: 1 },
     };
 
     // Seed cache with the base game

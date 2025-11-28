@@ -40,7 +40,7 @@ export const getDownSuffix = (down) => {
  * Get display status for games with enhanced logic
  * Consolidates status display logic from multiple components
  */
-export const getDisplayStatus = (status, situation = null) => {
+export const getDisplayStatus = (status, situation) => {
   // Known ongoing status types
   const ongoingTypes = new Set([
     'STATUS_IN_PROGRESS',

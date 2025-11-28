@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,5 +9,48 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true
-  }
+  },
+  build: {
+    // Enable code splitting and tree shaking
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for React and related libraries
+          vendor: ['react', 'react-dom'],
+          // UI chunk for drag and drop
+          ui: ['@hello-pangea/dnd'],
+          // Utils chunk for utilities
+          utils: ['dompurify'],
+        },
+      },
+    },
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    // Enable source maps for debugging
+    sourcemap: true,
+    // Minify for production
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+      '@/components': resolve(__dirname, './src/components'),
+      '@/hooks': resolve(__dirname, './src/hooks'),
+      '@/services': resolve(__dirname, './src/services'),
+      '@/utils': resolve(__dirname, './src/utils'),
+      '@/types': resolve(__dirname, './src/types'),
+      '@/constants': resolve(__dirname, './src/constants'),
+    },
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@hello-pangea/dnd'],
+    exclude: ['@vitejs/plugin-react'],
+  },
 })
