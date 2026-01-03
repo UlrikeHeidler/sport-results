@@ -18,8 +18,8 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
     if (league === 'mlb') {
       return BaseballGameTile;
     }
-    
-    if (league === 'nba' || league === 'ncaaw') {
+
+    if (league === 'nba' || league === 'ncaam' || league === 'ncaaw') {
       return BasketballGameTile;
     }
     

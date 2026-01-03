@@ -13,6 +13,7 @@ const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) =
     ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⚽', sport: 'Soccer' },
     mls: { name: 'MLS', fullName: 'Major League Soccer', emoji: '⚽', sport: 'Soccer' },
     nba: { name: 'NBA', fullName: 'National Basketball Association', emoji: '🏀', sport: 'Basketball' },
+    ncaam: { name: 'NCAAM', fullName: 'Mens College Basketball', emoji: '🏀', sport: 'Basketball' },
     ncaaw: { name: 'NCAAW', fullName: 'Womens College Basketball', emoji: '🏀', sport: 'Basketball' },
   };
 
@@ -22,7 +23,7 @@ const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) =
     { sport: 'Hockey', leagues: ['nhl'] },
     { sport: 'Baseball', leagues: ['mlb'] },
     { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls'] },
-    { sport: 'Basketball', leagues: ['nba', 'ncaaw'] },
+    { sport: 'Basketball', leagues: ['nba', 'ncaam', 'ncaaw'] },
   ];
 
   return (

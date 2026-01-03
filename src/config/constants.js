@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   ucl: `${ESPN_BASE_URL}/soccer/uefa.champions/scoreboard`,
   nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
   ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
+  ncaam: `${ESPN_BASE_URL}/basketball/mens-college-basketball/scoreboard`,
   mls: `${ESPN_BASE_URL}/soccer/usa.1/scoreboard`
 };
 
@@ -149,6 +150,13 @@ export const LEAGUE_INFO = {
     emoji: '🏀', 
     sport: 'Basketball',
     category: 'college'
+  },
+  ncaam: { 
+    name: 'NCAAM', 
+    fullName: 'Mens College Basketball', 
+    emoji: '🏀',
+    sport: 'Basketball',
+    category: 'college'
   }
 };
 
@@ -225,6 +233,12 @@ export const LEAGUE_COLORS = {
     secondary: '#FFFFFF',
     accent: '#E30613',
     background: '#f0f8ff'
+  },
+  ncaam: {
+    primary: '#614304',
+    secondary: '#FFFFFF',
+    accent: '#E30613',
+    background: '#f0f8ff'
   }
 };
 
@@ -234,14 +248,14 @@ export const SPORT_GROUPS = [
   { sport: 'Hockey', leagues: ['nhl'] },
   { sport: 'Baseball', leagues: ['mlb'] },
   { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls'] },
-  { sport: 'Basketball', leagues: ['nba', 'ncaaw'] }
+  { sport: 'Basketball', leagues: ['nba', 'ncaam', 'ncaaw'] }
 ];
 
 // Available leagues list
 export const AVAILABLE_LEAGUES = [
   'nfl', 'fbs', 'fcs', 'nhl', 'mlb', 
   'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
-  'nba', 'ncaaw'
+  'nba', 'ncaam', 'ncaaw'
 ];
 
 // Default settings configuration
@@ -250,7 +264,7 @@ export const DEFAULT_SETTINGS = {
   selectedLeagues: [
     'nfl', 'fbs', 'fcs', 'nhl', 'mlb',
     'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
-    'nba', 'ncaaw'
+    'nba', 'ncaam', 'ncaaw'
   ],
   hiddenTeams: [],
   colorCoding: true,

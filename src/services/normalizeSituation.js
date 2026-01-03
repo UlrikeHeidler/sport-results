@@ -75,7 +75,7 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
   }
 
   // Basketball
-  if (ln === 'nba' || ln === 'ncaaw' || ln.includes('basketball')) {
+  if (ln === 'nba' || ln === 'ncaaw' || ln === 'ncaam' || ln.includes('basketball')) {
     return {
       lastPlay: situation.lastPlay || null,
       time: getElapsedGameTime(competition.status?.clock || 0, competition.status?.period || 1, 12)
