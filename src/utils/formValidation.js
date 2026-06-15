@@ -149,7 +149,7 @@ export const validateLeagueSelection = (leagues) => {
   if (leagues.length === 0) {
     return 'At least one league must be selected';
   }
-  const validLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls', 'nba', 'ncaaw'];
+  const validLeagues = ['nfl', 'nhl', 'fcs', 'fbs', 'mlb', 'fifa_world', 'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls', 'nba', 'ncaaw'];
   const invalidLeagues = leagues.filter(league => !validLeagues.includes(league));
   if (invalidLeagues.length > 0) {
     return `Invalid leagues: ${invalidLeagues.join(', ')}`;

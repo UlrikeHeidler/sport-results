@@ -14,10 +14,12 @@ export const API_ENDPOINTS = {
   fcs: `${ESPN_BASE_URL}/football/college-football/scoreboard?groups=81`,
   fbs: `${ESPN_BASE_URL}/football/college-football/scoreboard?groups=80`,
   mlb: `${ESPN_BASE_URL}/baseball/mlb/scoreboard`,
+  wbc: `${ESPN_BASE_URL}/baseball/world-baseball-classic/scoreboard`,
   bundesliga1: `${ESPN_BASE_URL}/soccer/ger.1/scoreboard`,
   bundesliga2: `${ESPN_BASE_URL}/soccer/ger.2/scoreboard`,
   dfb_pokal: `${ESPN_BASE_URL}/soccer/ger.dfb_pokal/scoreboard`,
   ucl: `${ESPN_BASE_URL}/soccer/uefa.champions/scoreboard`,
+  fifa_world: `${ESPN_BASE_URL}/soccer/fifa.world/scoreboard`,
   nba: `${ESPN_BASE_URL}/basketball/nba/scoreboard`,
   ncaaw: `${ESPN_BASE_URL}/basketball/womens-college-basketball/scoreboard`,
   ncaam: `${ESPN_BASE_URL}/basketball/mens-college-basketball/scoreboard`,
@@ -102,6 +104,13 @@ export const LEAGUE_INFO = {
     sport: 'Baseball',
     category: 'professional'
   },
+  wbc: {
+    name: 'WBC',
+    fullName: 'World Baseball Classic',
+    emoji: '⚾',
+    sport: 'Baseball',
+    category: 'international'
+  },
   bundesliga1: { 
     name: 'BL1', 
     fullName: 'German Bundesliga 1', 
@@ -127,6 +136,13 @@ export const LEAGUE_INFO = {
     name: 'UCL', 
     fullName: 'UEFA Champions League', 
     emoji: '⚽', 
+    sport: 'Soccer',
+    category: 'international'
+  },
+  fifa_world: {
+    name: 'FIFA',
+    fullName: 'FIFA World Cup',
+    emoji: '⚽',
     sport: 'Soccer',
     category: 'international'
   },
@@ -192,6 +208,12 @@ export const LEAGUE_COLORS = {
     accent: '#FFFFFF',
     background: '#f0f8ff'
   },
+  wbc: {
+    primary: '#001F4D',
+    secondary: '#E53A23',
+    accent: '#FFD700',
+    background: '#f0f8ff'
+  },
   bundesliga1: {
     primary: '#D20515',
     secondary: '#000000',
@@ -246,15 +268,15 @@ export const LEAGUE_COLORS = {
 export const SPORT_GROUPS = [
   { sport: 'Football', leagues: ['nfl', 'fbs', 'fcs'] },
   { sport: 'Hockey', leagues: ['nhl'] },
-  { sport: 'Baseball', leagues: ['mlb'] },
-  { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls'] },
+  { sport: 'Baseball', leagues: ['mlb', 'wbc'] },
+  { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world', 'mls'] },
   { sport: 'Basketball', leagues: ['nba', 'ncaam', 'ncaaw'] }
 ];
 
 // Available leagues list
 export const AVAILABLE_LEAGUES = [
-  'nfl', 'fbs', 'fcs', 'nhl', 'mlb', 
-  'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
+  'nfl', 'fbs', 'fcs', 'nhl', 'mlb', 'wbc', 
+  'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world', 'mls',
   'nba', 'ncaam', 'ncaaw'
 ];
 
@@ -262,8 +284,8 @@ export const AVAILABLE_LEAGUES = [
 export const DEFAULT_SETTINGS = {
   refreshInterval: 30,
   selectedLeagues: [
-    'nfl', 'fbs', 'fcs', 'nhl', 'mlb',
-    'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls',
+    'nfl', 'fbs', 'fcs', 'nhl', 'mlb', 'wbc',
+    'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world', 'mls',
     'nba', 'ncaam', 'ncaaw'
   ],
   hiddenTeams: [],

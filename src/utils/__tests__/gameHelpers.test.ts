@@ -271,6 +271,7 @@ describe('gameHelpers', () => {
 
     it('should correctly identify soccer leagues', () => {
       expect(isSoccerLeague('bundesliga1')).toBe(true);
+      expect(isSoccerLeague('fifa_world')).toBe(true);
       expect(isSoccerLeague('NFL')).toBe(false);
     });
   });
@@ -282,6 +283,7 @@ describe('gameHelpers', () => {
       expect(getSportFromLeague('mlb')).toBe('Baseball');
       expect(getSportFromLeague('nhl')).toBe('Hockey');
       expect(getSportFromLeague('bundesliga1')).toBe('Soccer');
+      expect(getSportFromLeague('fifa_world')).toBe('Soccer');
     });
 
     it('should return Unknown for invalid league', () => {

@@ -26,6 +26,8 @@ npm install
 npm run dev
 ```
 
+Supported leagues now include FIFA World Cup alongside NFL, NHL, FCS, FBS, MLB, Bundesliga, and MLS.
+
 Contributing
 - Pull requests are welcome if you want to help harden pieces of this project.
 - If you submit changes, please note whether they are refactors, bug fixes, or attempts to make the project production-ready.

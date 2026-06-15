@@ -15,7 +15,7 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
   const getTileComponent = () => {
     const league = game.league.toLowerCase();
     
-    if (league === 'mlb') {
+    if (league === 'mlb' || league === 'wbc') {
       return BaseballGameTile;
     }
 
@@ -31,7 +31,7 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
       return HockeyGameTile;
     }
     
-    if (league === 'mls' || league === 'bundesliga1' || league === 'bundesliga2' || league === 'ucl' || league === 'dfb_pokal'  ) {
+    if (league === 'mls' || league === 'bundesliga1' || league === 'bundesliga2' || league === 'ucl' || league === 'dfb_pokal' || league === 'fifa_world') {
       return SoccerGameTile;
     }
     

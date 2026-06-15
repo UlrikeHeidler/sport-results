@@ -7,11 +7,13 @@ const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) =
     fcs: { name: 'FCS', fullName: 'College Football FCS Division', emoji: '🏈', sport: 'Football' },
     nhl: { name: 'NHL', fullName: 'National Hockey League', emoji: ' 🏒', sport: 'Hockey' },
     mlb: { name: 'MLB', fullName: 'Major League Baseball', emoji: '⚾', sport: 'Baseball' },
+    wbc: { name: 'WBC', fullName: 'World Baseball Classic', emoji: '⚾', sport: 'Baseball' },
     bundesliga1: { name: 'BL1', fullName: 'German Bundesliga 1', emoji: '⚽', sport: 'Soccer' },
     bundesliga2: { name: 'BL2', fullName: 'German Bundesliga 2', emoji: '⚽', sport: 'Soccer' },
     dfb_pokal: { name: 'DFB', fullName: 'German Cup (DFB Pokal)', emoji: '⚽', sport: 'Soccer' },
     ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⚽', sport: 'Soccer' },
     mls: { name: 'MLS', fullName: 'Major League Soccer', emoji: '⚽', sport: 'Soccer' },
+    fifa_world: { name: 'FIFA', fullName: 'FIFA World Cup', emoji: '⚽', sport: 'Soccer' },
     nba: { name: 'NBA', fullName: 'National Basketball Association', emoji: '🏀', sport: 'Basketball' },
     ncaam: { name: 'NCAAM', fullName: 'Mens College Basketball', emoji: '🏀', sport: 'Basketball' },
     ncaaw: { name: 'NCAAW', fullName: 'Womens College Basketball', emoji: '🏀', sport: 'Basketball' },
@@ -21,8 +23,8 @@ const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) =
   const sportGroups = [
     { sport: 'Football', leagues: ['nfl', 'fbs', 'fcs'] },
     { sport: 'Hockey', leagues: ['nhl'] },
-    { sport: 'Baseball', leagues: ['mlb'] },
-    { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'mls'] },
+    { sport: 'Baseball', leagues: ['mlb', 'wbc'] },
+    { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world', 'mls'] },
     { sport: 'Basketball', leagues: ['nba', 'ncaam', 'ncaaw'] },
   ];
 

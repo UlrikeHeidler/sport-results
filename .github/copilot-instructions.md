@@ -60,7 +60,7 @@ npm run preview # Preview production build
 
 1. **ESPN API Integration** (`services/sportsApi-fixed.js`):
    - Base URL: `https://site.api.espn.com/apis/site/v2/sports`
-   - Supported leagues: NFL, NHL, FCS, FBS, MLB, Bundesliga 1/2
+   - Supported leagues: NFL, NHL, FCS, FBS, MLB, Bundesliga 1/2, and FIFA World Cup
    - Error handling returns empty arrays instead of throwing
 
 2. **Local Storage**:

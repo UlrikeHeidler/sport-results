@@ -79,7 +79,7 @@ export const ExpandedHeader = ({
       <div className="header-content">
         <div className="header-text">
           <h1>🏆 Live Sports Results</h1>
-          <p>Real-time scores for Major American Sports and German Soccer.</p>
+          <p>Real-time scores for Major American Sports and Soccer, including Bundesliga and FIFA World Cup.</p>
           {currentLastUpdated && (
             <div className="last-updated">
               Last updated: {currentLastUpdated.toLocaleTimeString()}
