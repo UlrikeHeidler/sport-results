@@ -40,7 +40,7 @@ export const NoGamesState = ({ selectedLeagues }) => (
       <div>
         <div className="no-games-icon">🏟️</div>
         <h3>Select a league to view games</h3>
-        <p>Choose from NFL, NHL, FCS, FBS, MLB, or Bundesliga above to see live scores and schedules.</p>
+        <p>Choose from NFL, NHL, FCS, FBS, MLB, Bundesliga, or FIFA World Cup above to see live scores and schedules.</p>
       </div>
     ) : (
       <div>
