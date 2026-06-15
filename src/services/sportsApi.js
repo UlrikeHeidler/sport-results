@@ -23,7 +23,10 @@ import { normalizeSituation } from './normalizeSituation';
  * Date utilities for API requests
  */
 const getDateString = (date) => {
-  return date.toISOString().split('T')[0].replace(/-/g, '');
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
 };
 
 const getDateRange = (days = 4) => {
@@ -37,6 +40,12 @@ const getDateRange = (days = 4) => {
   }
   
   return dates;
+};
+
+const getYesterdayDateString = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return getDateString(yesterday);
 };
 
 /**
@@ -113,6 +122,8 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
  * @returns {Promise<Array>} Array of game objects
  */
 export const fetchGames = async (league, dateFilter = null) => {
+  let url;
+
   try {
     const baseEndpoint = API_ENDPOINTS[league.toLowerCase()];
     if (!baseEndpoint) {
@@ -120,7 +131,7 @@ export const fetchGames = async (league, dateFilter = null) => {
     }
 
     // Use provided date filter or today's date
-    let url = baseEndpoint;
+    url = baseEndpoint;
     if (dateFilter) {
       const separator = baseEndpoint.includes('?') ? '&' : '?';
       url = `${baseEndpoint}${separator}dates=${dateFilter}`;
@@ -173,9 +184,12 @@ const parseGamesData = (data, league) => {
   // debug(`Parsing ${data.events.length} events for ${league}`);
 
   return data.events.map(event => {
+    let competition = null;
+    let competitors = null;
+
     try {
-      const competition = event.competitions[0];
-      const competitors = competition.competitors;
+      competition = event.competitions?.[0] || null;
+      competitors = competition?.competitors || [];
       
       // Find home and away teams
       const homeTeam = competitors.find(comp => comp.homeAway === 'home');
@@ -223,12 +237,12 @@ const parseGamesData = (data, league) => {
         finishedAt: competition.status.type.completed ? new Date() : null
       };
     } catch (error) {
-      console.warn(`Failed to parse game data for event ${event.id}:`, {
-        eventId: event.id,
+      console.warn(`Failed to parse game data for event ${event?.id || 'unknown'}:`, {
+        eventId: event?.id || null,
         league,
         error: error.message,
         hasCompetition: !!competition,
-        hasCompetitors: !!competitors
+        hasCompetitors: Array.isArray(competitors) ? competitors.length : 0
       });
       return null;
     }
@@ -306,36 +320,54 @@ export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = 
 
       return gamesData;
     } else {
-      // Fetch only today's games (optimized behavior)
-      promises = enabledLeagues.map(league =>
-        fetchGames(league).then(games => ({ league, games }))
-      );
+      // Fetch yesterday's and today's games so late-night events crossing midnight are preserved.
+      const dateFilters = [getYesterdayDateString(), getDateString(new Date())];
+      const allPromises = [];
 
-      const results = await Promise.allSettled(promises);
+      enabledLeagues.forEach(league => {
+        dateFilters.forEach(date => {
+          allPromises.push(
+            fetchGames(league, date).then(games => ({ league, games, date }))
+          );
+        });
+      });
+
+      const results = await Promise.allSettled(allPromises);
       const gamesData = {};
 
       results.forEach(result => {
         if (result.status === 'fulfilled') {
-          const { league, games } = result.value;
-          gamesData[league] = games;
-          // debug(`Successfully fetched ${games.length} games for ${league}`);
+          const { league, games, date } = result.value;
+          if (!gamesData[league]) {
+            gamesData[league] = [];
+          }
+          const annotatedGames = games.map(game => ({ ...game, _requestedDate: date }));
+          gamesData[league].push(...annotatedGames);
         } else {
           handleError(result.reason, 'fetchAllGames (Promise.allSettled)');
         }
       });
 
-      // Filter to today's games only
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const endOfToday = new Date(today);
-      endOfToday.setHours(23, 59, 59, 999);
+
+      const today = getDateString(new Date());
+      const yesterday = getYesterdayDateString();
 
       Object.keys(gamesData).forEach(league => {
-        gamesData[league] = gamesData[league].filter(game => {
-          const gameDate = new Date(game.date);
-          return gameDate >= today && gameDate <= endOfToday;
-        });
-        // debug(`Filtered to ${gamesData[league].length} games for ${league} (today only)`);
+        const uniqueGames = gamesData[league].filter((game, index, self) =>
+          index === self.findIndex(g => g.id === game.id)
+        );
+
+        gamesData[league] = uniqueGames
+          .filter(game => {
+            if (game._requestedDate === today) {
+              return true;
+            }
+            if (game._requestedDate === yesterday) {
+              return isGameOngoing(game.status) || isGameFinal(game.status);
+            }
+            return false;
+          })
+          .map(({ _requestedDate, ...game }) => game);
       });
 
       return gamesData;
