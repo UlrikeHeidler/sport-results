@@ -220,9 +220,11 @@
 
 
 .baseball-diamond {
-  width: 52px; /* user requested size */
+  width: 52px;
   height: 52px;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .baseball-diamond .base {

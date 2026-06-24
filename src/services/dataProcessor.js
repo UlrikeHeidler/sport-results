@@ -182,6 +182,13 @@ class EspnDataProcessor extends DataProcessor {
       const status = normalizeStatus(competition.status);
       const situation = normalizeSituation(league, competition.situation || {}, competition, homeTeam, awayTeam);
 
+      // Extract per-inning linescores for baseball (available on competitor objects)
+      const homeLs = homeTeam.linescores?.map(l => l.value ?? '-') ?? [];
+      const awayLs = awayTeam.linescores?.map(l => l.value ?? '-') ?? [];
+      const linescores = (homeLs.length > 0 || awayLs.length > 0)
+        ? { home: homeLs, away: awayLs }
+        : null;
+
       // Build game object
       const game = {
         id: event.id,
@@ -191,6 +198,7 @@ class EspnDataProcessor extends DataProcessor {
         homeTeam: processedHomeTeam,
         awayTeam: processedAwayTeam,
         situation,
+        linescores,
         date: new Date(event.date),
         venue: competition.venue ? competition.venue.fullName : 'TBD',
         finishedAt: status.completed ? new Date() : null

@@ -43,6 +43,7 @@
 }
 
 .diamond-count-stack {
+  padding-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,7 +78,9 @@
 .baseball-diamond {
   width: 52px;
   height: 52px;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 10px;
 }
 
@@ -97,6 +100,39 @@
 }
 
 .baseball-diamond svg { display: block; }
+
+.linescore-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  margin-bottom: 0.3rem;
+}
+
+.linescore-table th,
+.linescore-table td {
+  text-align: center;
+  padding: 1px 3px;
+  min-width: 1.4em;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.linescore-table thead th {
+  background: var(--hover-bg, #f5f5f5);
+  font-weight: 600;
+  color: var(--text-muted, #666);
+}
+
+.linescore-table .ls-team-col {
+  text-align: left;
+  font-weight: 700;
+  padding-left: 4px;
+  min-width: 2.8em;
+}
+
+.linescore-table .ls-total {
+  font-weight: 700;
+  border-left: 2px solid var(--border-color, #e0e0e0);
+}
 
 .batter-name .label, .pitcher-name .label {
   font-weight: bold;

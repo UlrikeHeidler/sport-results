@@ -232,6 +232,11 @@ const parseGamesData = (data, league) => {
           logo: awayTeam.team.logo || ''
         },
         situation: normalizeSituation(league, situation, competition, homeTeam, awayTeam),
+        linescores: (() => {
+          const h = homeTeam.linescores?.map(l => l.value ?? '-') ?? [];
+          const a = awayTeam.linescores?.map(l => l.value ?? '-') ?? [];
+          return (h.length > 0 || a.length > 0) ? { home: h, away: a } : null;
+        })(),
         date: new Date(event.date),
         venue: competition.venue ? competition.venue.fullName : 'TBD',
         finishedAt: competition.status.type.completed ? new Date() : null
