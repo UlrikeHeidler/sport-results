@@ -109,6 +109,71 @@
   margin-bottom: 2px;
   display: none;
 }
+.soccer-scorers {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem 0.2rem;
+  border-top: 1px solid rgba(0, 102, 51, 0.12);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.scorer-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.scorer-col--away {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.scorer-col--home {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.scorer-entry {
+  position: relative;
+  overflow: visible;
+  max-width: 20ch;
+  color: #333;
+  cursor: pointer;
+}
+
+.scorer-entry-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20ch;
+}
+
+.scorer-popup {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.72em;
+  white-space: normal;
+  max-width: 200px;
+  z-index: 10;
+  pointer-events: none;
+  line-height: 1.6;
+}
+
+.scorer-col--away .scorer-popup {
+  left: 0;
+}
+
+.scorer-col--home .scorer-popup {
+  right: 0;
+}
+
 .timeline-goal { color: #388e3c; }
 .timeline-yellow { color: #fbc02d; }
 .timeline-red { color: #d32f2f; }

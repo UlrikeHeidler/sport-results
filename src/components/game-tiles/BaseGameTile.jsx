@@ -296,10 +296,10 @@ const BaseGameTile = ({
         {timeDisplay}
       </div>
 
-       {/* Render additional info */}
-       {game.status && isGameOngoing(game.status) && (
+       {/* Render additional info — shown for live games and final games (each tile guards internally) */}
+      {game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && (
         <div className="additional-info-wrapper">
-          {customRenderAdditionalInfo && customRenderAdditionalInfo()}
+          {customRenderAdditionalInfo()}
         </div>
       )}
 

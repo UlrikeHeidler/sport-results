@@ -4,6 +4,27 @@ import { useSoccerTimeline } from '../../hooks/useSoccerTimeline';
 import './GameTiles.soccer.css';
 import { isGameOngoing } from '../../services/gameUtils';
 
+// Return the display icon for a timeline event type, or null if it shouldn't appear in the scorer list
+function getEventIcon(typeText) {
+  const t = (typeText ?? '').toLowerCase();
+  if (t.includes('goal') || t.includes('scored')) return '⚽';
+  if (t.includes('yellow')) return '🟨';
+  if (t.includes('red')) return '🟥';
+  return null;
+}
+
+// Strip common ESPN verb prefixes so we show only the player name
+function cleanDescription(desc) {
+  if (!desc) return '';
+  return desc
+    .replace(/^goal[!]?\s*(scored\s+)?by\s+/i, '')
+    .replace(/^goal[!]?\s*[-:]\s*/i, '')
+    .replace(/^goal[!]\s*/i, '')
+    .replace(/^goal\s+/i, '')
+    .replace(/^(yellow|red)\s+card\s+(shown\s+to\s+|for\s+)?/i, '')
+    .trim();
+}
+
 // Helper to convert minute string to percentage of match duration (0-100)
 function getTimelinePosition(minuteStr, overTime) {
   // Handles minute strings like "90'+3'", "45+2", "90", "12"
@@ -33,19 +54,34 @@ const SoccerGameTile = (props) => {
   const { game, refreshInterval = 30 } = props;
   const timeline = useSoccerTimeline(game.league, game.id, refreshInterval);
   const [activeEventIdx, setActiveEventIdx] = useState(null);
+  const [activeScorerKey, setActiveScorerKey] = useState(null);
 
   const handleEventClick = useCallback((idx, e) => {
     e.stopPropagation();
+    setActiveScorerKey(null);
     setActiveEventIdx(prev => prev === idx ? null : idx);
   }, []);
 
-  // Dismiss popup when clicking anywhere outside a timeline event
+  const handleScorerClick = useCallback((key, e) => {
+    e.stopPropagation();
+    setActiveEventIdx(null);
+    setActiveScorerKey(prev => prev === key ? null : key);
+  }, []);
+
+  // Dismiss popups when clicking anywhere outside
   useEffect(() => {
     if (activeEventIdx === null) return;
     const dismiss = () => setActiveEventIdx(null);
     document.addEventListener('click', dismiss);
     return () => document.removeEventListener('click', dismiss);
   }, [activeEventIdx]);
+
+  useEffect(() => {
+    if (activeScorerKey === null) return;
+    const dismiss = () => setActiveScorerKey(null);
+    document.addEventListener('click', dismiss);
+    return () => document.removeEventListener('click', dismiss);
+  }, [activeScorerKey]);
 
   const overTime = game.status?.type?.includes("OVERTIME") ? 'overtime' : 'regular';
 
@@ -74,9 +110,14 @@ const SoccerGameTile = (props) => {
   };
 
   const renderAdditionalInfo = () => {
+    // Goals and cards only — no substitutions in the scorer list
+    const scorerEvents = timeline.filter(e => getEventIcon(e.type?.text ?? '') !== null);
+    const homeScorers = scorerEvents.filter(e => e.team === game.homeTeam?.id);
+    const awayScorers = scorerEvents.filter(e => e.team === game.awayTeam?.id);
+
     return (
       <div className="soccer-info">
-        {/* Timeline */}
+        {/* Timeline — live games only */}
         {isGameOngoing(game.status) && (
           <div className="soccer-timeline-outer">
             <div className="soccer-timeline-content">
@@ -119,6 +160,36 @@ const SoccerGameTile = (props) => {
                   event.team === game.awayTeam.id ? renderTimelineEvent(event, idx) : null
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scorer list — shown for both live and final games, aligned with team columns */}
+        {(homeScorers.length > 0 || awayScorers.length > 0) && (
+          <div className="soccer-scorers">
+            <div className="scorer-col scorer-col--away">
+              {awayScorers.map((e, i) => {
+                const key = `away-${i}`;
+                const full = `${getEventIcon(e.type.text)} ${cleanDescription(e.description)}${e.minute ? ` ${e.minute}` : ''}`;
+                return (
+                  <span key={key} className="scorer-entry" onClick={(ev) => handleScorerClick(key, ev)}>
+                    {activeScorerKey === key && <div className="scorer-popup">{full}</div>}
+                    <span className="scorer-entry-text">{getEventIcon(e.type.text)} {cleanDescription(e.description)}{e.minute && <> {e.minute}</>}</span>
+                  </span>
+                );
+              })}
+            </div>
+            <div className="scorer-col scorer-col--home">
+              {homeScorers.map((e, i) => {
+                const key = `home-${i}`;
+                const full = `${getEventIcon(e.type.text)} ${cleanDescription(e.description)}${e.minute ? ` ${e.minute}` : ''}`;
+                return (
+                  <span key={key} className="scorer-entry" onClick={(ev) => handleScorerClick(key, ev)}>
+                    {activeScorerKey === key && <div className="scorer-popup">{full}</div>}
+                    <span className="scorer-entry-text">{getEventIcon(e.type.text)} {cleanDescription(e.description)}{e.minute && <> {e.minute}</>}</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
