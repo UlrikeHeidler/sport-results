@@ -22,7 +22,7 @@ import { normalizeSituation } from './normalizeSituation';
 /**
  * Date utilities for API requests
  */
-const getDateString = (date) => {
+export const getDateString = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -42,7 +42,7 @@ const getDateRange = (days = 4) => {
   return dates;
 };
 
-const getYesterdayDateString = () => {
+export const getYesterdayDateString = () => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   return getDateString(yesterday);

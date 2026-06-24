@@ -160,6 +160,11 @@ function App() {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
+  // Bulk-replace the selected leagues array (used by LeagueSelector sport-group toggle)
+  const handleSelectLeagues = useCallback((newLeagues) => {
+    handleSettingsChange({ ...settings, selectedLeagues: newLeagues });
+  }, [settings, handleSettingsChange]);
+
   // Traditional fetch games data (fallback)
   const loadGames = useCallback(async () => {
     try {
@@ -315,6 +320,7 @@ function App() {
                   <LeagueSelector
                     selectedLeagues={settings.selectedLeagues}
                     onLeagueToggle={handleLeagueToggle}
+                    onSelectLeagues={handleSelectLeagues}
                     availableLeagues={AVAILABLE_LEAGUES}
                   />
                 </div>

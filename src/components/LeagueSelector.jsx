@@ -1,58 +1,92 @@
-import React from 'react';
+import { useCallback, useMemo } from 'react';
+import { SPORT_GROUPS, LEAGUE_INFO } from '../config/constants';
 
-const LeagueSelector = ({ selectedLeagues, onLeagueToggle, availableLeagues }) => {
-  const leagueInfo = {
-    nfl: { name: 'NFL', fullName: 'National Football League', emoji: '🏈', sport: 'Football' },
-    fbs: { name: 'FBS', fullName: 'College Football FBS Division', emoji: '🏈', sport: 'Football' },
-    fcs: { name: 'FCS', fullName: 'College Football FCS Division', emoji: '🏈', sport: 'Football' },
-    nhl: { name: 'NHL', fullName: 'National Hockey League', emoji: ' 🏒', sport: 'Hockey' },
-    mlb: { name: 'MLB', fullName: 'Major League Baseball', emoji: '⚾', sport: 'Baseball' },
-    wbc: { name: 'WBC', fullName: 'World Baseball Classic', emoji: '⚾', sport: 'Baseball' },
-    bundesliga1: { name: 'BL1', fullName: 'German Bundesliga 1', emoji: '⚽', sport: 'Soccer' },
-    bundesliga2: { name: 'BL2', fullName: 'German Bundesliga 2', emoji: '⚽', sport: 'Soccer' },
-    dfb_pokal: { name: 'DFB', fullName: 'German Cup (DFB Pokal)', emoji: '⚽', sport: 'Soccer' },
-    ucl: { name: 'UCL', fullName: 'UEFA Champions League', emoji: '⚽', sport: 'Soccer' },
-    mls: { name: 'MLS', fullName: 'Major League Soccer', emoji: '⚽', sport: 'Soccer' },
-    fifa_world: { name: 'FIFA', fullName: 'FIFA World Cup', emoji: '⚽', sport: 'Soccer' },
-    nba: { name: 'NBA', fullName: 'National Basketball Association', emoji: '🏀', sport: 'Basketball' },
-    ncaam: { name: 'NCAAM', fullName: 'Mens College Basketball', emoji: '🏀', sport: 'Basketball' },
-    ncaaw: { name: 'NCAAW', fullName: 'Womens College Basketball', emoji: '🏀', sport: 'Basketball' },
-  };
+const SPORT_EMOJI = {
+  Football:   '🏈',
+  Hockey:     '🏒',
+  Baseball:   '⚾',
+  Soccer:     '⚽',
+  Basketball: '🏀',
+};
 
-  // Group leagues by sport
-  const sportGroups = [
-    { sport: 'Football', leagues: ['nfl', 'fbs', 'fcs'] },
-    { sport: 'Hockey', leagues: ['nhl'] },
-    { sport: 'Baseball', leagues: ['mlb', 'wbc'] },
-    { sport: 'Soccer', leagues: ['bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world', 'mls'] },
-    { sport: 'Basketball', leagues: ['nba', 'ncaam', 'ncaaw'] },
-  ];
+const LeagueSelector = ({ selectedLeagues, onLeagueToggle, onSelectLeagues, availableLeagues }) => {
+  const selectedSet = useMemo(() => new Set(selectedLeagues), [selectedLeagues]);
+
+  const groups = SPORT_GROUPS
+    .map(group => ({ ...group, leagues: group.leagues.filter(l => availableLeagues.includes(l)) }))
+    .filter(group => group.leagues.length > 0);
+
+  const toggleSportGroup = useCallback((groupLeagues) => {
+    const available = groupLeagues.filter(l => availableLeagues.includes(l));
+    const allSelected = available.every(l => selectedSet.has(l));
+    const newLeagues = allSelected
+      ? selectedLeagues.filter(l => !available.includes(l))
+      : [...new Set([...selectedLeagues, ...available])];
+    onSelectLeagues(newLeagues);
+  }, [availableLeagues, selectedLeagues, selectedSet, onSelectLeagues]);
+
+  const toggleAll = useCallback((selectAll) => {
+    onSelectLeagues(selectAll ? [...availableLeagues] : []);
+  }, [availableLeagues, onSelectLeagues]);
+
+  const totalSelected = selectedLeagues.length;
+  const totalAvailable = availableLeagues.length;
 
   return (
     <div className="league-selector">
-      <h3>Select Leagues</h3>
-      {sportGroups.map(group => (
-        <div key={group.sport} className="league-group">
-          <div className="league-group-title">{group.sport}</div>
-          <div className="league-buttons">
-            {group.leagues.filter(league => availableLeagues.includes(league)).map(league => {
-              const info = leagueInfo[league];
-              const isSelected = selectedLeagues.includes(league);
-              return (
-                <button
-                  key={league}
-                  className={`league-button ${isSelected ? 'active' : ''}`}
-                  onClick={() => onLeagueToggle(league)}
-                  title={info.fullName}
-                >
-                  <span className="league-emoji">{info.emoji}</span>
-                  <span className="league-name">{info.name}</span>
-                </button>
-              );
-            })}
+      <div className="league-selector-header">
+        <span className="league-selector-count">{totalSelected} / {totalAvailable} leagues</span>
+        <button
+          className="league-selector-ctrl"
+          onClick={() => toggleAll(true)}
+          disabled={totalSelected === totalAvailable}
+        >
+          All
+        </button>
+        <button
+          className="league-selector-ctrl"
+          onClick={() => toggleAll(false)}
+          disabled={totalSelected === 0}
+        >
+          None
+        </button>
+      </div>
+
+      {groups.map(group => {
+        const selectedCount = group.leagues.filter(l => selectedSet.has(l)).length;
+        const allSelected = selectedCount === group.leagues.length;
+        const someSelected = selectedCount > 0 && !allSelected;
+
+        return (
+          <div key={group.sport} className="sport-group">
+            <button
+              className={`sport-header${allSelected ? ' all-selected' : someSelected ? ' some-selected' : ''}`}
+              onClick={() => toggleSportGroup(group.leagues)}
+              title={`Toggle all ${group.sport} leagues`}
+            >
+              <span className="sport-emoji">{SPORT_EMOJI[group.sport] ?? '🏆'}</span>
+              <span className="sport-name">{group.sport}</span>
+              <span className="sport-count">{selectedCount}/{group.leagues.length}</span>
+            </button>
+            <div className="league-chips">
+              {group.leagues.map(league => {
+                const info = LEAGUE_INFO[league];
+                return (
+                  <button
+                    key={league}
+                    className={`league-chip${selectedSet.has(league) ? ' active' : ''}`}
+                    onClick={() => onLeagueToggle(league)}
+                    title={info?.fullName}
+                  >
+                    {info?.name ?? league.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
+
       {selectedLeagues.length === 0 && (
         <p className="no-selection">Select at least one league to view games</p>
       )}

@@ -4,7 +4,16 @@ import { getTeamForm, getFormColor } from '../../services/teamStats';
 import { getLeagueColors, isGameOngoing, isGameFinal } from '../../services/gameUtils';
 
 
-const getDisplayStatus = (status, situation) => {
+const isYesterday = (date) => {
+  if (!(date instanceof Date)) return false;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+};
+
+const getDisplayStatus = (status, situation, date) => {
   // Known ongoing status types
   const ongoingTypes = new Set([
     'STATUS_IN_PROGRESS',
@@ -36,7 +45,7 @@ const getDisplayStatus = (status, situation) => {
     return 'LIVE';
   }
 
-  if (status && status.completed) return 'FINAL';
+  if (status && status.completed) return isYesterday(date) ? 'FINAL (Y)' : 'FINAL';
   return 'SCHEDULED';
 };
 
@@ -258,7 +267,7 @@ const BaseGameTile = ({
       </span>
       {renderBroadcastInfo()}
       <span className={`game-status ${statusClass} ${animations.status ? 'status-changed' : ''}`}>
-        {getDisplayStatus(game.status, game.situation)}
+        {getDisplayStatus(game.status, game.situation, game.date)}
       </span>
     </div>
   );

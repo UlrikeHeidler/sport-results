@@ -42,35 +42,36 @@
   vertical-align: super;
 }
 
-.count-info {
+.diamond-count-stack {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  font-size: 1.1rem;
-}
-
-.bases-info {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.on-base {
-  background: #BE0000;
-  color: white;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 4px rgba(190, 0, 0, 0.2);
-}
-
-.baseball-situation-row {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  justify-content: center;
+  gap: 3px;
+}
+
+.outs-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.out-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-color, #BE0000);
+  background: transparent;
+  display: inline-block;
+}
+
+.out-dot.out {
+  background: var(--accent-color, #BE0000);
+}
+
+.count-display {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-color, #333);
+  letter-spacing: 0.03em;
 }
 
 .baseball-diamond {
@@ -97,14 +98,6 @@
 
 .baseball-diamond svg { display: block; }
 
-.baseball-info .count-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  text-align: left;
-  font-size: 0.9rem;
-  color: #666;
-}
 .batter-name .label, .pitcher-name .label {
   font-weight: bold;
 }

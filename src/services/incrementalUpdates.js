@@ -1,8 +1,8 @@
 // Incremental Updates Service for Sports Results App
 // Provides efficient data synchronization with minimal API calls and optimal user experience
 
-import { fetchGames } from './sportsApi';
-import { isGameOngoing } from './gameUtils';
+import { fetchGames, getDateString, getYesterdayDateString } from './sportsApi';
+import { isGameOngoing, isGameFinal } from './gameUtils';
 import { debug } from '../utils/logger';
 
 // Enhanced debug logger for incremental updates
@@ -188,7 +188,30 @@ class IncrementalUpdatesManager {
    */
   async fetchAndUpdateLeague(league) {
     try {
-      const newGames = await fetchGames(league);
+      const todayStr = getDateString(new Date());
+      const yesterdayStr = getYesterdayDateString();
+
+      const [todayGames, yesterdayGames] = await Promise.all([
+        fetchGames(league, todayStr),
+        fetchGames(league, yesterdayStr)
+      ]);
+
+      // Carry over yesterday's games that are still ongoing (cross-midnight games),
+      // or recently finished (started at noon or later so they're from today's slate).
+      const carryoverGames = yesterdayGames.filter(game => {
+        if (isGameOngoing(game.status)) return true;
+        if (isGameFinal(game.status) && game.date instanceof Date) {
+          return game.date.getHours() >= 12;
+        }
+        return false;
+      });
+
+      // Today's data takes precedence; append carryover games not already in today's list.
+      const todayIds = new Set(todayGames.map(g => g.id));
+      const newGames = [
+        ...todayGames,
+        ...carryoverGames.filter(g => !todayIds.has(g.id))
+      ];
       const cacheKey = `games_${league}`;
       const oldGames = this.cache.get(cacheKey) || [];
       

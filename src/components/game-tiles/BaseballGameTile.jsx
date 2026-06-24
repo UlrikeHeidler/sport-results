@@ -51,24 +51,31 @@ const BaseballGameTile = (props) => {
           </div>
           <div className="inning-diamond-group condensed">
             {s.inning && (
-              <span className="inning-info" aria-hidden>
+              <span className="inning-info">
                 <span className="inning">{s.isTopInning ? '▲' : '▼'} {s.inning}</span>
               </span>
             )}
-            <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : ''}`}>
-              <svg width="38" height="38" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <rect x="4" y="4" width="44" height="44" rx="5" ry="5" transform="rotate(45 26 26)" fill="#fff6" stroke="var(--border-color)" strokeWidth="2" />
-                <circle cx="26" cy="10" r="5" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
-                <circle cx="42" cy="26" r="5" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
-                <circle cx="10" cy="26" r="5" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
-              </svg>
-            </span>
-            <span className="count-info condensed" aria-hidden>
-              <span className="count">B:<b>{s.balls != null ? s.balls : '-'}</b> S:<b>{s.strikes != null ? s.strikes : '-'}</b></span>
-              <span className="simple-count" aria-hidden>{(s.balls != null ? s.balls : '-') + '-' + (s.strikes != null ? s.strikes : '-')}</span>
-              <span className="outs">O:<b>{s.outs != null ? `${s.outs}` : '—'}</b></span>
-              <span className="outs-text">{s.outs != null ? `${s.outs} out` : ''}</span>
-            </span>
+            <div className="diamond-count-stack">
+              <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : ''}`}>
+                <svg width="38" height="38" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <rect x="4" y="4" width="44" height="44" rx="5" ry="5" transform="rotate(45 26 26)" fill="#fff6" stroke="var(--border-color)" strokeWidth="2" />
+                  <circle cx="26" cy="10" r="5" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
+                  <circle cx="42" cy="26" r="5" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
+                  <circle cx="10" cy="26" r="5" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
+                </svg>
+              </span>
+              <div className="outs-dots" aria-label={`${s.outs ?? 0} out${s.outs !== 1 ? 's' : ''}`}>
+                {[0, 1, 2].map(i => (
+                  <span key={i} className={`out-dot${i < (s.outs ?? 0) ? ' out' : ''}`} aria-hidden="true" />
+                ))}
+              </div>
+              <div
+                className="count-display"
+                aria-label={`${s.balls ?? 0} balls, ${s.strikes ?? 0} strikes`}
+              >
+                {s.balls ?? '-'}-{s.strikes ?? '-'}
+              </div>
+            </div>
           </div>
         </div>
       </div>
