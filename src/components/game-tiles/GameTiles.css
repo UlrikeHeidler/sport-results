@@ -4,7 +4,7 @@
 :root {
   /* Game tile specific colors */
   --accent-color: #4CAF50;
-
+  --accent-color-2: #BE0000;
   /* League colors (override per-tile via inline style) */
   --league-primary: #0077cc;
 

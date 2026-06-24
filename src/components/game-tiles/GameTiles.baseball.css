@@ -59,13 +59,13 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1.5px solid var(--accent-color, #BE0000);
+  border: 1.5px solid var(--accent-color-2, #BE0000);
   background: transparent;
   display: inline-block;
 }
 
 .out-dot.out {
-  background: var(--accent-color, #BE0000);
+  background: var(--accent-color-2, #BE0000);
 }
 
 .count-display {
