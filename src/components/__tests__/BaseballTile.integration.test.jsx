@@ -29,7 +29,7 @@ describe('BaseballGameTile integration', () => {
 
     // Initial counts: 1-0
     expect(screen.getByText(/1-0/)).toBeTruthy();
-    expect(screen.getByText(/0 out/)).toBeTruthy();
+    expect(container.querySelector('[aria-label="0 outs"]')).toBeTruthy();
 
     // No base occupied
     expect(container.querySelector('.base.first.occupied')).toBeNull();
@@ -53,7 +53,7 @@ describe('BaseballGameTile integration', () => {
 
     // Updated counts and outs
     expect(screen.getByText(/3-2/)).toBeTruthy();
-    expect(screen.getByText(/1 out/)).toBeTruthy();
+    expect(container.querySelector('[aria-label="1 out"]')).toBeTruthy();
 
     // Bases occupied
     expect(container.querySelector('.base.first.occupied')).toBeTruthy();
