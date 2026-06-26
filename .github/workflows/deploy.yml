@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       - name: Publish to gh-pages branch
-        uses: peaceiris/actions-gh-pages@811c45844b87ebb86e61c2d8942e8d9468efc1b1
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
