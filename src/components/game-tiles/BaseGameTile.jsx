@@ -230,14 +230,18 @@ const BaseGameTile = ({
 
   const renderTeam = (team, isHome = false) => {
     const isWinner = winner && ((winner === 'home' && isHome) || (winner === 'away' && !isHome));
+    const teamInfo = (
+      <div className="team-info">
+        {isHome ? renderTeamRanking(team) : renderTeamLogo(team)}
+        {renderTeamName(team, isHome)}
+        {isHome ? renderTeamLogo(team) : renderTeamRanking(team)}
+      </div>
+    );
+    const score = renderTeamScore(team, isHome, animations);
     return (
       <div className={`team${isWinner ? ' winner' : ''}`}>
-        <div className="team-info">
-          {renderTeamLogo(team)}
-          {renderTeamName(team, isHome)}
-          {renderTeamRanking(team)}
-        </div>
-        {renderTeamScore(team, isHome, animations)}
+        {isHome ? score : teamInfo}
+        {isHome ? teamInfo : score}
       </div>
     );
   };

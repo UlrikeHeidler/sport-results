@@ -35,6 +35,8 @@ const BaseballGameTile = (props) => {
             <th className="ls-team-col" />
             {cols.map(i => <th key={i}>{i + 1}</th>)}
             <th className="ls-total">R</th>
+            <th className="ls-total">H</th>
+            <th className="ls-total">E</th>
           </tr>
         </thead>
         <tbody>
@@ -42,11 +44,15 @@ const BaseballGameTile = (props) => {
             <td className="ls-team-col">{game.awayTeam.abbreviation}</td>
             {cols.map(i => <td key={i}>{ls.away[i] ?? ''}</td>)}
             <td className="ls-total">{game.awayTeam.score}</td>
+            <td className="ls-total">{game.awayTeam.hits ?? '-'}</td>
+            <td className="ls-total">{game.awayTeam.errors ?? '-'}</td>
           </tr>
           <tr>
             <td className="ls-team-col">{game.homeTeam.abbreviation}</td>
             {cols.map(i => <td key={i}>{ls.home[i] ?? ''}</td>)}
             <td className="ls-total">{game.homeTeam.score}</td>
+            <td className="ls-total">{game.homeTeam.hits ?? '-'}</td>
+            <td className="ls-total">{game.homeTeam.errors ?? '-'}</td>
           </tr>
         </tbody>
       </table>
