@@ -45,7 +45,10 @@ const getDisplayStatus = (status, situation, date) => {
     return 'LIVE';
   }
 
-  if (status && status.completed) return isYesterday(date) ? 'FINAL (Y)' : 'FINAL';
+  if (status && status.completed) {
+    if (status.type === 'STATUS_FINAL_PEN') return isYesterday(date) ? 'FINAL (Pen.) (Y)' : 'FINAL (Pen.)';
+    return isYesterday(date) ? 'FINAL (Y)' : 'FINAL';
+  }
   return 'SCHEDULED';
 };
 
@@ -212,12 +215,17 @@ const BaseGameTile = ({
   const renderTeamScore = customRenderScore || defaultRenderScore;
 
   // Winner logic: only for completed games
+  // Prefer the ESPN winner flag (handles PSO where scores are tied)
   let winner = null;
   if (game.status && game.status.completed) {
-    const homeScore = Number(game.homeTeam?.score ?? 0);
-    const awayScore = Number(game.awayTeam?.score ?? 0);
-    if (homeScore > awayScore) winner = 'home';
-    else if (awayScore > homeScore) winner = 'away';
+    if (game.homeTeam?.winner) winner = 'home';
+    else if (game.awayTeam?.winner) winner = 'away';
+    else {
+      const homeScore = Number(game.homeTeam?.score ?? 0);
+      const awayScore = Number(game.awayTeam?.score ?? 0);
+      if (homeScore > awayScore) winner = 'home';
+      else if (awayScore > homeScore) winner = 'away';
+    }
   }
 
   const renderTeam = (team, isHome = false) => {

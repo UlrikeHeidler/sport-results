@@ -60,7 +60,8 @@ export const STATUS_TYPES = {
   FINAL: new Set([
     'STATUS_FINAL',
     'STATUS_FINAL_OT',
-    'STATUS_FINAL_SO'
+    'STATUS_FINAL_SO',
+    'STATUS_FINAL_PEN'
   ]),
   
   // Scheduled status

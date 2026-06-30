@@ -221,7 +221,9 @@ const parseGamesData = (data, league) => {
           abbreviation: homeTeam.team.abbreviation,
           ranking: competition.competitors[0]?.curatedRank?.current || null,
           score: homeTeam.score || '0',
-          logo: homeTeam.team.logo || ''
+          logo: homeTeam.team.logo || '',
+          winner: homeTeam.winner ?? false,
+          shootoutScore: homeTeam.shootoutScore ?? null
         },
         awayTeam: {
           id: awayTeam.id,
@@ -229,7 +231,9 @@ const parseGamesData = (data, league) => {
           abbreviation: awayTeam.team.abbreviation,
           ranking: competition.competitors[1]?.curatedRank?.current || null,
           score: awayTeam.score || '0',
-          logo: awayTeam.team.logo || ''
+          logo: awayTeam.team.logo || '',
+          winner: awayTeam.winner ?? false,
+          shootoutScore: awayTeam.shootoutScore ?? null
         },
         situation: normalizeSituation(league, situation, competition, homeTeam, awayTeam),
         linescores: (() => {

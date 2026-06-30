@@ -22,6 +22,8 @@ function cleanDescription(desc) {
     .replace(/^goal[!]\s*/i, '')
     .replace(/^goal\s+/i, '')
     .replace(/^(yellow|red)\s+card\s+(shown\s+to\s+|for\s+)?/i, '')
+    // Strip leading score summary like "Brazil 1, Japan 1. " before the actual description
+    .replace(/^[^,\n]+\s\d+,\s*[^.\n]+\s\d+\.\s+/, '')
     .trim();
 }
 
@@ -164,8 +166,8 @@ const SoccerGameTile = (props) => {
           </div>
         )}
 
-        {/* Scorer list — shown for both live and final games, aligned with team columns */}
-        {(homeScorers.length > 0 || awayScorers.length > 0) && (
+        {/* Scorer list — shown for final games, aligned with team columns */}
+        {(homeScorers.length > 0 || awayScorers.length > 0) && (!isGameOngoing(game.status)) && (
           <div className="soccer-scorers">
             <div className="scorer-col scorer-col--away">
               {awayScorers.map((e, i) => {
@@ -174,7 +176,7 @@ const SoccerGameTile = (props) => {
                 return (
                   <span key={key} className="scorer-entry" onClick={(ev) => handleScorerClick(key, ev)}>
                     {activeScorerKey === key && <div className="scorer-popup">{full}</div>}
-                    <span className="scorer-entry-text">{getEventIcon(e.type.text)} {cleanDescription(e.description)}{e.minute && <> {e.minute}</>}</span>
+                    <span className="scorer-entry-text">{getEventIcon(e.type.text)}{e.minute && <> {e.minute}</>} {cleanDescription(e.description)}</span>
                   </span>
                 );
               })}
@@ -186,7 +188,7 @@ const SoccerGameTile = (props) => {
                 return (
                   <span key={key} className="scorer-entry" onClick={(ev) => handleScorerClick(key, ev)}>
                     {activeScorerKey === key && <div className="scorer-popup">{full}</div>}
-                    <span className="scorer-entry-text">{getEventIcon(e.type.text)} {cleanDescription(e.description)}{e.minute && <> {e.minute}</>}</span>
+                    <span className="scorer-entry-text">{getEventIcon(e.type.text)}{e.minute && <> {e.minute}</>} {cleanDescription(e.description)}</span>
                   </span>
                 );
               })}
@@ -198,6 +200,7 @@ const SoccerGameTile = (props) => {
   };
 
   // Customize score display for soccer (add penalty shootout if needed)
+  const isPenaltyShootout = game.status?.type === 'STATUS_FINAL_PEN';
   const renderScore = (team, isHome, animations = {}) => {
     const animationClass = animations && animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : '';
     return (
@@ -205,9 +208,9 @@ const SoccerGameTile = (props) => {
         <div className={`team-score ${animationClass}`}>
           {team.score || '0'}
         </div>
-        {game.situation?.penalties && (
+        {isPenaltyShootout && team.shootoutScore != null && (
           <div className="penalties">
-            ({team.penalties || 0})
+            ({team.shootoutScore})
           </div>
         )}
       </div>
