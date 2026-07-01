@@ -34,7 +34,7 @@ const BaseballGameTile = (props) => {
           <tr>
             <th className="ls-team-col" />
             {cols.map(i => <th key={i}>{i + 1}</th>)}
-            <th className="ls-total">R</th>
+            <th className="ls-total runs">R</th>
             <th className="ls-total">H</th>
             <th className="ls-total">E</th>
           </tr>
@@ -43,14 +43,14 @@ const BaseballGameTile = (props) => {
           <tr>
             <td className="ls-team-col">{game.awayTeam.abbreviation}</td>
             {cols.map(i => <td key={i}>{ls.away[i] ?? ''}</td>)}
-            <td className="ls-total">{game.awayTeam.score}</td>
+            <td className="ls-total runs">{game.awayTeam.score}</td>
             <td className="ls-total">{game.awayTeam.hits ?? '-'}</td>
             <td className="ls-total">{game.awayTeam.errors ?? '-'}</td>
           </tr>
           <tr>
             <td className="ls-team-col">{game.homeTeam.abbreviation}</td>
             {cols.map(i => <td key={i}>{ls.home[i] ?? ''}</td>)}
-            <td className="ls-total">{game.homeTeam.score}</td>
+            <td className="ls-total runs">{game.homeTeam.score}</td>
             <td className="ls-total">{game.homeTeam.hits ?? '-'}</td>
             <td className="ls-total">{game.homeTeam.errors ?? '-'}</td>
           </tr>
@@ -91,24 +91,25 @@ const BaseballGameTile = (props) => {
                 </span>
               )}
               <div className="diamond-count-stack">
-                <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : ''}`}>
+                <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : 'none'}`}>
                   <svg width="38" height="38" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                    <rect x="4" y="4" width="44" height="44" rx="5" ry="5" transform="rotate(45 26 26)" fill="#fff6" stroke="var(--border-color)" strokeWidth="2" />
-                    <circle cx="26" cy="10" r="5" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
-                    <circle cx="42" cy="26" r="5" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
-                    <circle cx="10" cy="26" r="5" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
+                    <rect x="4" y="4" width="44" height="44" rx="4" ry="4" transform="rotate(45 26 26)" fill="var(--field-bg, rgba(80,160,80,0.07))" stroke="var(--border-color)" strokeWidth="1.5" />
+                    <rect x="22.5" y="6.5" width="7" height="7" transform="rotate(45, 26, 10)" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
+                    <rect x="38.5" y="22.5" width="7" height="7" transform="rotate(45, 42, 26)" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
+                    <rect x="6.5" y="22.5" width="7" height="7" transform="rotate(45, 10, 26)" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
+                    <polygon points="26,40 29,43 26,47 23,43" className="home-plate" />
                   </svg>
                 </span>
-                <div className="outs-dots" aria-label={`${s.outs ?? 0} out${s.outs !== 1 ? 's' : ''}`}>
-                  {[0, 1, 2].map(i => (
-                    <span key={i} className={`out-dot${i < (s.outs ?? 0) ? ' out' : ''}`} aria-hidden="true" />
-                  ))}
-                </div>
                 <div
                   className="count-display"
                   aria-label={`${s.balls ?? 0} balls, ${s.strikes ?? 0} strikes`}
                 >
                   {s.balls ?? '-'}-{s.strikes ?? '-'}
+                </div>
+                <div className="outs-dots" aria-label={`${s.outs ?? 0} out${s.outs !== 1 ? 's' : ''}`}>
+                  {[0, 1, 2].map(i => (
+                    <span key={i} className={`out-dot${i < (s.outs ?? 0) ? ' out' : ''}`} aria-hidden="true" />
+                  ))}
                 </div>
               </div>
             </div>
