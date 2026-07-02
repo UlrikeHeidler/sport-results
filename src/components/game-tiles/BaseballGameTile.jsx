@@ -76,7 +76,6 @@ const BaseballGameTile = (props) => {
                   <span className="stats">({s.currentBatterStats})</span>
                 </span>
               )}
-              <br />
               {s.currentPitcher && (
                 <span className="pitcher-name" aria-label={`Current pitcher: ${s.currentPitcher?.displayName}`}>
                   <span className="label">P:</span> <span className="name">{s.currentPitcher?.displayName}</span> <br />
@@ -85,12 +84,14 @@ const BaseballGameTile = (props) => {
               )}
             </div>
             <div className="inning-diamond-group condensed">
-              {s.inning && (
-                <span className="inning-info">
-                  <span className="inning">{s.isTopInning ? '▲' : '▼'} {s.inning}</span>
-                </span>
-              )}
-              <div className="diamond-count-stack">
+              <div className="inning-col">
+                {s.inning && (
+                  <span className="inning-info">
+                    <span className="inning">{s.isTopInning ? '▲' : '▼'} {s.inning}</span>
+                  </span>
+                )}
+              </div>
+              <div className="diamond-col">
                 <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : 'none'}`}>
                   <svg width="38" height="38" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                     <rect x="4" y="4" width="44" height="44" rx="4" ry="4" transform="rotate(45 26 26)" fill="var(--field-bg, rgba(80,160,80,0.07))" stroke="var(--border-color)" strokeWidth="1.5" />
@@ -100,6 +101,8 @@ const BaseballGameTile = (props) => {
                     <polygon points="26,40 29,43 26,47 23,43" className="home-plate" />
                   </svg>
                 </span>
+              </div>
+              <div className="count-outs-col">
                 <div
                   className="count-display"
                   aria-label={`${s.balls ?? 0} balls, ${s.strikes ?? 0} strikes`}
