@@ -14,13 +14,16 @@ export default defineConfig({
     // Enable code splitting and tree shaking
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunk for React and related libraries
-          vendor: ['react', 'react-dom'],
-          // UI chunk for drag and drop
-          ui: ['@hello-pangea/dnd'],
-          // Utils chunk for utilities
-          utils: ['dompurify'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/@hello-pangea/dnd')) {
+            return 'ui';
+          }
+          if (id.includes('node_modules/dompurify')) {
+            return 'utils';
+          }
         },
       },
     },
