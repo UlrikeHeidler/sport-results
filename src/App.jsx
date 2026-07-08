@@ -37,6 +37,17 @@ function App() {
   const [availableTeams, setAvailableTeams] = useState([]);
   const [useIncrementalMode, setUseIncrementalMode] = useState(true);
 
+  // Pinned games — session-only, keyed by `${league}-${id}`
+  const [pinnedIds, setPinnedIds] = useState(() => new Set());
+  const togglePin = useCallback((gameKey) => {
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(gameKey)) next.delete(gameKey);
+      else next.add(gameKey);
+      return next;
+    });
+  }, []);
+
 
   // Incremental updates hook
   const {
@@ -195,7 +206,8 @@ function App() {
   const { filteredGames: processedGames } = useGameFiltering({
     games: currentGames,
     selectedLeagues: settings.selectedLeagues,
-    hiddenTeams: settings.hiddenTeams
+    hiddenTeams: settings.hiddenTeams,
+    pinnedIds
   });
 
   // Update filteredGames when processed games change
@@ -396,17 +408,22 @@ function App() {
                       ref={provided.innerRef}
                       className="games-grid"
                     >
-                      {filteredGames.map((game, index) => (
-                        <GameTile
-                          key={`${game.league}-${game.id}`}
-                          game={{ ...game, refreshInterval: settings.refreshInterval }}
-                          index={index}
-                          colorCoding={settings.colorCoding}
-                          isDragDisabled={false}
-                          draggableId={`${game.league}-${game.id}`}
-                          showTeamForm={settings.showTeamForm}
-                        />
-                      ))}
+                      {filteredGames.map((game, index) => {
+                        const gameKey = `${game.league}-${game.id}`;
+                        return (
+                          <GameTile
+                            key={gameKey}
+                            game={{ ...game, refreshInterval: settings.refreshInterval }}
+                            index={index}
+                            colorCoding={settings.colorCoding}
+                            isDragDisabled={false}
+                            draggableId={gameKey}
+                            showTeamForm={settings.showTeamForm}
+                            isPinned={pinnedIds.has(gameKey)}
+                            onTogglePin={() => togglePin(gameKey)}
+                          />
+                        );
+                      })}
                       {provided.placeholder}
                     </div>
                   )}

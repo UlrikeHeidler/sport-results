@@ -52,16 +52,18 @@ const getDisplayStatus = (status, situation, date) => {
   return 'SCHEDULED';
 };
 
-const BaseGameTile = ({ 
-  game, 
-  index, 
-  colorCoding = true, 
-  isDragDisabled = true, 
+const BaseGameTile = ({
+  game,
+  index,
+  colorCoding = true,
+  isDragDisabled = true,
   draggableId,
   renderAdditionalInfo: customRenderAdditionalInfo,
   renderScore: customRenderScore,
   showTeamForm = true,
-  isDragging = false
+  isDragging = false,
+  isPinned = false,
+  onTogglePin
 }) => {
   const statusClass = getStatusClass(game.status || {});
   const timeDisplay = formatGameTime(game.date || new Date(), game.status || {}, game.league);
@@ -277,10 +279,17 @@ const BaseGameTile = ({
       } : {}}>
         {game.league}
       </span>
-      {renderBroadcastInfo()}
-      <span className={`game-status ${statusClass} ${animations.status ? 'status-changed' : ''}`}>
-        {getDisplayStatus(game.status, game.situation, game.date)}
-      </span>
+      {game.status && !isGameFinal(game.status) && renderBroadcastInfo()}
+      {game.status && !isGameFinal(game.status) && onTogglePin && (
+        <button
+          className={`pin-btn${isPinned ? ' pin-btn--active' : ''}`}
+          onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
+          title={isPinned ? 'Unpin game' : 'Pin to top'}
+          aria-pressed={isPinned}
+        >
+          📌
+        </button>
+      )}
     </div>
   );
 
