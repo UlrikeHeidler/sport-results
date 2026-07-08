@@ -36,12 +36,20 @@ export const getDownSuffix = (down) => {
   return 'th';
 };
 
+const isYesterday = (date) => {
+  if (!(date instanceof Date)) return false;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+};
+
 /**
- * Get display status for games with enhanced logic
- * Consolidates status display logic from multiple components
+ * Canonical display status for game tiles.
+ * Returns one of: 'LIVE', 'FINAL', 'FINAL (Pen.)', 'FINAL (Y)', 'FINAL (Pen.) (Y)', 'SCHEDULED'
  */
-export const getDisplayStatus = (status, situation) => {
-  // Known ongoing status types
+export const getDisplayStatus = (status, situation, date) => {
   const ongoingTypes = new Set([
     'STATUS_IN_PROGRESS',
     'STATUS_HALFTIME',
@@ -59,19 +67,24 @@ export const getDisplayStatus = (status, situation) => {
 
   const isOngoingType = status && ongoingTypes.has(status.type);
 
-  // Heuristic: some APIs may leave status.type as 'SCHEDULED' while providing
-  // situation data (matchTime / period / displayClock). Treat those as live.
+  // Some APIs leave status.type as SCHEDULED while situation data signals the game is live
   const situationIndicatesLive = situation && (
     situation.matchTime != null ||
     (situation.period && /half|period|overtime|extra|penalties|first|second/i.test(String(situation.period))) ||
     (status && status.displayClock)
   );
 
-  if (isOngoingType || situationIndicatesLive) {
-    return 'LIVE';
+  if (isOngoingType || situationIndicatesLive) return 'LIVE';
+
+  if (status && status.completed) {
+    const isPen = status.type === 'STATUS_FINAL_PEN';
+    const isYday = isYesterday(date);
+    if (isPen && isYday) return 'FINAL (Pen.) (Y)';
+    if (isPen) return 'FINAL (Pen.)';
+    if (isYday) return 'FINAL (Y)';
+    return 'FINAL';
   }
 
-  if (status && status.completed) return 'FINAL';
   return 'SCHEDULED';
 };
 
@@ -175,9 +188,15 @@ export const formatGameTime = (date, status = {}, league = '') => {
     }
 
     if (isGameOngoing(status)) {
-      return `${status.displayClock || ''}`.trim() ? 
-        `${status.displayClock} - Period ${status.period}` : 
-        'Live';
+      if (status.type === 'STATUS_PENALTIES' || status.type === 'STATUS_SHOOTOUT') {
+        return 'Penalty Shootout';
+      }
+      const clock = `${status.displayClock || ''}`.trim();
+      if (!clock) return 'Live';
+      const periodLabel = status.type === 'STATUS_EXTRA_TIME' || status.type === 'STATUS_OVERTIME'
+        ? 'ET'
+        : `Period ${status.period}`;
+      return `${clock} - ${periodLabel}`;
     }
 
     if (isGameScheduled(status)) {

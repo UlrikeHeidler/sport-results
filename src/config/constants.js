@@ -239,6 +239,12 @@ export const LEAGUE_COLORS = {
     accent: '#FFD700',
     background: '#f0f8ff'
   },
+  fifa_world: {
+    primary: '#1B1E3C',
+    secondary: '#FFFFFF',
+    accent: '#FFD700',
+    background: '#f0f8ff'
+  },
   nba: {
     primary: '#614304',
     secondary: '#FFFFFF',

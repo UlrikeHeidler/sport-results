@@ -3,7 +3,7 @@
  * Handles modals, toasts, header state, and other UI interactions
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export const useUIState = () => {
   // Header expand/collapse state
@@ -16,6 +16,12 @@ export const useUIState = () => {
   
   // Toast notifications
   const [toasts, setToasts] = useState([]);
+  const toastTimers = useRef([]);
+
+  // Cancel all pending toast timers on unmount
+  useEffect(() => {
+    return () => toastTimers.current.forEach(clearTimeout);
+  }, []);
 
   // Close header when clicking outside
   useEffect(() => {
@@ -36,12 +42,14 @@ export const useUIState = () => {
   const addToast = useCallback((message, type = 'success', ttl = 4000) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
     const toast = { id, message, type };
-    
+
     setToasts(prev => [toast, ...prev]);
-    
-    setTimeout(() => {
+
+    const timer = setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
+      toastTimers.current = toastTimers.current.filter(t => t !== timer);
     }, ttl);
+    toastTimers.current.push(timer);
   }, []);
 
   // Remove toast notification

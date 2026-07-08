@@ -3,55 +3,6 @@ import { formatGameTime, getStatusClass } from '../../services/sportsApi';
 import { getTeamForm, getFormColor } from '../../services/teamStats';
 import { getLeagueColors, isGameOngoing, isGameFinal } from '../../services/gameUtils';
 
-
-const isYesterday = (date) => {
-  if (!(date instanceof Date)) return false;
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return date.getFullYear() === yesterday.getFullYear() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getDate() === yesterday.getDate();
-};
-
-const getDisplayStatus = (status, situation, date) => {
-  // Known ongoing status types
-  const ongoingTypes = new Set([
-    'STATUS_IN_PROGRESS',
-    'STATUS_HALFTIME',
-    'STATUS_HALFTIME_ET',
-    'STATUS_OVERTIME',
-    'STATUS_FIRST_HALF',
-    'STATUS_END_OF_REGULATION',
-    'STATUS_SECOND_HALF',
-    'STATUS_EXTRA_TIME',
-    'STATUS_PENALTIES',
-    'STATUS_BREAK',
-    'STATUS_INTERMISSION',
-    'STATUS_END_PERIOD'
-  ]);
-
-  const isOngoingType = status && ongoingTypes.has(status.type);
-
-  // Heuristic: some APIs may leave status.type as 'SCHEDULED' while providing
-  // situation data (matchTime / period / displayClock). Treat those as live.
-  const situationIndicatesLive = situation && (
-    situation.matchTime != null ||
-    (situation.period && /half|period|overtime|extra|penalties|first|second/i.test(String(situation.period))) ||
-    (status && status.displayClock)
-  );
-
-  if (isOngoingType || situationIndicatesLive) {
-    // Prefer explicit in-progress type; otherwise consider it live
-    return 'LIVE';
-  }
-
-  if (status && status.completed) {
-    if (status.type === 'STATUS_FINAL_PEN') return isYesterday(date) ? 'FINAL (Pen.) (Y)' : 'FINAL (Pen.)';
-    return isYesterday(date) ? 'FINAL (Y)' : 'FINAL';
-  }
-  return 'SCHEDULED';
-};
-
 const BaseGameTile = ({
   game,
   index,
@@ -279,8 +230,8 @@ const BaseGameTile = ({
       } : {}}>
         {game.league}
       </span>
-      {game.status && !isGameFinal(game.status) && renderBroadcastInfo()}
-      {game.status && !isGameFinal(game.status) && onTogglePin && (
+      {!isGameFinal(game.status) && renderBroadcastInfo()}
+      {onTogglePin && !isGameFinal(game.status) && (
         <button
           className={`pin-btn${isPinned ? ' pin-btn--active' : ''}`}
           onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
@@ -313,9 +264,11 @@ const BaseGameTile = ({
 
       {/* Debug information removed: avoid noisy console output in render */}
 
-      <div className="game-time">
-        {timeDisplay}
-      </div>
+      {!isGameFinal(game.status) && (
+        <div className="game-time">
+          {timeDisplay}
+        </div>
+      )}
 
        {/* Render additional info — shown for live games and final games (each tile guards internally) */}
       {game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && (

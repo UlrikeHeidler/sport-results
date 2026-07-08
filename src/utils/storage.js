@@ -2,9 +2,14 @@ import { setCookie, getCookie, deleteCookie } from './cookies';
 
 const SETTINGS_KEY = 'sportsAppSettings';
 
+// Settings are written to both localStorage and a cookie so they survive
+// both normal browser sessions (localStorage) and cases where localStorage
+// is cleared but cookies persist (or vice versa, e.g. private-browsing quirks).
+// On read, the cookie is preferred because it has an explicit expiry;
+// localStorage is the fallback.
+
 export const loadSettings = () => {
   try {
-    // Always prefer the cookie if available
     const cookie = getCookie(SETTINGS_KEY);
     if (cookie) return typeof cookie === 'string' ? JSON.parse(cookie) : cookie;
 

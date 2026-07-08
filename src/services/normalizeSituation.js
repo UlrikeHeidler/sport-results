@@ -88,7 +88,6 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
     const timeline = [];
     // If the API ever provides a play history, use it; otherwise, just use lastPlay
     const plays = situation.plays || (situation.lastPlay ? [situation.lastPlay] : []);
-    console.log('Hockey situation plays:', situation);
     for (const play of plays) {
       if (!play || !play.text) continue;
       const text = play.type?.text.toLowerCase();
