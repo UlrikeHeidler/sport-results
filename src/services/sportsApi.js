@@ -416,7 +416,7 @@ export const formatGameTime = (date, status = {}, league = '') => {
     }
 
     if (isGameFinal(status)) {
-      return 'Final';
+      return;
     }
     
     
