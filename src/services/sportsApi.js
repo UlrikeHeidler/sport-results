@@ -425,9 +425,15 @@ export const formatGameTime = (date, status = {}, league = '') => {
     }
 
     if (isGameOngoing(status)) {
-      return `${status.displayClock || ''}`.trim() ? 
-        `${status.displayClock} - Period ${status.period}` : 
-        'Live';
+      if (status.type === 'STATUS_PENALTIES' || status.type === 'STATUS_SHOOTOUT') {
+        return 'Penalty Shootout';
+      }
+      const clock = `${status.displayClock || ''}`.trim();
+      if (!clock) return 'Live';
+      const periodLabel = status.type === 'STATUS_EXTRA_TIME' || status.type === 'STATUS_OVERTIME'
+        ? 'ET'
+        : `Period ${status.period}`;
+      return `${clock} - ${periodLabel}`;
     }
 
     if (status && status.type === STATUS_TYPES.SCHEDULED) {

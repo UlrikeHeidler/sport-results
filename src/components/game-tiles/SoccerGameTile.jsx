@@ -200,7 +200,9 @@ const SoccerGameTile = (props) => {
   };
 
   // Customize score display for soccer (add penalty shootout if needed)
-  const isPenaltyShootout = game.status?.type === 'STATUS_FINAL_PEN';
+  const isPenaltyShootout = game.status?.type === 'STATUS_FINAL_PEN' ||
+    game.status?.type === 'STATUS_PENALTIES' ||
+    game.status?.type === 'STATUS_SHOOTOUT';
   const renderScore = (team, isHome, animations = {}) => {
     const animationClass = animations && animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : '';
     return (
