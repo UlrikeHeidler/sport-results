@@ -93,11 +93,11 @@ const BaseballGameTile = (props) => {
               </div>
               <div className="diamond-col">
                 <span className="baseball-diamond" role="img" aria-label={`Runners on bases: ${s.onFirst ? 'first ' : ''}${s.onSecond ? 'second ' : ''}${s.onThird ? 'third' : 'none'}`}>
-                  <svg width="38" height="38" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <svg width="44" height="44" viewBox="-4 -4 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                     <rect x="4" y="4" width="44" height="44" rx="4" ry="4" transform="rotate(45 26 26)" fill="var(--field-bg, rgba(80,160,80,0.07))" stroke="var(--border-color)" strokeWidth="1.5" />
-                    <rect x="22.5" y="6.5" width="7" height="7" transform="rotate(45, 26, 10)" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
-                    <rect x="38.5" y="22.5" width="7" height="7" transform="rotate(45, 42, 26)" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
-                    <rect x="6.5" y="22.5" width="7" height="7" transform="rotate(45, 10, 26)" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
+                    <rect x="20.5" y="4.5" width="14" height="14" transform="rotate(45, 26, 10)" className={`base second ${s.onSecond ? 'occupied' : 'empty'}`} />
+                    <rect x="34" y="20.5" width="14" height="14" transform="rotate(45, 42, 26)" className={`base first ${s.onFirst ? 'occupied' : 'empty'}`} />
+                    <rect x="5" y="18" width="14" height="14" transform="rotate(45, 10, 26)" className={`base third ${s.onThird ? 'occupied' : 'empty'}`} />
                     <polygon points="26,40 29,43 26,47 23,43" className="home-plate" />
                   </svg>
                 </span>

@@ -153,7 +153,6 @@ export const fetchGames = async (league, dateFilter = null) => {
     }
 
     const data = await response.json();
-    // debug(`${league} API response:`, data);
     return parseGamesData(data, league);
   } catch (error) {
     handleError(error, `fetchGames (${league})`);
