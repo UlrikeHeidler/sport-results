@@ -84,8 +84,8 @@
 }
 
 .count-display {
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: bold;
   color: var(--text-color, #333);
   letter-spacing: 0.03em;
 }
