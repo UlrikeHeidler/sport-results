@@ -113,6 +113,7 @@
   opacity: 0.5;
   transition: opacity 150ms ease, background 150ms ease;
   line-height: 1;
+  margin-left: auto;
 }
 
 .detail-btn:hover {
