@@ -14,7 +14,9 @@ const BaseGameTile = ({
   showTeamForm = true,
   isDragging = false,
   isPinned = false,
-  onTogglePin
+  onTogglePin,
+  isInDetailMode = false,
+  onToggleDetailMode
 }) => {
   const statusClass = getStatusClass(game.status || {});
   const timeDisplay = formatGameTime(game.date || new Date(), game.status || {}, game.league);
@@ -231,6 +233,16 @@ const BaseGameTile = ({
         {game.league}
       </span>
       {!isGameFinal(game.status) && renderBroadcastInfo()}
+      {onToggleDetailMode && (
+        <button
+          className={`detail-btn${isInDetailMode ? ' detail-btn--active' : ''}`}
+          onClick={(e) => { e.stopPropagation(); onToggleDetailMode(); }}
+          title={isInDetailMode ? 'Close detail view' : 'Open detail view'}
+          aria-pressed={isInDetailMode}
+        >
+          🔎
+        </button>
+      )}
       {onTogglePin && !isGameFinal(game.status) && (
         <button
           className={`pin-btn${isPinned ? ' pin-btn--active' : ''}`}

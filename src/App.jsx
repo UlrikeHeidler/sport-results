@@ -8,10 +8,12 @@ import Settings from './components/Settings';
 import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
 import Toast from './components/Toast';
 import InfoModal from './components/InfoModal';
+import DetailPane from './components/detail/DetailPane';
 import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
 import { useSettings } from './hooks/useSettings';
 import { useUIState } from './hooks/useUIState';
 import { useGameFiltering } from './hooks/useGameFiltering';
+import { useDetailMode } from './hooks/useDetailMode';
 import { fetchAllGames, extractTeams } from './services/sportsApi';
 import { AVAILABLE_LEAGUES } from './config/constants';
 
@@ -47,6 +49,9 @@ function App() {
       return next;
     });
   }, []);
+
+  // Detail mode
+  const { detailGames, activeDetailKeys, toggleDetailMode, isInDetailMode } = useDetailMode();
 
 
   // Incremental updates hook
@@ -399,37 +404,92 @@ function App() {
 
         {!currentLoading && !currentError && (
           <>
-            {filteredGames.length > 0 ? (
-              <DragDropContext>
-                <Droppable droppableId="games">
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="games-grid"
-                    >
-                      {filteredGames.map((game, index) => {
-                        const gameKey = `${game.league}-${game.id}`;
-                        return (
-                          <GameTile
-                            key={gameKey}
-                            game={{ ...game, refreshInterval: settings.refreshInterval }}
-                            index={index}
-                            colorCoding={settings.colorCoding}
-                            isDragDisabled={false}
-                            draggableId={gameKey}
-                            showTeamForm={settings.showTeamForm}
-                            isPinned={pinnedIds.has(gameKey)}
-                            onTogglePin={() => togglePin(gameKey)}
-                          />
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            ) : (
+            {filteredGames.length > 0 ? (() => {
+              // Games currently shown in the split detail panes
+              const detailGameObjects = activeDetailKeys
+                .map(key => filteredGames.find(g => `${g.league}-${g.id}` === key))
+                .filter(Boolean);
+
+              // Games that remain in the regular grid
+              const gridGames = filteredGames.filter(
+                g => !activeDetailKeys.includes(`${g.league}-${g.id}`)
+              );
+
+              const renderGrid = (games) => (
+                <DragDropContext>
+                  <Droppable droppableId="games">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="games-grid"
+                      >
+                        {games.map((game, index) => {
+                          const gameKey = `${game.league}-${game.id}`;
+                          return (
+                            <GameTile
+                              key={gameKey}
+                              game={{ ...game, refreshInterval: settings.refreshInterval }}
+                              index={index}
+                              colorCoding={settings.colorCoding}
+                              isDragDisabled={false}
+                              draggableId={gameKey}
+                              showTeamForm={settings.showTeamForm}
+                              isPinned={pinnedIds.has(gameKey)}
+                              onTogglePin={() => togglePin(gameKey)}
+                              isInDetailMode={isInDetailMode(gameKey)}
+                              onToggleDetailMode={() => toggleDetailMode(gameKey)}
+                            />
+                          );
+                        })}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              );
+
+              if (detailGameObjects.length === 0) {
+                return renderGrid(filteredGames);
+              }
+
+              return (
+                <div className="split-layout">
+                  {/* Left: first detail pane */}
+                  <div className="split-left">
+                    <DetailPane
+                      game={detailGameObjects[0]}
+                      colorCoding={settings.colorCoding}
+                      showTeamForm={settings.showTeamForm}
+                      isPinned={pinnedIds.has(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
+                      onTogglePin={() => togglePin(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
+                      onClose={() => toggleDetailMode(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
+                    />
+                  </div>
+
+                  {/* Right: second detail pane OR the remaining grid */}
+                  <div className="split-right">
+                    {detailGameObjects.length >= 2 ? (
+                      <DetailPane
+                        game={detailGameObjects[1]}
+                        colorCoding={settings.colorCoding}
+                        showTeamForm={settings.showTeamForm}
+                        isPinned={pinnedIds.has(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
+                        onTogglePin={() => togglePin(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
+                        onClose={() => toggleDetailMode(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
+                      />
+                    ) : (
+                      <div className="split-grid-pane">
+                        {gridGames.length > 0
+                          ? renderGrid(gridGames)
+                          : <div className="no-games"><div className="no-games-icon">📋</div><p>No other games</p></div>
+                        }
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })() : (
               <div className="no-games">
                 {settings.selectedLeagues.length === 0 ? (
                   <div>

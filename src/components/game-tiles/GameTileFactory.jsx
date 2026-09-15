@@ -10,7 +10,7 @@ import SoccerGameTile from './SoccerGameTile';
 import './GameTiles.css';
 import { debug } from '../../utils/logger';
 
-const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot, showTeamForm = true, isPinned = false, onTogglePin }) => {
+const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = true, provided, snapshot, showTeamForm = true, isPinned = false, onTogglePin, isInDetailMode = false, onToggleDetailMode }) => {
   // Select the appropriate tile component based on league/sport
   const getTileComponent = () => {
     const league = game.league.toLowerCase();
@@ -58,7 +58,9 @@ const GameTileFactory = ({ game, index, colorCoding = true, isDragDisabled = tru
     showTeamForm,
     refreshInterval: game.refreshInterval || 30,
     isPinned,
-    onTogglePin
+    onTogglePin,
+    isInDetailMode,
+    onToggleDetailMode
   };
 
   return (
