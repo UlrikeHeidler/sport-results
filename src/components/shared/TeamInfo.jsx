@@ -119,13 +119,14 @@ export const TeamName = ({ team, game, isHome, showForm = true, showPossession =
   const hasPossession = showPossession && game && isFootballGame(game);
 
   return (
-    <div className="team-details">
+    <div className={`team-details${isHome ? ' home' : ''}`}>
       <div className={`team-name${hasPossession ? ' has-possession' : ''}`}>
         <span className="abbrev">{team?.abbreviation}</span>
         {showForm && <TeamForm team={team} league={game?.league} showForm={showForm} />}
         {showPossession && <PossessionIndicator team={team} game={game} isHome={isHome} />}
         <span className="tooltip">{team?.name}</span>
       </div>
+      {team?.record && <span className="team-record">{team.record}</span>}
     </div>
   );
 };

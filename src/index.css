@@ -79,6 +79,23 @@ html {
   overflow: visible;
 }
 
+.header-clock-center {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.header-clock-center .live-clock {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .header-minimized {
   position: absolute;
   top: 0;
@@ -791,7 +808,13 @@ html {
 
 .team-details {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.team-details.home {
+  flex-direction: row-reverse;
 }
 
 .team-abbreviation {

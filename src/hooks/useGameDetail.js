@@ -3,9 +3,9 @@ import { API_ENDPOINTS } from '../config/constants';
 
 /**
  * Fetches the ESPN summary endpoint for a game.
- * Derives the summary URL from the scoreboard endpoint by replacing /scoreboard → /summary.
+ * When refreshKey changes (for live games), re-fetches to get updated box score stats.
  */
-export function useGameDetail(game) {
+export function useGameDetail(game, refreshKey) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,13 +16,10 @@ export function useGameDetail(game) {
     const endpoint = API_ENDPOINTS[(game.league || '').toLowerCase()];
     if (!endpoint) return;
 
-    // Strip query string, swap path segment, add event param
     const summaryUrl = endpoint.split('?')[0].replace('/scoreboard', '/summary') + `?event=${game.id}`;
 
     let cancelled = false;
     setLoading(true);
-    setData(null);
-    setError(null);
 
     fetch(summaryUrl)
       .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
@@ -30,7 +27,9 @@ export function useGameDetail(game) {
       .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
 
     return () => { cancelled = true; };
-  }, [game?.id, game?.league]);
+  // refreshKey is intentionally included: changing it triggers a re-fetch for live games
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game?.id, game?.league, refreshKey]);
 
   return { data, loading, error };
 }

@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+
+const LiveClock = () => {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="live-clock">{time.toLocaleTimeString()}</span>;
+};
 import { useRef } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -294,9 +303,8 @@ function App() {
       <header className={`header${headerExpanded ? ' expanded' : ''}`}> 
         {!headerExpanded && (
           <div className="header-content-minimized">
-            <div className="header-minimized">
-
-            </div>
+            <div className="header-minimized"></div>
+            <div className="header-clock-center"><LiveClock /></div>
             <div className="header-menu-icon" onClick={() => setHeaderExpanded(true)}>
               <span>🏆</span>
             </div>

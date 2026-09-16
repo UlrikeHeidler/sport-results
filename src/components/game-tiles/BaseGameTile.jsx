@@ -147,7 +147,7 @@ const BaseGameTile = ({
       }
     }
     return (
-      <div className="team-details">
+      <div className={`team-details${isHome ? ' home' : ''}`}>
         <div className={`team-name${isFootball && hasPossessionMarker ? ' has-possession' : ''}`}>
           <span className="abbrev">{team?.abbreviation}</span>
           {showTeamForm && team?.id && renderTeamForm(team)}
@@ -157,6 +157,7 @@ const BaseGameTile = ({
           )}
           <span className="tooltip">{team?.name}</span>
         </div>
+        {team?.record && <span className="team-record">{team.record}</span>}
       </div>
     );
   };

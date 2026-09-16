@@ -3,11 +3,20 @@
  * Extracted from App.jsx to handle header functionality
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import LeagueSelector from '../LeagueSelector';
 import { ZoomControls } from './ZoomControls';
 import { AVAILABLE_LEAGUES } from '../../config/constants';
 import './AppHeader.css';
+
+const LiveClock = () => {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="live-clock">{time.toLocaleTimeString()}</span>;
+};
 
 /**
  * Minimized header component
@@ -20,7 +29,7 @@ export const MinimizedHeader = ({
   zoomOut 
 }) => (
   <div className="header-content-minimized">
-    <div className="header-minimized"></div>
+    <div className="header-minimized"><LiveClock /></div>
     <div className="header-menu-icon" onClick={onExpand}>
       <span>🏆</span>
     </div>
@@ -80,22 +89,28 @@ export const ExpandedHeader = ({
         <div className="header-text">
           <h1>🏆 Live Sports Results</h1>
           <p>Real-time scores for Major American Sports and Soccer, including Bundesliga and FIFA World Cup.</p>
-          {currentLastUpdated && (
-            <div className="last-updated">
-              Last updated: {currentLastUpdated.toLocaleTimeString()}
-              {useIncrementalMode ? (
-                <span className="refresh-interval">
-                  ({updateFrequency})
-                </span>
-              ) : (
-                settings.refreshInterval && (
-                  <span className="refresh-interval">
-                    (Updates every {settings.refreshInterval}s)
-                  </span>
-                )
-              )}
-            </div>
-          )}
+          <div className="header-time-row">
+            <LiveClock />
+            {currentLastUpdated && (
+              <>
+                <span className="last-updated-sep">·</span>
+                <div className="last-updated">
+                  Last updated: {currentLastUpdated.toLocaleTimeString()}
+                  {useIncrementalMode ? (
+                    <span className="refresh-interval">
+                      ({updateFrequency})
+                    </span>
+                  ) : (
+                    settings.refreshInterval && (
+                      <span className="refresh-interval">
+                        (Updates every {settings.refreshInterval}s)
+                      </span>
+                    )
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <div className="header-controls">
           <LeagueSelector

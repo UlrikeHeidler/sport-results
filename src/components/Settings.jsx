@@ -159,6 +159,25 @@ const Settings = ({
             <p className="setting-description">
               Select teams to hide from the results display
             </p>
+            {/* Hidden team tags */}
+            {localSettings.hiddenTeams.length > 0 && (
+              <div className="hidden-team-tags">
+                {localSettings.hiddenTeams.map(teamId => {
+                  const team = availableTeams.find(t => t.id === teamId);
+                  const label = team ? team.name : teamId;
+                  return (
+                    <span key={teamId} className="hidden-team-tag">
+                      {label}
+                      <button
+                        className="hidden-team-tag-remove"
+                        onClick={() => toggleHiddenTeam(teamId)}
+                        title={`Unhide ${label}`}
+                      >×</button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
             {/* Search Filter */}
             <div className="search-filter">
               <input

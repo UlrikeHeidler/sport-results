@@ -67,7 +67,7 @@ function PitchingDecisions({ players }) {
 const BATTING_HIGHLIGHT  = new Set(['H', 'HR', 'RBI', 'AVG', 'OBP', 'hits', 'homeRuns', 'RBIs', 'avg', 'onBasePct']);
 const PITCHING_HIGHLIGHT = new Set(['IP', 'K', 'ERA', 'fullInnings.partInnings', 'strikeouts']);
 
-function PlayerTable({ statGroup, type }) {
+function PlayerTable({ statGroup, type, currentBatterId, currentPitcherId }) {
   if (!statGroup) return null;
 
   const keys     = statGroup.keys ?? [];
@@ -78,6 +78,7 @@ function PlayerTable({ statGroup, type }) {
   if (!athletes.length) return null;
 
   const highlight = type === 'batting' ? BATTING_HIGHLIGHT : PITCHING_HIGHLIGHT;
+  const activeId  = type === 'batting' ? currentBatterId : currentPitcherId;
 
   return (
     <div className="boxscore-wrap">
@@ -89,8 +90,10 @@ function PlayerTable({ statGroup, type }) {
           </tr>
         </thead>
         <tbody>
-          {athletes.map((a, i) => (
-            <tr key={i}>
+          {athletes.map((a, i) => {
+            const isActive = activeId && a.athlete?.id === activeId;
+            return (
+            <tr key={i} className={isActive ? 'current-player' : ''}>
               <td>{a.athlete?.shortName ?? a.athlete?.displayName ?? '—'}</td>
               {keys.map((k, j) => (
                 <td key={j} className={highlight.has(k) ? 'highlight-col' : ''}>
@@ -98,7 +101,8 @@ function PlayerTable({ statGroup, type }) {
                 </td>
               ))}
             </tr>
-          ))}
+            );
+          })}
           {totals.length > 0 && (
             <tr className="totals-row">
               <td>Totals</td>
@@ -116,7 +120,7 @@ function PlayerTable({ statGroup, type }) {
 }
 
 /* ── Team box score (batters + pitchers) ────────────────── */
-function TeamBoxScore({ playerEntry }) {
+function TeamBoxScore({ playerEntry, currentBatterId, currentPitcherId }) {
   if (!playerEntry) return null;
 
   // Real ESPN uses s.type; mock data used s.name — support both
@@ -128,13 +132,13 @@ function TeamBoxScore({ playerEntry }) {
       {batting && (
         <>
           <div className="detail-section-title">Batting</div>
-          <PlayerTable statGroup={batting} type="batting" />
+          <PlayerTable statGroup={batting} type="batting" currentBatterId={currentBatterId} />
         </>
       )}
       {pitching && (
         <>
           <div className="detail-section-title">Pitching</div>
-          <PlayerTable statGroup={pitching} type="pitching" />
+          <PlayerTable statGroup={pitching} type="pitching" currentPitcherId={currentPitcherId} />
         </>
       )}
     </>
@@ -142,7 +146,7 @@ function TeamBoxScore({ playerEntry }) {
 }
 
 /* ── Tabbed box score ───────────────────────────────────── */
-function BoxScore({ players, teams }) {
+function BoxScore({ players, teams, currentBatterId, currentPitcherId }) {
   const [activeTab, setActiveTab] = useState('away');
 
   const resolved = resolveHomeAway(players, teams);
@@ -175,21 +179,32 @@ function BoxScore({ players, teams }) {
           </button>
         ))}
       </div>
-      <TeamBoxScore playerEntry={tabs.find(t => t.key === activeTab)?.entry} />
+      <TeamBoxScore
+        playerEntry={tabs.find(t => t.key === activeTab)?.entry}
+        currentBatterId={currentBatterId}
+        currentPitcherId={currentPitcherId}
+      />
     </>
   );
 }
 
 /* ── Root component ─────────────────────────────────────── */
-const BaseballDetailContent = ({ data }) => {
-  const players = data?.boxscore?.players ?? [];
-  const teams   = data?.boxscore?.teams   ?? [];
+const BaseballDetailContent = ({ data, game }) => {
+  const players          = data?.boxscore?.players ?? [];
+  const teams            = data?.boxscore?.teams   ?? [];
+  const currentBatterId  = game?.situation?.currentBatter?.id ?? null;
+  const currentPitcherId = game?.situation?.currentPitcher?.id ?? null;
 
   return (
     <>
       <ScoringPlays plays={data?.plays} />
       <PitchingDecisions players={players} />
-      <BoxScore players={players} teams={teams} />
+      <BoxScore
+        players={players}
+        teams={teams}
+        currentBatterId={currentBatterId}
+        currentPitcherId={currentPitcherId}
+      />
     </>
   );
 };

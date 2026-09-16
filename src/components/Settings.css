@@ -65,6 +65,42 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.hidden-team-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding: 0 0.5rem;
+}
+
+.hidden-team-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background-color: #667eea;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.hidden-team-tag-remove {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.hidden-team-tag-remove:hover {
+  opacity: 1;
+}
+
 .search-filter {
   margin-bottom: 1rem;
   padding: 0 0.5rem;

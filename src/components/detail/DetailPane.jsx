@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import GameTile from '../game-tiles/GameTileFactory';
 import { useGameDetail } from '../../hooks/useGameDetail';
+import { isGameOngoing } from '../../config/constants';
 import FootballDetailContent from './content/FootballDetailContent';
 import BaseballDetailContent from './content/BaseballDetailContent';
 import HockeyDetailContent from './content/HockeyDetailContent';
@@ -26,12 +27,17 @@ function DetailContent({ game, data, loading, error }) {
   const league = (game.league || '').toLowerCase();
 
   if (FOOTBALL_LEAGUES.has(league))   return <FootballDetailContent data={data} />;
-  if (BASEBALL_LEAGUES.has(league))   return <BaseballDetailContent data={data} />;
+  if (BASEBALL_LEAGUES.has(league))   return <BaseballDetailContent data={data} game={game} />;
   if (HOCKEY_LEAGUES.has(league))     return <HockeyDetailContent data={data} />;
   if (BASKETBALL_LEAGUES.has(league)) return <BasketballDetailContent data={data} />;
   if (SOCCER_LEAGUES.has(league))     return <SoccerDetailContent data={data} />;
 
   return <div className="detail-error">No detail view available for {league.toUpperCase()}</div>;
+}
+
+function getOverallRecord(competitors, homeAway) {
+  const comp = competitors?.find(c => c.homeAway === homeAway);
+  return comp?.record?.find(r => r.type === 'total')?.summary ?? null;
 }
 
 const DetailPane = ({
@@ -42,8 +48,23 @@ const DetailPane = ({
   onTogglePin,
   onClose
 }) => {
-  const { data, loading, error } = useGameDetail(game);
+  // For live games, re-fetch the summary whenever the at-bat situation changes
+  const refreshKey = useMemo(() => {
+    if (!isGameOngoing(game.status)) return null;
+    const s = game.situation;
+    if (!s) return null;
+    return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}`;
+  }, [game.status, game.situation]);
+
+  const { data, loading, error } = useGameDetail(game, refreshKey);
   const leagueLabel = (game.league || '').toUpperCase();
+
+  const competitors = data?.header?.competitions?.[0]?.competitors ?? [];
+  const gameWithRecords = competitors.length ? {
+    ...game,
+    homeTeam: { ...game.homeTeam, record: getOverallRecord(competitors, 'home') },
+    awayTeam: { ...game.awayTeam, record: getOverallRecord(competitors, 'away') },
+  } : game;
 
   return (
     <div className="detail-pane">
@@ -64,7 +85,7 @@ const DetailPane = ({
 
       <div className="detail-tile-wrapper">
         <GameTile
-          game={game}
+          game={gameWithRecords}
           index={0}
           colorCoding={colorCoding}
           isDragDisabled={true}

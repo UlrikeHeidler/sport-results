@@ -126,6 +126,30 @@
   margin: 0 0 1rem 0;
 }
 
+.header-time-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.live-clock {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.header-minimized .live-clock {
+  font-size: 0.75rem;
+  color: var(--text-primary, #1f2937);
+}
+
+.last-updated-sep {
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 0.875rem;
+}
+
 .last-updated {
   font-size: 0.875rem;
   color: var(--text-tertiary, #9ca3af);
