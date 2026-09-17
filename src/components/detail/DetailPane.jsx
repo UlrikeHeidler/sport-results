@@ -16,7 +16,7 @@ const BASKETBALL_LEAGUES = new Set(['nba', 'ncaam', 'ncaaw']);
 const SOCCER_LEAGUES    = new Set(['mls', 'bundesliga1', 'bundesliga2', 'dfb_pokal', 'ucl', 'fifa_world']);
 
 function DetailContent({ game, data, loading, error }) {
-  if (loading) {
+  if (loading && !data) {
     return <div className="detail-loading"><span>⏳</span> Loading detail stats…</div>;
   }
   if (error) {
@@ -53,7 +53,7 @@ const DetailPane = ({
     if (!isGameOngoing(game.status)) return null;
     const s = game.situation;
     if (!s) return null;
-    return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}`;
+    return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}-${s.balls}-${s.strikes}`;
   }, [game.status, game.situation]);
 
   const { data, loading, error } = useGameDetail(game, refreshKey);

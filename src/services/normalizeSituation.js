@@ -57,9 +57,16 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
 
   // Baseball (MLB)
   if (ln === 'mlb' || ln.includes('baseball')) {
+    const detail = (competition.status?.type?.detail ?? '').toLowerCase();
+    const halfInning = detail.includes('top') ? 'top'
+                     : detail.includes('mid') ? 'middle'
+                     : detail.includes('bot') ? 'bottom'
+                     : detail.includes('end') ? 'end'
+                     : 'top';
     return {
       inning: situation.inning || competition.status?.period || null,
-      isTopInning: competition.status?.type?.detail?.toLowerCase().includes('top') || false,
+      halfInning,
+      isTopInning: halfInning === 'top',
       balls: typeof situation.balls === 'number' ? situation.balls : null,
       strikes: typeof situation.strikes === 'number' ? situation.strikes : null,
       outs: typeof situation.outs === 'number' ? situation.outs : null,

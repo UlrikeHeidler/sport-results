@@ -80,9 +80,14 @@
   font-weight: 700;
 }
 
-@container game-wrapper (max-width: 299px) {
+@container game-wrapper (max-width: 349px) {
   .team-name {
     display: none;
+  }
+  .batter-pitcher-info {
+    flex: 0 0 45%;
+    max-width: 45%;
+    min-width: 45%;
   }
 }
 /* Sport-specific tile styles */

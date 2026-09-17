@@ -87,7 +87,10 @@ const BaseballGameTile = (props) => {
               <div className="inning-col">
                 {s.inning && (
                   <span className="inning-info">
-                    <span className="inning">{s.isTopInning ? '▲' : '▼'} {s.inning}</span>
+                    <span className="inning">
+                      {{ top: '▲', middle: '—', bottom: '▼', end: '✓' }[s.halfInning] ?? '▲'}
+                      {' '}{s.inning}
+                    </span>
                   </span>
                 )}
               </div>
