@@ -219,7 +219,7 @@ class IncrementalUpdatesManager {
       const changes = this.detectChanges(oldGames, newGames, league);
       
       // Update cache (store cloned games to avoid sharing references)
-      const cloned = (newGames || []).map(g => this.cloneGame(g));
+      const cloned = newGames.map(g => this.cloneGame(g));
       this.cache.set(cacheKey, cloned);
       this.lastFetch.set(league, Date.now());
       
