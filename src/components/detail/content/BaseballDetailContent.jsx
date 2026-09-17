@@ -59,7 +59,7 @@ function classifyOutcome(text = '') {
 
 // Extract batter name — text before the first action verb
 function extractBatterName(text = '') {
-  const m = text.match(/^(.+?)\s+(struck|lined|grounded|walked|doubled|singled|tripled|homered|flied|popped|reached|hit by|sacrificed|fouled|flew|bunted|was intentionally|intentionally walked|scored|out\s)/i);
+  const m = text.match(/^(.+?)\s+(struck|lined|grounded|walked|doubled|singled|tripled|homered|flied|popped|reached|reaches|safe|hit\b|hits|hit by|sacrificed|fouled|flew|bunted|was intentionally|intentionally walked|scored|out\s)/i);
   return m ? m[1] : null;
 }
 
@@ -71,15 +71,24 @@ function groupHalf(plays) {
   const atBats = [];
   let pitches = [];
   for (const play of plays) {
-    if (isPitchEvent(play.text)) {
-      if (pitches.length > 0 && isFirstPitchOfAtBat(play.text)) {
+    const t = play.text ?? '';
+    if (!t) continue;
+    if (isPitchEvent(t)) {
+      if (pitches.length > 0 && isFirstPitchOfAtBat(t)) {
         atBats.push({ result: null, pitches });
         pitches = [];
       }
       pitches.push(play);
     } else {
-      atBats.push({ result: play, pitches });
-      pitches = [];
+      // Only close the at-bat for recognizable results. Mid-at-bat baserunning events
+      // (pickoffs, steals, wild pitches, pitching changes) have no outcome and no
+      // batter name — skipping them keeps their pitches attached to the correct at-bat.
+      const hasOutcome = classifyOutcome(t) !== null;
+      const hasBatter  = extractBatterName(t) !== null;
+      if (hasOutcome || hasBatter || play.scoringPlay) {
+        atBats.push({ result: play, pitches });
+        pitches = [];
+      }
     }
   }
   if (pitches.length > 0) atBats.push({ result: null, pitches });
