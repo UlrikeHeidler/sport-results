@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatGameTime, getStatusClass } from '../../services/sportsApi';
-import { getTeamForm, getFormColor } from '../../services/teamStats';
 import { getLeagueColors, isGameOngoing, isGameFinal } from '../../services/gameUtils';
+import { TeamLogo, TeamName, TeamRanking } from '../shared/TeamInfo';
 
 const BaseGameTile = ({
   game,
@@ -82,85 +82,6 @@ const BaseGameTile = ({
   } : {};
 
   // Render methods that can be overridden by sport-specific tiles
-  const renderTeamLogo = (team) => (
-    team?.logo ? (
-      <img 
-        src={team.logo}
-        alt={`${team.name} logo`}
-        className="team-logo"
-        loading="lazy"
-        decoding="async"
-        width={36}
-        height={36}
-        onError={(e) => {
-          e.target.style.display = 'none';
-        }}
-      />
-    ) : null
-  );
-
-  const renderTeamForm = (team) => {
-    const form = getTeamForm(team.id, game.league);
-    return (
-      <div className="team-form">
-        {form.map((result, index) => (
-          <span
-            key={index}
-            className="form-indicator"
-            style={{
-              backgroundColor: getFormColor(result),
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              display: 'inline-block',
-              margin: '0 2px'
-            }}
-            title={result === 'W' ? 'Win' : result === 'L' ? 'Loss' : 'Draw'}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const renderTeamName = (team, isHome) => {
-  // Only show possession indicator for football (NFL, FBS, NCAAF, CFB, etc)
-  const leagueOrSport = (game.league || game.sport || '');
-  const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(leagueOrSport);
-    let hasPossessionMarker = false;
-    if (isFootball) {
-      const situation = game.situation || null;
-      if (situation) {
-        if (situation.possessionWhich) {
-          if (situation.possessionWhich === 'home') hasPossessionMarker = !!isHome;
-          else if (situation.possessionWhich === 'away') hasPossessionMarker = !isHome;
-        } else if (situation?.lastPlay && situation?.lastPlay?.team?.id) {
-          if (situation.lastPlay.team.id === team?.id) hasPossessionMarker = true;
-        } else {
-          const poss = situation.possession || situation.possessionLabel || null;
-          if (poss) {
-            const normalize = v => (v == null ? '' : String(v).toLowerCase());
-            const possNorm = normalize(poss);
-            const teamNorms = [team?.abbreviation, team?.name, team?.displayName].map(normalize);
-            if (teamNorms.includes(possNorm)) hasPossessionMarker = true;
-          }
-        }
-      }
-    }
-    return (
-      <div className={`team-details${isHome ? ' home' : ''}`}>
-        <div className={`team-name${isFootball && hasPossessionMarker ? ' has-possession' : ''}`}>
-          <span className="abbrev">{team?.abbreviation}</span>
-          {showTeamForm && team?.id && renderTeamForm(team)}
-          {/* Possession marker: show a small football emoji when this team has possession */}
-          {isFootball && hasPossessionMarker && (
-            <span className="possession-marker" aria-hidden title="Has possession">🏈</span>
-          )}
-          <span className="tooltip">{team?.name}</span>
-        </div>
-        {team?.record && <span className="team-record">{team.record}</span>}
-      </div>
-    );
-  };
 
   const defaultRenderScore = (team, isHome) => (
     <div className={`team-score ${animations[isHome ? 'homeScore' : 'awayScore'] ? 'score-changed' : ''}`}>
@@ -187,10 +108,10 @@ const BaseGameTile = ({
   const renderTeam = (team, isHome = false) => {
     const isWinner = winner && ((winner === 'home' && isHome) || (winner === 'away' && !isHome));
     const teamInfo = (
-      <div className="team-info">
-        {isHome ? renderTeamRanking(team) : renderTeamLogo(team)}
-        {renderTeamName(team, isHome)}
-        {isHome ? renderTeamLogo(team) : renderTeamRanking(team)}
+      <div className={`team-info${isHome ? ' home' : ''}`}>
+        {isHome ? <TeamRanking team={team} /> : <TeamLogo team={team} />}
+        <TeamName team={team} game={game} isHome={isHome} showForm={showTeamForm} />
+        {isHome ? <TeamLogo team={team} /> : <TeamRanking team={team} />}
       </div>
     );
     const score = renderTeamScore(team, isHome, animations);
@@ -201,18 +122,6 @@ const BaseGameTile = ({
       </div>
     );
   };
-
-  const renderTeamRanking = (team) => {
-    //console.log('Rendering ranking for team:', team);
-    if (team?.ranking != null && !isNaN(team.ranking) && team.ranking < 26) {
-      return (
-        <div className="team-ranking" title={`Ranked #${team.ranking}`}>
-          #{team.ranking}
-        </div>
-      );
-    }
-    return null;
-  }
 
   const renderBroadcastInfo = () => {
     if (game.broadcast) {

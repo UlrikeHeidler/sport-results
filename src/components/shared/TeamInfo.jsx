@@ -126,7 +126,7 @@ export const TeamName = ({ team, game, isHome, showForm = true, showPossession =
         {showPossession && <PossessionIndicator team={team} game={game} isHome={isHome} />}
         <span className="tooltip">{team?.name}</span>
       </div>
-      {team?.record && <span className="team-record">{team.record}</span>}
+      {team?.record && <span className="team-record">({team.record})</span>}
     </div>
   );
 };

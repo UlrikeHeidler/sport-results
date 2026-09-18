@@ -21,12 +21,25 @@
   min-width: 0;
 }
 
+.team-info.home {
+  justify-content: flex-end;
+}
+
 .team-details.home {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.team-details.home .team-name {
   flex-direction: row-reverse;
 }
 
+.team-details.home .team-record {
+  text-align: right;
+}
+
 .team-record {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text-secondary, #6b7280);
   line-height: 1;
   white-space: nowrap;
