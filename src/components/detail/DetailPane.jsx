@@ -26,6 +26,8 @@ function DetailContent({ game, data, loading, error }) {
 
   const league = (game.league || '').toLowerCase();
 
+  console.log('DetailContent', { league, data });
+
   if (FOOTBALL_LEAGUES.has(league))   return <FootballDetailContent data={data} />;
   if (BASEBALL_LEAGUES.has(league))   return <BaseballDetailContent data={data} game={game} />;
   if (HOCKEY_LEAGUES.has(league))     return <HockeyDetailContent data={data} />;

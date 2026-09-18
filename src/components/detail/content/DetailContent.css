@@ -455,3 +455,407 @@
   background: #764ba2;
   transition: width 0.4s ease;
 }
+
+/* ── Drives list ──────────────────────────────────────────── */
+.drives-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.drive-row {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.drive-row:last-child {
+  border-bottom: none;
+}
+
+.drive-row--scoring .drive-header {
+  background: color-mix(in srgb, var(--hover-bg) 60%, transparent);
+}
+
+.drive-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.drive-header {
+  display: grid;
+  grid-template-columns: 1.75rem 2rem 7.5rem 1fr auto auto;
+  align-items: center;
+  gap: 0 0.4rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-color);
+  transition: background 100ms ease;
+  width: 100%;
+}
+
+.drive-header:hover {
+  background: var(--hover-bg);
+}
+
+.drive-team-logo {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drive-logo-img {
+  width: 1.6rem;
+  height: 1.6rem;
+  object-fit: contain;
+}
+
+.drive-logo-abbr {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+}
+
+.drive-period {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.drive-start {
+  font-size: 0.72rem;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drive-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.drive-stat-num {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.drive-result {
+  font-size: 0.63rem;
+  font-weight: 700;
+  padding: 0.12rem 0.4rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.drive-result--td       { background: #22c55e28; color: #22c55e; }
+.drive-result--fg       { background: #3b82f628; color: #3b82f6; }
+.drive-result--turnover { background: #ef444428; color: #ef4444; }
+.drive-result--safety   { background: #f59e0b28; color: #f59e0b; }
+.drive-result--other    { background: var(--hover-bg); color: var(--text-secondary); }
+
+.drive-chevron {
+  flex-shrink: 0;
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  margin-left: 0.1rem;
+}
+
+/* expanded plays */
+.drive-plays-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.drive-play {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.22rem 0.55rem 0.22rem 2.8rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.drive-play:last-child {
+  border-bottom: none;
+}
+
+.drive-play--scoring {
+  background: #22c55e0c;
+}
+
+.drive-play-down {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 2.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.drive-play-text {
+  flex: 1;
+}
+
+.drive-play-yards {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.drive-play-yards--pos { color: #22c55e; }
+.drive-play-yards--neg { color: #ef4444; }
+
+/* ── Current Drive visualization ─────────────────────────── */
+.current-drive {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.current-drive-hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.38rem 0.65rem;
+  background: var(--hover-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.current-drive-logo {
+  width: 1.7rem;
+  height: 1.7rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.current-drive-abbr {
+  font-size: 0.63rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  width: 1.7rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.current-drive-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.current-drive-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.current-drive-stats {
+  font-size: 0.72rem;
+  color: var(--text-color);
+}
+
+.drive-field-svg {
+  width: 100%;
+  display: block;
+}
+
+/* play draw: stroke-dashoffset 300→0 reveals the path */
+@keyframes df-draw {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* generic opacity fade-in */
+@keyframes df-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+
+.drive-legend {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.28rem 0.65rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--hover-bg);
+}
+
+.drive-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+}
+
+.dl {
+  display: inline-block;
+  height: 3px;
+  border-radius: 1.5px;
+  flex-shrink: 0;
+}
+
+.dl-rush       { width: 14px; background: rgba(255,255,255,0.85); }
+.dl-sack       { width: 14px; background: #f87171; }
+.dl-pass       { width: 14px; background: #fbbf24; }
+.dl-incomplete { width: 14px; background: rgba(0,0,0,0.55); border-top: 2px dashed rgba(0,0,0,0.55); height: 0; border-radius: 0; }
+.dl-kick       { width: 14px; height: 0; border-top: 2px dashed #93c5fd; border-radius: 0; }
+.dl-penalty    { width: 3px;  height: 10px; background: #ef4444; border-radius: 1px; }
+
+.drive-last-play {
+  padding: 0.28rem 0.65rem;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Stats tab toggle (Team / Players) ─────────────────────── */
+.stats-tab-toggle {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.25rem;
+}
+
+.stats-tab {
+  flex: 1;
+  padding: 0.32rem 0;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-align: center;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+
+.stats-tab--active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent, #3b82f6);
+}
+
+/* ── Player stats ───────────────────────────────────────────── */
+.player-stats {
+  margin-bottom: 0.75rem;
+}
+
+.ps-group {
+  margin-bottom: 0.5rem;
+}
+
+.ps-group-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.18rem 0.4rem;
+  background: var(--hover-bg);
+  border-radius: 3px 3px 0 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ps-group-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+
+.ps-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  overflow: hidden;
+}
+
+.ps-col {
+  background: var(--bg-primary, #fff);
+  min-width: 0;
+}
+
+.ps-col-hdr,
+.ps-row {
+  display: flex;
+  align-items: center;
+  padding: 0.12rem 0.3rem;
+  gap: 0.1rem;
+}
+
+.ps-col-hdr {
+  background: var(--hover-bg);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ps-row {
+  font-size: 0.6rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ps-row:last-child {
+  border-bottom: none;
+}
+
+.ps-pname {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-stat {
+  width: 2rem;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
