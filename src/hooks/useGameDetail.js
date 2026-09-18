@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { API_ENDPOINTS } from '../config/constants';
+import { API_ENDPOINTS, isGameOngoing } from '../config/constants';
 
 /**
  * Fetches the ESPN summary endpoint for a game.
- * When refreshKey changes (for live games), re-fetches to get updated box score stats.
+ * Re-fetches when refreshKey changes (baseball situation trigger) and,
+ * for live games, polls on the same interval as the tile scoreboard.
  */
-export function useGameDetail(game, refreshKey) {
+export function useGameDetail(game, refreshKey, pollInterval = 0) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,17 +20,30 @@ export function useGameDetail(game, refreshKey) {
     const summaryUrl = endpoint.split('?')[0].replace('/scoreboard', '/summary') + `?event=${game.id}`;
 
     let cancelled = false;
+
+    const doFetch = () => {
+      fetch(summaryUrl)
+        .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
+        .then(d => { if (!cancelled) { setData(d); setLoading(false); } })
+        .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
+    };
+
     setLoading(true);
+    doFetch();
 
-    fetch(summaryUrl)
-      .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
-      .then(d => { if (!cancelled) { setData(d); setLoading(false); } })
-      .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
+    // Poll for live games at the same interval as the scoreboard tiles
+    let timer = null;
+    if (pollInterval > 0 && isGameOngoing(game.status)) {
+      timer = setInterval(doFetch, pollInterval * 1000);
+    }
 
-    return () => { cancelled = true; };
-  // refreshKey is intentionally included: changing it triggers a re-fetch for live games
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
+  // refreshKey changes (baseball situation) also trigger a re-fetch
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id, game?.league, refreshKey]);
+  }, [game?.id, game?.league, refreshKey, pollInterval]);
 
   return { data, loading, error };
 }

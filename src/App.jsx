@@ -472,6 +472,7 @@ function App() {
                       isPinned={pinnedIds.has(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
                       onTogglePin={() => togglePin(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
                       onClose={() => toggleDetailMode(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
+                      refreshInterval={settings.refreshInterval}
                     />
                   </div>
 
@@ -485,6 +486,7 @@ function App() {
                         isPinned={pinnedIds.has(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
                         onTogglePin={() => togglePin(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
                         onClose={() => toggleDetailMode(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
+                        refreshInterval={settings.refreshInterval}
                       />
                     ) : (
                       <div className="split-grid-pane">

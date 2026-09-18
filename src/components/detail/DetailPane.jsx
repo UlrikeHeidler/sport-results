@@ -26,7 +26,7 @@ function DetailContent({ game, data, loading, error }) {
 
   const league = (game.league || '').toLowerCase();
 
-  console.log('DetailContent', { league, data });
+  //console.log('DetailContent', { league, data });
 
   if (FOOTBALL_LEAGUES.has(league))   return <FootballDetailContent data={data} />;
   if (BASEBALL_LEAGUES.has(league))   return <BaseballDetailContent data={data} game={game} />;
@@ -48,9 +48,10 @@ const DetailPane = ({
   showTeamForm,
   isPinned,
   onTogglePin,
-  onClose
+  onClose,
+  refreshInterval = 30,
 }) => {
-  // For live games, re-fetch the summary whenever the at-bat situation changes
+  // For baseball: re-fetch whenever the at-bat situation changes
   const refreshKey = useMemo(() => {
     if (!isGameOngoing(game.status)) return null;
     const s = game.situation;
@@ -58,7 +59,7 @@ const DetailPane = ({
     return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}-${s.balls}-${s.strikes}`;
   }, [game.status, game.situation]);
 
-  const { data, loading, error } = useGameDetail(game, refreshKey);
+  const { data, loading, error } = useGameDetail(game, refreshKey, refreshInterval);
   const leagueLabel = (game.league || '').toUpperCase();
 
   const competitors = data?.header?.competitions?.[0]?.competitors ?? [];
