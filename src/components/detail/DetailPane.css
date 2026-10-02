@@ -64,6 +64,10 @@
   cursor: default;
 }
 
+.detail-tile-wrapper .possession-marker {
+  animation: none;
+}
+
 /* Hide the tile's own header row — the detail-pane-header replaces it */
 .detail-tile-wrapper .game-header {
   display: none;

@@ -87,7 +87,7 @@
 .yard-markers { display:flex; justify-content:space-between; padding:0 0.5rem; margin-bottom:0.25rem; font-size:0.8rem; color:var(--text-secondary); }
 .field-line { position:relative; height:8px; border-radius:4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); background: linear-gradient(to right, var(--field-dark) 0%, var(--field-dark) 20%, var(--field-light) 20%, var(--field-light) 80%, var(--field-dark) 80%, var(--field-dark) 100%); }
 
-.ball-marker { position: absolute; top:-6px; transform: translateX(-50%); width:16px; height:16px; background-color:#8B4513; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.3); transition: transform var(--anim-medium) ease-out; will-change: transform, opacity; }
+.ball-marker { position: absolute; top:-8px; transform: translateX(-50%); width:16px; height:16px; background-color:#8B4513; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.3); transition: transform var(--anim-medium) ease-out; will-change: transform, opacity; }
 
 /* Quarter scores */
 .quarter-scores {
@@ -151,7 +151,7 @@
 
 .compact-ball {
   position: absolute;
-  top: -4px;
+  top: -2px;
   transform: translateX(-50%);
   width: 16px;
   height: 16px;

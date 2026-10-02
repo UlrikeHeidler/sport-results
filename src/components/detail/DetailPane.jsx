@@ -95,6 +95,7 @@ const DetailPane = ({
           showTeamForm={showTeamForm}
           isPinned={isPinned}
           onTogglePin={onTogglePin}
+          isInDetailMode={true}
         />
       </div>
 

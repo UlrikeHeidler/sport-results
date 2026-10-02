@@ -686,8 +686,7 @@
   .ball-marker,
   .baseball-diamond .base.occupied,
   .possessionPulse,
-  .possession-indicator,
-  .summary-btn {
+  .possession-indicator {
     animation: none !important;
     transition: none !important;
   }

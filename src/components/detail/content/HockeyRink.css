@@ -4,7 +4,8 @@
 
 .hockey-rink-container {
   position: relative;
-  width: 100%;
+  width: 85%;
+  margin: 0 auto;
   /* Maintain the 443:200 aspect ratio of the SVG */
   aspect-ratio: 443 / 200;
   border-radius: 6px;

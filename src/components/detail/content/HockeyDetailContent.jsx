@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { isGameOngoing, isGameFinal } from '../../../config/constants';
+import { isGameOngoing, isGameFinal, STATUS_TYPES } from '../../../config/constants';
 import { HockeyRink, PlayList, classifyPlay, MARKER_CFG, PERIOD_LABEL, getPlayTeamLogo, TeamLogo } from './HockeyRink';
 import './DetailContent.css';
 import './HockeyTabs.css';
@@ -109,15 +109,23 @@ function Shots({ teams }) {
 const HockeyDetailContent = ({ data, game }) => {
   const plays = data?.plays ?? data?.gamepackageJSON?.plays ?? [];
 
+
   // Use status from the fetched detail data when available — it's fresher than the tile's game.status
-  const detailStatusType = data?.header?.competitions?.[0]?.status?.type?.name
-    ?? data?.header?.competitions?.[0]?.status?.type?.state;
-  const isLive = detailStatusType
-    ? detailStatusType === 'in' || detailStatusType === 'STATUS_IN_PROGRESS' || detailStatusType === 'inprogress'
-    : isGameOngoing(game?.status);
-  const isFinal = detailStatusType
-    ? detailStatusType === 'post' || detailStatusType === 'STATUS_FINAL' || detailStatusType.startsWith('final')
-    : isGameFinal(game?.status);
+  // Prefer state ('pre'/'in'/'post') over name ('STATUS_IN_PROGRESS', 'STATUS_INTERMISSION', etc.)
+  // because name varies and can miss live states like intermissions and end-of-period.
+  const detailComp = data?.header?.competitions?.[0];
+  const detailState = detailComp?.status?.type?.state;
+  const detailStatusName = detailComp?.status?.type?.name;
+  const isLive = detailState
+    ? detailState === 'in'
+    : detailStatusName
+      ? STATUS_TYPES.ONGOING.has(detailStatusName)
+      : isGameOngoing(game?.status);
+  const isFinal = detailState
+    ? detailState === 'post'
+    : detailStatusName
+      ? detailStatusName.startsWith('STATUS_FINAL') || detailComp?.status?.type?.completed === true
+      : isGameFinal(game?.status);
 
   // Default: play-by-play during live games, goals once finished
   const [activeTab, setActiveTab] = useState(() => isLive ? 'plays' : 'goals');

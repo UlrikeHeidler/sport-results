@@ -31,16 +31,16 @@ function classifyPlay(play) {
 }
 
 const MARKER_CFG = {
-  goal:     { color: '#1a1a1a', r: 4   },
-  shot:     { color: '#3182ce', r: 2.5 },
-  missed:   { color: '#90cdf4', r: 2   },
-  blocked:  { color: '#718096', r: 2   },
-  hit:      { color: '#ed8936', r: 2.5 },
-  penalty:  { color: '#d97706', r: 2.5 },
-  faceoff:  { color: '#a0aec0', r: 1.5 },
-  giveaway: { color: '#805ad5', r: 1.5 },
-  takeaway: { color: '#68d391', r: 1.5 },
-  other:    { color: '#cbd5e0', r: 1.5 },
+  goal:     { color: '#1a1a1a', r: 8   },
+  shot:     { color: '#3182ce', r: 5 },
+  missed:   { color: '#3182ce', r: 5 },
+  blocked:  { color: '#3182ce', r: 5 },
+  hit:      { color: '#ed8936', r: 5 },
+  penalty:  { color: '#d97706', r: 5 },
+  faceoff:  { color: '#a0aec0', r: 3 },
+  giveaway: { color: '#805ad5', r: 5 },
+  takeaway: { color: '#805ad5', r: 5 },
+  other:    { color: '#cbd5e0', r: 3 },
 };
 
 // Hockey puck viewed from a slight angle — two stacked ellipses with a highlight
@@ -68,11 +68,11 @@ function WhistleMarker({ sx, sy, alpha, onActivate, onDeactivate }) {
       onMouseEnter={onActivate} onMouseLeave={onDeactivate}
       onClick={onActivate}
     >
-      <ellipse rx="3.2" ry="2.2" fill="#d97706" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
-      <rect x="2.8" y="-0.75" width="2.8" height="1.5" rx="0.6" fill="#b45309" />
-      <ellipse cx="5.6" ry="0.75" rx="0.5" fill="#92400e" />
-      <circle cy="0.3" r="0.8" fill="rgba(254,215,0,0.55)" />
-      <ellipse rx="7" ry="5" fill="transparent" />
+      <ellipse rx="6.4" ry="4.4" fill="#d97706" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
+      <rect x="5.6" y="-1.5" width="5.6" height="3" rx="1.2" fill="#b45309" />
+      <ellipse cx="11.2" ry="1.5" rx="1" fill="#92400e" />
+      <circle cy="0.6" r="1.6" fill="rgba(254,215,0,0.55)" />
+      <ellipse rx="14" ry="10" fill="transparent" />
     </g>
   );
 }
@@ -126,7 +126,7 @@ const LEGEND = [
   { kind: 'shot',     label: 'Shot'    },
   { kind: 'hit',      label: 'Hit'     },
   { kind: 'penalty',  label: 'Penalty',  custom: <LegendWhistle /> },
-  { kind: 'giveaway', label: 'Giveaway' },
+  { kind: 'giveaway', label: 'Give/Takeaway' },
 ];
 
 // Resolve the team logo for a play using homeAway, team id, or participant team id

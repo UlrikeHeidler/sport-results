@@ -233,8 +233,8 @@ const BaseGameTile = ({
         </div>
       )}
 
-       {/* Render additional info — shown for live games and final games (each tile guards internally) */}
-      {game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && (
+       {/* Render additional info — shown for live/final games, hidden when the detail pane is open */}
+      {!isInDetailMode && game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && (
         <div className="additional-info-wrapper">
           {customRenderAdditionalInfo()}
         </div>

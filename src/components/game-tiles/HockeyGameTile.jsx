@@ -8,7 +8,6 @@ const HockeyGameTile = (props) => {
 
   // Persist timeline events across updates
   const timelineRef = useRef([]);
-  console.log('HockeyGameTile rendering:', game.id, game.situation);
   // On every update, accumulate new timeline events (by id/text)
   useEffect(() => {
     if (!game?.situation?.timeline) return;
@@ -140,16 +139,14 @@ const HockeyGameTile = (props) => {
   // local state for on-demand summary
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
-  const [summaryError, setSummaryError] = useState(null);
 
   const fetchSummary = useCallback(async () => {
     if (summary || loadingSummary) return;
     try {
       setLoadingSummary(true);
-      setSummaryError(null);
+
       const data = await fetchGameSummary((game.league || 'nhl').toLowerCase(), game.id);
       if (!data) {
-        setSummaryError('Failed to load details');
         setLoadingSummary(false);
         return;
       }
@@ -214,14 +211,7 @@ const HockeyGameTile = (props) => {
       );
     }
 
-    return (
-      <div className="summary-action">
-        <button className="summary-btn" onClick={fetchSummary} disabled={loadingSummary}>
-          {loadingSummary ? 'Loading details…' : 'Show details'}
-        </button>
-        {summaryError && <div className="summary-error">{summaryError}</div>}
-      </div>
-    );
+    return null;
   };
 
   // Customize score display for hockey (add SOG if available)
