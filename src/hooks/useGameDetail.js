@@ -41,9 +41,8 @@ export function useGameDetail(game, refreshKey, pollInterval = 0) {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  // refreshKey changes (baseball situation) also trigger a re-fetch
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id, game?.league, refreshKey, pollInterval]);
+  // game.status included so the interval is torn down when a live game goes final
+  }, [game?.id, game?.league, game?.status, refreshKey, pollInterval]);
 
   return { data, loading, error };
 }

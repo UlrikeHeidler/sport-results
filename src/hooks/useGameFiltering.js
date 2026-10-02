@@ -6,15 +6,27 @@
 import { useMemo } from 'react';
 import { isGameOngoing, isGameFinal } from '../config/constants';
 
+const isYesterdayGame = (game) => {
+  if (!game.status?.completed) return false;
+  const d = game.date instanceof Date ? game.date : new Date(game.date);
+  if (isNaN(d)) return false;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return d.getFullYear() === yesterday.getFullYear() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getDate() === yesterday.getDate();
+};
+
 export const useGameFiltering = ({
   games,
   selectedLeagues,
   hiddenTeams,
-  pinnedIds = null
+  pinnedIds = null,
+  showYesterdayResults = true
 }) => {
   const filteredAndSortedGames = useMemo(() => {
     const allGames = [];
-    
+
     // Combine all games from selected leagues
     selectedLeagues.forEach(league => {
       if (games[league]) {
@@ -22,11 +34,13 @@ export const useGameFiltering = ({
       }
     });
 
-    // Filter out hidden teams
+    // Filter out hidden teams and optionally yesterday's results
     const visibleGames = allGames.filter(game => {
       const homeTeamHidden = hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.homeTeam.id).toLowerCase());
       const awayTeamHidden = hiddenTeams.map(id => id.toLowerCase()).includes((game.league + game.awayTeam.id).toLowerCase());
-      return !homeTeamHidden && !awayTeamHidden;
+      if (homeTeamHidden || awayTeamHidden) return false;
+      if (!showYesterdayResults && isYesterdayGame(game)) return false;
+      return true;
     });
 
     let finalGames = [];
@@ -53,7 +67,7 @@ export const useGameFiltering = ({
     });
     
     return finalGames;
-  }, [games, selectedLeagues, hiddenTeams, pinnedIds]);
+  }, [games, selectedLeagues, hiddenTeams, pinnedIds, showYesterdayResults]);
 
   // Get live games count
   const liveGamesCount = useMemo(() => {

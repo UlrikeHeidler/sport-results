@@ -1,0 +1,218 @@
+.hockey-rink-wrap {
+  margin-bottom: 1.25rem;
+}
+
+.hockey-rink-container {
+  position: relative;
+  width: 100%;
+  /* Maintain the 443:200 aspect ratio of the SVG */
+  aspect-ratio: 443 / 200;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e8f4fd;
+}
+
+.hockey-rink-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hockey-rink-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* pointer-events handled per-element: markers are clickable, background is not */
+}
+
+.rink-tooltip {
+  position: absolute;
+  z-index: 10;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+  max-width: 180px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+}
+
+.rink-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+}
+
+.rink-tooltip-header .play-team-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.rink-tooltip-time {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rink-tooltip-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.rink-tooltip-desc {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.75);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.hockey-rink-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  opacity: 0.7;
+}
+
+.hockey-rink-legend {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.rink-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.rink-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Play by play list */
+.play-team-logo-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.play-team-logo {
+  display: block;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.hockey-plays-wrap {
+  margin-bottom: 1rem;
+}
+
+.hockey-plays {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--tile-border, #e5e7eb);
+  border-radius: 6px;
+}
+
+.hockey-play {
+  display: grid;
+  grid-template-columns: 8px 52px 16px 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  border-bottom: 1px solid var(--tile-border, #f3f4f6);
+  min-width: 0;
+}
+
+.hockey-play:last-child {
+  border-bottom: none;
+}
+
+.hockey-play.is-goal {
+  background: rgba(229, 62, 62, 0.06);
+}
+
+.hockey-play-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hockey-play-time {
+  font-size: 0.68rem;
+  color: var(--text-secondary, #6b7280);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hockey-play-body {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hockey-play-type {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+  /* Allow shrinking so long type names (e.g. "Goalie Stopped") don't get clipped by parent overflow:hidden */
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hockey-play-desc {
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 2;
+  min-width: 0;
+}
+
+[data-theme="dark"] .hockey-rink-container {
+  background: #1a2a3a;
+}
+
+[data-theme="dark"] .hockey-plays {
+  border-color: var(--tile-border-dark, #374151);
+}
+
+[data-theme="dark"] .hockey-play {
+  border-bottom-color: var(--tile-border-dark, #374151);
+}
+
+[data-theme="dark"] .hockey-play.is-goal {
+  background: rgba(229, 62, 62, 0.12);
+}

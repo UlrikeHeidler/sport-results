@@ -298,7 +298,8 @@ export const DEFAULT_SETTINGS = {
   hiddenTeams: [],
   colorCoding: true,
   showTeamForm: true,
-  darkMode: false
+  darkMode: false,
+  showYesterdayResults: true
 };
 
 // Update intervals and timing constants

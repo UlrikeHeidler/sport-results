@@ -271,6 +271,61 @@ html {
 }
 .min-zoom-btn:hover { background: rgba(255,255,255,0.18); }
 .min-info-btn:hover { background: rgba(74, 158, 255, 0.3); }
+.yesterday-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 6px;
+}
+.yesterday-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.yesterday-toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 28px;
+  height: 16px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+.yesterday-toggle input:checked + .yesterday-toggle-track {
+  background: rgba(74, 158, 255, 0.75);
+}
+.yesterday-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.yesterday-toggle input:checked + .yesterday-toggle-track .yesterday-toggle-thumb {
+  transform: translateX(12px);
+  background: #fff;
+}
+.yesterday-toggle-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  line-height: 1;
+}
+.yesterday-toggle:hover .yesterday-toggle-track {
+  background: rgba(255,255,255,0.26);
+}
+.yesterday-toggle input:checked + .yesterday-toggle-track:hover,
+.yesterday-toggle:hover input:checked + .yesterday-toggle-track {
+  background: rgba(74, 158, 255, 0.9);
+}
 .min-zoom-display {
   min-width: 36px;
   text-align: center;
@@ -624,6 +679,19 @@ html {
   font-weight: 600;
   color: #666;
   margin: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ot-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888;
+  line-height: 1;
 }
 
 .game-time {

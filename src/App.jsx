@@ -221,7 +221,8 @@ function App() {
     games: currentGames,
     selectedLeagues: settings.selectedLeagues,
     hiddenTeams: settings.hiddenTeams,
-    pinnedIds
+    pinnedIds,
+    showYesterdayResults: settings.showYesterdayResults
   });
 
   // Update filteredGames when processed games change
@@ -309,6 +310,21 @@ function App() {
               <span>🏆</span>
             </div>
             <div className="minimized-controls" onClick={(e) => e.stopPropagation()}>
+              <label
+                className="yesterday-toggle"
+                title={settings.showYesterdayResults ? "Hide yesterday's results" : "Show yesterday's results"}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={settings.showYesterdayResults}
+                  onChange={() => handleSettingsChange({ ...settings, showYesterdayResults: !settings.showYesterdayResults })}
+                />
+                <span className="yesterday-toggle-track">
+                  <span className="yesterday-toggle-thumb" />
+                </span>
+                <span className="yesterday-toggle-label">Show yesterday's results?</span>
+              </label>
               <button className="min-info-btn" onClick={(e) => { e.stopPropagation(); setShowInfo(true); }} title="About & License">ℹ️</button>
               <button className="min-zoom-btn" onClick={(e) => { e.stopPropagation(); zoomOut(); }} title="Zoom out">➖</button>
               <div className="min-zoom-display" title={`Zoom: ${Math.round(scale * 100)}%`}>{Math.round(scale * 100)}%</div>
