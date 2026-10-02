@@ -60,10 +60,12 @@ export function normalizeStatus(status) {
   const statusName = status.type.name || status.state;
   const isLive = liveStates.includes(statusName.toUpperCase());
   return {
-    //type: isLive ? 'STATUS_IN_PROGRESS' : statusName,
     type: status.type.name,
     displayClock: status.displayClock || status.clock || '',
     period: status.period || 0,
-    completed: status.type.completed || status.state === 'post' || false
+    completed: status.type.completed || status.state === 'post' || false,
+    shortDetail: status.type.shortDetail || status.type.description || '',
+    // "OT", "SO", "2OT" etc. — the cleanest signal for extra-time finishes
+    altDetail: status.type.altDetail || ''
   };
 }

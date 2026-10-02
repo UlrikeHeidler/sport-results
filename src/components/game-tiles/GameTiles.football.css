@@ -151,11 +151,20 @@
 
 .compact-ball {
   position: absolute;
-  top: -6px;
+  top: -4px;
   transform: translateX(-50%);
-  width: 14px;
-  height: 14px;
-  background: #8B4513;
-  border-radius: 50%;
-  border: 2px solid #fff;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Possession is now shown via the tilted football on the field bar — hide the old indicators */
+.game-tile:has(.football-info) .possession-marker,
+.game-tile:has(.football-info) .has-possession::after {
+  display: none;
+}
+.game-tile:has(.football-info) .has-possession {
+  animation: none;
 }

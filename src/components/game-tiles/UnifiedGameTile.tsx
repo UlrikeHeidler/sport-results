@@ -42,7 +42,7 @@ const GameStatusHeader = memo<{
   );
 
   return (
-    <div className={`game-header ${game.id}`}>
+    <div className={`game-header aloha ${game.id}`}>
       <span
         title={game.id}
         className="league-badge"
@@ -110,10 +110,52 @@ const TeamsDisplay = memo<{
     );
   }, [winner, ScoreComponent, game, showTeamForm, animations]);
 
+  const otLabel = useMemo(() => {
+    if (!game.status?.completed) return null;
+    const t = game.status?.type ?? '';
+    const sd = (game.status?.shortDetail ?? '').toLowerCase();
+    const alt = (game.status?.altDetail ?? '').toLowerCase();
+
+    // Explicit type names (some leagues use these)
+    if (t === 'STATUS_FINAL_OT') return 'OT';
+    if (t === 'STATUS_FINAL_SO') return 'SO';
+    if (t === 'STATUS_FINAL_PEN') return 'Pen.';
+    if (t === 'STATUS_FINAL_AET' || t === 'STATUS_FINAL_ET') return 'AET';
+
+    // altDetail is the cleanest: ESPN sets it to "OT", "SO", "2OT" etc. directly
+    if (alt) {
+      if (alt === 'so' || alt === 'shootout') return 'SO';
+      if (alt === 'pen' || alt === 'penalties') return 'Pen.';
+      if (alt === 'aet') return 'AET';
+      if (/^(\d*)ot$/.test(alt)) return alt.toUpperCase();
+    }
+
+    // shortDetail: "Final/OT", "F/OT", "Final/SO", "Final/2OT" etc.
+    if (sd) {
+      if (/\/so|shootout/.test(sd)) return 'SO';
+      if (/\/pen|penalty/.test(sd)) return 'Pen.';
+      if (/\/aet|after extra/.test(sd)) return 'AET';
+      const otMatch = sd.match(/\/(\d*)ot/);
+      if (otMatch) return otMatch[1] ? `${otMatch[1]}OT` : 'OT';
+    }
+
+    // Fallback: period number (reliable for live→just-finished, may be 0 for cached completed games)
+    const period = game.status?.period;
+    if (period) {
+      const sport = getSportFromLeague(game.league);
+      if (sport === 'Hockey' && period > 3) return period === 4 ? 'OT' : `${period - 3}OT`;
+      if (sport === 'Basketball' && period > 4) return period === 5 ? 'OT' : `${period - 4}OT`;
+    }
+    return null;
+  }, [game.status, game.league]);
+
   return (
     <div className="teams" role="group" aria-label="Game teams">
       {renderTeam(game.awayTeam, false)}
-      <div className="vs" aria-hidden="true">@</div>
+      <div className="vs" aria-hidden="true">
+        {otLabel && <span className="ot-label">{otLabel}</span>}
+        @
+      </div>
       {renderTeam(game.homeTeam, true)}
     </div>
   );

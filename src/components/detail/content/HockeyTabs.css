@@ -1,0 +1,69 @@
+.hockey-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--tile-border, #e5e7eb);
+  margin-bottom: 0;
+}
+
+.hockey-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.45rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.hockey-tab:hover {
+  color: var(--text-primary, #111827);
+}
+
+.hockey-tab.active {
+  color: var(--text-primary, #111827);
+  border-bottom-color: var(--league-primary, #3b82f6);
+}
+
+.hockey-tab-content {
+  margin-top: 0;
+}
+
+.hockey-tab-content .hockey-plays-wrap {
+  margin-bottom: 0;
+}
+
+.hockey-tab-content .hockey-plays-wrap .detail-section-title {
+  display: none;
+}
+
+.hockey-goal-score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
+
+.hockey-empty-tab {
+  padding: 1rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+[data-theme="dark"] .hockey-tab {
+  color: var(--text-secondary-dark, #9ca3af);
+}
+
+[data-theme="dark"] .hockey-tab:hover,
+[data-theme="dark"] .hockey-tab.active {
+  color: var(--text-primary-dark, #f9fafb);
+}
+
+[data-theme="dark"] .hockey-tabs {
+  border-bottom-color: var(--tile-border-dark, #374151);
+}
