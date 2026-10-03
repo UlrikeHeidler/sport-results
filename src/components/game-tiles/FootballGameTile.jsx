@@ -52,7 +52,7 @@ const FootballGameTile = (props) => {
           <div className="field-display compact-field">
             <div className="field-line compact-line">
               {hasPossession && (
-                <div className="ball-marker compact-ball" style={{ left: `${100 - (ballPercent / 100) * 100}%` }}>
+                <div className="ball-marker compact-ball" style={{ left: `${(ballPercent / 100) * 100}%` }}>
                   <FootballIcon possession={possession} />
                 </div>
               )}
@@ -60,7 +60,7 @@ const FootballGameTile = (props) => {
           </div>
         </div>
       </div>
-    );
+    );s
   };
 
   return (
