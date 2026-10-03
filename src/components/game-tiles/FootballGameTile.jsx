@@ -6,8 +6,8 @@ import { debug } from '../../utils/logger';
 
 // 🏈 emoji tilted to show possession direction
 // home = tip points upper-right (-30°), away = tip points upper-left (+30°)
-const FootballIcon = ({ possession }) => {
-  const rotation = possession === 'away' ? -90 : possession === 'home' ? 90 : -90;
+const FootballIcon = ({ possession, resting }) => {
+  const rotation = resting ? 225 : possession === 'away' ? -90 : possession === 'home' ? -360 : -90;
   return (
     <span
       style={{ transform: `rotate(${rotation}deg)`, display: 'block', fontSize: '20px', lineHeight: 1 }}
@@ -37,6 +37,7 @@ const FootballGameTile = (props) => {
       ? `${situation.downDistanceText}`
       : (down ? `${down}${getDownSuffix(down)} & ${distance ?? '—'}` : '—');
     const possession = situation.possessionWhich ?? null;
+    const resting = down === -1 || distance === -1;
 
     return (
       <div className="football-info compact">
@@ -47,7 +48,7 @@ const FootballGameTile = (props) => {
           <div className="field-display compact-field">
             <div className="field-line compact-line">
               <div className="ball-marker compact-ball" style={{ left: `${100 - (ballPercent / 100) * 100}%` }}>
-                <FootballIcon possession={possession} />
+                <FootballIcon possession={possession} resting={resting} />
               </div>
             </div>
           </div>

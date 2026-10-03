@@ -178,21 +178,17 @@ function classifyDrivePlay(play) {
 }
 
 function FieldDriveVisual({ drive, teamLookup }) {
-  // Each play gets its own horizontal row.
-  // viewBox: 0 0 120 H   where H = Y_PAD + numPlays * ROW_H
-  // End zones span full height. Plays animate in sequentially.
-  const EZ = 10, W = 120;
-  const ROW_H = 7;     // SVG units per play row
-  const Y_PAD = 6;     // top padding (yard numbers live here)
-  const INTERVAL = 0.70;  // seconds between play starts
-  const DRAW = 0.48;      // seconds to draw each play
+  // All plays share a single horizontal strip (80px total height).
+  // Past plays → thin colored line. Current/last play → detailed graphic.
+  const EZ = 10, W = 120, H = 90, MID = H / 2;
+  const DRAW = 0.45;
   const toX = p => EZ + Math.max(0, Math.min(100, p));
 
   const startPos = parseStartPos(drive);
   const plays = drive.plays ?? [];
 
   let curPos = startPos;
-  const segs = plays.map((play, idx) => {
+  const segments = plays.map((play, idx) => {
     const sp = curPos;
     const yards = play.statYardage ?? 0;
     const ep = Math.max(0, Math.min(100, sp + yards));
@@ -200,158 +196,162 @@ function FieldDriveVisual({ drive, teamLookup }) {
     return { play, type: classifyDrivePlay(play), sp, ep, idx };
   });
 
-  const H = Math.max(44, Y_PAD + segs.length * ROW_H);
-  const logoSz = Math.min(8, EZ - 2); // 8 SVG units, fits inside 10-wide end zone
-
   const driveTeam = teamLookup?.[drive.team?.id];
   const oppTeam   = Object.values(teamLookup ?? {}).find(t => t.id !== drive.team?.id);
   const dColor    = driveTeam?.color ? `#${driveTeam.color}` : '#1e3a8a';
   const oColor    = oppTeam?.color   ? `#${oppTeam.color}`   : '#7f1d1d';
+  const logoSz    = Math.min(8, EZ - 2);
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="drive-field-svg" aria-hidden="true">
       <defs>
-        <marker id="dfm-g"    markerWidth="2.5" markerHeight="2.5" refX="2.5" refY="1.25" orient="auto"><path d="M0,0 L2.5,1.25 L0,2.5 Z" fill="rgba(255,255,255,0.85)"/></marker>
-        <marker id="dfm-r"    markerWidth="2.5" markerHeight="2.5" refX="2.5" refY="1.25" orient="auto"><path d="M0,0 L2.5,1.25 L0,2.5 Z" fill="#f87171"/></marker>
-        <marker id="dfm-pass" markerWidth="2.5" markerHeight="2.5" refX="2.5" refY="1.25" orient="auto"><path d="M0,0 L2.5,1.25 L0,2.5 Z" fill="#fbbf24"/></marker>
-        <marker id="dfm-kick" markerWidth="2.5" markerHeight="2.5" refX="2.5" refY="1.25" orient="auto"><path d="M0,0 L2.5,1.25 L0,2.5 Z" fill="#93c5fd"/></marker>
+        <marker id="dfm-g"    markerWidth="3" markerHeight="3" refX="3" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3 Z" fill="rgba(255,255,255,0.85)"/></marker>
+        <marker id="dfm-r"    markerWidth="3" markerHeight="3" refX="3" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3 Z" fill="#f87171"/></marker>
+        <marker id="dfm-pass" markerWidth="3" markerHeight="3" refX="3" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3 Z" fill="#fbbf24"/></marker>
+        <marker id="dfm-kick" markerWidth="3" markerHeight="3" refX="3" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3 Z" fill="#93c5fd"/></marker>
       </defs>
 
-      {/* End zones – full height, team color, logo centered */}
-      <rect x={0}      y={0} width={EZ}  height={H} fill={dColor} opacity="0.65" />
-      <rect x={EZ+100} y={0} width={EZ}  height={H} fill={oColor} opacity="0.65" />
+      {/* End zones */}
+      <rect x={0}       y={0} width={EZ}  height={H} fill={dColor} opacity="0.65" />
+      <rect x={EZ+100}  y={0} width={EZ}  height={H} fill={oColor} opacity="0.65" />
       {driveTeam?.logo
         ? <image href={driveTeam.logo} x={(EZ-logoSz)/2} y={(H-logoSz)/2} width={logoSz} height={logoSz} preserveAspectRatio="xMidYMid meet" opacity="0.9" />
-        : <text x={5} y={H/2+0.8} textAnchor="middle" fontSize="2.2" fill="rgba(255,255,255,0.5)" fontWeight="700" transform={`rotate(-90 5 ${H/2})`}>{driveTeam?.abbreviation ?? ''}</text>}
+        : <text x={5} y={H/2+1} textAnchor="middle" fontSize="2.5" fill="rgba(255,255,255,0.5)" fontWeight="700" transform={`rotate(-90 5 ${H/2})`}>{driveTeam?.abbreviation ?? ''}</text>}
       {oppTeam?.logo
         ? <image href={oppTeam.logo} x={EZ+100+(EZ-logoSz)/2} y={(H-logoSz)/2} width={logoSz} height={logoSz} preserveAspectRatio="xMidYMid meet" opacity="0.9" />
-        : <text x={EZ+105} y={H/2+0.8} textAnchor="middle" fontSize="2.2" fill="rgba(255,255,255,0.5)" fontWeight="700" transform={`rotate(90 ${EZ+105} ${H/2})`}>{oppTeam?.abbreviation ?? ''}</text>}
+        : <text x={EZ+105} y={H/2+1} textAnchor="middle" fontSize="2.5" fill="rgba(255,255,255,0.5)" fontWeight="700" transform={`rotate(90 ${EZ+105} ${H/2})`}>{oppTeam?.abbreviation ?? ''}</text>}
 
       {/* Field */}
       <rect x={EZ} y={0} width={100} height={H} fill="#166534" />
 
-      {/* Alternating row bands – fade in with each play */}
-      {segs.map((_, i) => (
-        <rect key={`b${i}`}
-          x={EZ} y={Y_PAD + i * ROW_H} width={100} height={ROW_H}
-          fill={i % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.07)'}
-          style={{ opacity: 0, animation: `df-fade .15s ease-out ${(i * INTERVAL).toFixed(2)}s forwards` }}
-        />
-      ))}
-
-      {/* Row separators */}
-      {segs.map((_, i) => i > 0 && (
-        <line key={`s${i}`}
-          x1={EZ} y1={Y_PAD + i * ROW_H} x2={EZ+100} y2={Y_PAD + i * ROW_H}
-          stroke="rgba(255,255,255,0.08)" strokeWidth="0.2"
-          style={{ opacity: 0, animation: `df-fade .1s ${(i * INTERVAL).toFixed(2)}s forwards` }}
-        />
-      ))}
-
-      {/* Yard lines – full height, always visible */}
+      {/* Yard lines */}
       {[10,20,30,40,50,60,70,80,90].map(y => (
-        <line key={`y${y}`} x1={EZ+y} y1={0} x2={EZ+y} y2={H}
-          stroke="white" strokeWidth={y===50 ? 0.5 : 0.22}
-          opacity={y===50 ? 0.5 : 0.28} />
+        <line key={y} x1={EZ+y} y1={0} x2={EZ+y} y2={H}
+          stroke="white" strokeWidth={y===50 ? 0.6 : 0.25}
+          opacity={y===50 ? 0.5 : 0.25} />
       ))}
 
-      {/* Yard numbers in top padding */}
+      {/* Yard numbers */}
       {[10,20,30,40,50].map(y => (
-        <React.Fragment key={`n${y}`}>
-          <text x={EZ+y} y={Y_PAD-1} textAnchor="middle" fontSize="2.2" fill="rgba(255,255,255,0.25)" fontWeight="600">{y}</text>
-          {y !== 50 && <text x={EZ+100-y} y={Y_PAD-1} textAnchor="middle" fontSize="2.2" fill="rgba(255,255,255,0.25)" fontWeight="600">{y}</text>}
+        <React.Fragment key={y}>
+          <text x={EZ+y} y={6} textAnchor="middle" fontSize="2.8" fill="rgba(255,255,255,0.3)" fontWeight="600">{y}</text>
+          {y !== 50 && <text x={EZ+100-y} y={6} textAnchor="middle" fontSize="2.8" fill="rgba(255,255,255,0.3)" fontWeight="600">{y}</text>}
         </React.Fragment>
       ))}
 
-      {/* Drive start dotted marker – full height */}
+      {/* Drive start marker */}
       <line x1={toX(startPos)} y1={0} x2={toX(startPos)} y2={H}
-        stroke="rgba(255,255,255,0.38)" strokeWidth="0.4" strokeDasharray="1.5,1" />
+        stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2,1.5" />
 
-      {/* Play segments – one per row */}
-      {segs.map(({ play, type, sp, ep, idx }) => {
+      {/* ── Past plays — thin lines with purple separators ── */}
+      {segments.slice(0, -1).map(({ sp, ep, idx }) => {
         const x1 = toX(sp), x2 = toX(ep);
-        const rowY = Y_PAD + idx * ROW_H;
-        const midY = rowY + ROW_H / 2;
-        const ad = (idx * INTERVAL).toFixed(2);
-        const drawAnim = `df-draw ${DRAW}s ease-out ${ad}s both`;
+        const gain = ep >= sp;
+        return (
+          <g key={`past-${idx}`}>
+            <line x1={x1} y1={MID - 1.5} x2={x1} y2={MID + 1.5} stroke="#7c3aed" strokeWidth="0.8" />
+            <line x1={x1} y1={MID} x2={x2} y2={MID}
+              stroke={gain ? 'rgba(255,255,255,0.8)' : '#ef4444'} strokeWidth="2.5" />
+          </g>
+        );
+      })}
+
+      {/* ── Current / last play — detailed graphic ── */}
+      {segments.length > 0 && (() => {
+        const { play, type, sp, ep } = segments[segments.length - 1];
+        const x1 = toX(sp), x2 = toX(ep);
+        const gain = ep >= sp;
+        const drawAnim = `df-draw ${DRAW}s ease-out both`;
+
+        // Start separator
+        const separator = <line x1={x1} y1={MID - 1.5} x2={x1} y2={MID + 1.5} stroke="#7c3aed" strokeWidth="0.8" />;
 
         if (type === 'penalty') {
           return (
-            <line key={idx}
-              x1={x1} y1={rowY+1} x2={x1} y2={rowY+ROW_H-1}
-              stroke="#ef4444" strokeWidth="0.7" strokeDasharray="1.2,0.8"
-              style={{ opacity: 0, animation: `df-fade .15s ${ad}s forwards` }}
-            />
+            <g>
+              {separator}
+              <line x1={x1} y1={MID - 14} x2={x1} y2={MID + 14}
+                stroke="#ef4444" strokeWidth="1.5" strokeDasharray="2,1.5"
+                style={{ opacity: 0, animation: 'df-fade .2s ease-out both' }} />
+              <text x={x1} y={MID - 16} textAnchor="middle" fontSize="4" fill="#ef4444"
+                style={{ opacity: 0, animation: 'df-fade .2s .1s both' }}>PEN</text>
+            </g>
           );
         }
 
         if (type === 'pass') {
           const dist = Math.abs(x2 - x1);
-          if (dist < 0.4) {
-            // Incomplete — symmetric dashed arc, peak at midpoint
-            const fwd = ROW_H * 1.4;
-            const imx = x1 + fwd / 2;
-            const ipeak = midY - ROW_H * 0.55;
+          if (dist < 0.5) {
+            // Incomplete — dashed arc forward + X at landing spot
+            const reach = 12;
+            const mx = x1 + reach / 2, peakY = MID - 12;
+            const lx = x1 + reach;
             return (
-              <path key={idx}
-                d={`M${x1},${midY} Q${imx},${ipeak} ${x1+fwd},${midY}`}
-                fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="0.7"
-                strokeDasharray="1.5,1"
-                style={{ strokeDasharray: 200, strokeDashoffset: 200, animation: drawAnim }}
-              />
+              <g>
+                {separator}
+                <path d={`M${x1},${MID} Q${mx},${peakY} ${lx},${MID}`}
+                  fill="none" stroke="rgba(200,200,200,0.7)" strokeWidth="1.2" strokeDasharray="2,1.5"
+                  style={{ strokeDashoffset: 200, animation: drawAnim }} />
+                <line x1={lx-2} y1={MID-2} x2={lx+2} y2={MID+2} stroke="rgba(200,200,200,0.9)" strokeWidth="1.2"
+                  style={{ opacity: 0, animation: `df-fade .1s ${DRAW}s both` }} />
+                <line x1={lx+2} y1={MID-2} x2={lx-2} y2={MID+2} stroke="rgba(200,200,200,0.9)" strokeWidth="1.2"
+                  style={{ opacity: 0, animation: `df-fade .1s ${DRAW}s both` }} />
+              </g>
             );
           }
+          // Complete pass — arc with arrow
           const mx = (x1+x2)/2;
-          const peakY = Math.max(Y_PAD/2, midY - Math.max(3, dist * 0.30));
+          const peakY = MID - Math.max(10, dist * 0.32);
           return (
-            <g key={idx}>
-              <path d={`M${x1},${midY} Q${mx},${peakY} ${x2},${midY}`}
-                fill="none" stroke="#fbbf24" strokeWidth="0.9" markerEnd="url(#dfm-pass)"
-                style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: drawAnim }}
-              />
+            <g>
+              {separator}
+              <path d={`M${x1},${MID} Q${mx},${peakY} ${x2},${MID}`}
+                fill="none" stroke="#fbbf24" strokeWidth="1.5" markerEnd="url(#dfm-pass)"
+                style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: drawAnim }} />
             </g>
           );
         }
 
         if (type === 'kick' || type === 'kickoff' || type === 'fg') {
           const touchback = /touchback/i.test(play.text ?? '');
-          // Kickoff: opponent is kicking right-to-left; start at their ~35 (our 65-yard line)
           const kx1 = type === 'kickoff' ? toX(65) : x1;
-          const kx2 = type === 'kickoff'
-            ? (touchback ? EZ / 2 : x2)               // touchback → own end zone center
-            : (touchback ? EZ + 100 + EZ / 2 : x2);   // punt touchback → opp end zone center
-          const mx = (kx1 + kx2) / 2;
-          const dist = Math.abs(kx2 - kx1);
-          const peakY = Math.max(Y_PAD / 2, midY - Math.max(ROW_H, dist * 0.48));
+          const kx2 = touchback ? (type === 'kickoff' ? EZ/2 : EZ+100+EZ/2) : x2;
+          const mx = (kx1+kx2)/2;
+          const dist = Math.abs(kx2-kx1);
+          const peakY = MID - Math.max(14, dist * 0.5);
           return (
-            <path key={idx}
-              d={`M${kx1},${midY} Q${mx},${peakY} ${kx2},${midY}`}
-              fill="none" stroke="#93c5fd" strokeWidth="0.9"
-              strokeDasharray={touchback ? '2,1.5' : undefined}
-              markerEnd={touchback ? undefined : 'url(#dfm-kick)'}
-              style={{ strokeDashoffset: 300, animation: `df-draw ${(DRAW*1.5).toFixed(2)}s ease-in-out ${ad}s both` }}
-            />
+            <g>
+              {separator}
+              <path d={`M${kx1},${MID} Q${mx},${peakY} ${kx2},${MID}`}
+                fill="none" stroke="#93c5fd" strokeWidth="1.5"
+                strokeDasharray={touchback ? '2,1.5' : undefined}
+                markerEnd={touchback ? undefined : 'url(#dfm-kick)'}
+                style={{ strokeDashoffset: 300, animation: `df-draw ${(DRAW*1.4).toFixed(2)}s ease-in-out both` }} />
+            </g>
           );
         }
 
-        // Rush
-        const fwd = ep >= sp;
-        const col = fwd ? 'rgba(255,255,255,0.85)' : '#f87171';
-        const mid = fwd ? 'url(#dfm-g)' : 'url(#dfm-r)';
+        // Rush (default) — straight arrow
+        const col = gain ? 'rgba(255,255,255,0.9)' : '#f87171';
+        const markerId = gain ? 'url(#dfm-g)' : 'url(#dfm-r)';
         if (Math.abs(x2-x1) < 0.5) {
           return (
-            <circle key={idx} cx={x1} cy={midY} r="1" fill={col}
-              style={{ opacity: 0, animation: `df-fade .1s ${ad}s forwards` }}
-            />
+            <g>
+              {separator}
+              <circle cx={x1} cy={MID} r="2" fill={col}
+                style={{ opacity: 0, animation: 'df-fade .1s both' }} />
+            </g>
           );
         }
         return (
-          <line key={idx} x1={x1} y1={midY} x2={fwd ? x2-1 : x2+1} y2={midY}
-            stroke={col} strokeWidth="0.9" markerEnd={mid}
-            style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: drawAnim }}
-          />
+          <g>
+            {separator}
+            <line x1={x1} y1={MID} x2={gain ? x2-1.5 : x2+1.5} y2={MID}
+              stroke={col} strokeWidth="2" markerEnd={markerId}
+              style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: drawAnim }} />
+          </g>
         );
-      })}
+      })()}
     </svg>
   );
 }

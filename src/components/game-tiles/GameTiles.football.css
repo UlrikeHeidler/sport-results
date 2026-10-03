@@ -151,7 +151,7 @@
 
 .compact-ball {
   position: absolute;
-  top: -2px;
+  top: -8px;
   transform: translateX(-50%);
   width: 16px;
   height: 16px;

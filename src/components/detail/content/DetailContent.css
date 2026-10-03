@@ -636,9 +636,11 @@
 
 /* ── Current Drive visualization ─────────────────────────── */
 .current-drive {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   overflow: hidden;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
   margin-bottom: 0.75rem;
 }
 
@@ -688,6 +690,7 @@
 
 .drive-field-svg {
   width: 100%;
+  height: 90px;
   display: block;
 }
 
