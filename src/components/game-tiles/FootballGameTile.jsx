@@ -6,8 +6,8 @@ import { debug } from '../../utils/logger';
 
 // 🏈 emoji tilted to show possession direction
 // home = tip points upper-right (-30°), away = tip points upper-left (+30°)
-const FootballIcon = ({ possession, resting }) => {
-  const rotation = resting ? 225 : possession === 'away' ? -90 : possession === 'home' ? -360 : -90;
+const FootballIcon = ({ possession }) => {
+  const rotation = possession === 'home' ? -360 : -90;
   return (
     <span
       style={{ transform: `rotate(${rotation}deg)`, display: 'block', fontSize: '20px', lineHeight: 1 }}
@@ -33,11 +33,15 @@ const FootballGameTile = (props) => {
     const yardLine = situation.yardLine ? parseInt(situation.yardLine) : null;
     const inOpponent = situation.fieldSide === 'opponent';
     const ballPercent = yardLine ? (inOpponent ? 50 + (50 - yardLine) : yardLine) : 50;
-    const downDistanceText = situation.downDistanceText
-      ? `${situation.downDistanceText}`
-      : (down ? `${down}${getDownSuffix(down)} & ${distance ?? '—'}` : '—');
     const possession = situation.possessionWhich ?? null;
-    const resting = down === -1 || distance === -1;
+    const isHalftime = /halftime/i.test(game.status?.type ?? '');
+    const hasPossession = !!possession && !isHalftime;
+
+    const downDistanceText = isHalftime
+      ? 'Halftime'
+      : situation.downDistanceText
+        ? `${situation.downDistanceText}`
+        : (down ? `${down}${getDownSuffix(down)} & ${distance ?? '—'}` : '—');
 
     return (
       <div className="football-info compact">
@@ -47,9 +51,11 @@ const FootballGameTile = (props) => {
         <div className="compact-row">
           <div className="field-display compact-field">
             <div className="field-line compact-line">
-              <div className="ball-marker compact-ball" style={{ left: `${100 - (ballPercent / 100) * 100}%` }}>
-                <FootballIcon possession={possession} resting={resting} />
-              </div>
+              {hasPossession && (
+                <div className="ball-marker compact-ball" style={{ left: `${100 - (ballPercent / 100) * 100}%` }}>
+                  <FootballIcon possession={possession} />
+                </div>
+              )}
             </div>
           </div>
         </div>

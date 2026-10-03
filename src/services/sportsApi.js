@@ -60,7 +60,7 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
 
   const sit = competitionObj.situation || {};
   
-  let raw = sit.possession ?? sit.possessionText ?? null;
+  let raw = sit.possession || sit.possessionText || null;
   if (competitionObj.drives && competitionObj.drives.currentPlay) {
     const cp = competitionObj.drives.currentPlay;
     if (cp.team && (cp.team.id || cp.team.abbreviation || cp.team.displayName)) {
@@ -79,7 +79,7 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
   const normalize = v => (v == null ? null : String(v).toLowerCase());
   const rawNorm = normalize(raw);
 
-  const candidates = (team) => [team?.id, team?.abbreviation, team?.name, team?.displayName].map(normalize).filter(Boolean);
+  const candidates = (team) => [team?.id, team?.competitorId, team?.abbreviation, team?.name, team?.displayName].map(normalize).filter(Boolean);
   const homeCandidates = new Set(candidates(homeTeamObj));
   const awayCandidates = new Set(candidates(awayTeamObj));
 
@@ -102,6 +102,9 @@ export const detectPossession = (competitionObj, homeTeamObj, awayTeamObj) => {
 
   if (typeof sit.possessionText === 'string') {
     const txt = sit.possessionText.toLowerCase();
+    const firstWord = txt.split(' ')[0];
+    if (firstWord && homeCandidates.has(firstWord)) return { which: 'home', label: sit.possessionText };
+    if (firstWord && awayCandidates.has(firstWord)) return { which: 'away', label: sit.possessionText };
     if (txt.includes('home')) return { which: 'home', label: sit.possessionText };
     if (txt.includes('away')) return { which: 'away', label: sit.possessionText };
   }

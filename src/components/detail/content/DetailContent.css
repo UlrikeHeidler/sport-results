@@ -647,7 +647,7 @@
 .current-drive-hdr {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.75rem;
   padding: 0.38rem 0.65rem;
   background: var(--hover-bg);
   border-bottom: 1px solid var(--border-color);
@@ -688,9 +688,53 @@
   color: var(--text-color);
 }
 
+.current-drive-situation {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.drive-field-wrapper {
+  position: relative;
+}
+
+.ez-logo {
+  position: absolute;
+  top: 0;
+  width: calc(100% / 12);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ez-logo-away { left: 0; }
+.ez-logo-home { right: 0; }
+
+.ez-logo img {
+  max-width: 75%;
+  max-height: 75%;
+  object-fit: contain;
+}
+
+.ez-logo-away img { transform: rotate(-90deg); }
+.ez-logo-home img { transform: rotate(90deg); }
+
+.yard-number {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+  line-height: 1;
+}
+
 .drive-field-svg {
   width: 100%;
-  height: 90px;
+  height: 80px;
   display: block;
 }
 

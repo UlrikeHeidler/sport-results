@@ -29,15 +29,17 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
   const ln = String(league).toLowerCase();
 
   // Football (college / nfl family)
-  if (ln.includes('football')) {
+  if (ln.includes('football') || ln === 'fbs' || ln === 'fcs' || ln === 'nfl') {
     const homeTeamInfo = {
-      id: homeTeam.id,
+      id: homeTeam.team?.id ?? homeTeam.id,
+      competitorId: homeTeam.id,
       abbreviation: homeTeam.team.abbreviation,
       name: homeTeam.team.displayName || homeTeam.team.name,
       displayName: homeTeam.team.displayName || homeTeam.team.name
     };
     const awayTeamInfo = {
-      id: awayTeam.id,
+      id: awayTeam.team?.id ?? awayTeam.id,
+      competitorId: awayTeam.id,
       abbreviation: awayTeam.team.abbreviation,
       name: awayTeam.team.displayName || awayTeam.team.name,
       displayName: awayTeam.team.displayName || awayTeam.team.name
@@ -46,6 +48,7 @@ export function normalizeSituation(league, situation, competition, homeTeam, awa
     return {
       down: situation.down,
       distance: situation.distance,
+      downDistanceText: situation.downDistanceText ?? null,
       yardLine: situation.yardLine,
       fieldSide: situation.possessionText?.includes('OWN') ? 'own' : 'opponent',
       possession: poss.which === 'home' ? homeTeamInfo.name : poss.which === 'away' ? awayTeamInfo.name : (situation.possession || null),
