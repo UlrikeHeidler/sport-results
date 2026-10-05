@@ -31,7 +31,7 @@ function DetailContent({ game, data, loading, error }) {
   if (FOOTBALL_LEAGUES.has(league))   return <FootballDetailContent data={data} />;
   if (BASEBALL_LEAGUES.has(league))   return <BaseballDetailContent data={data} game={game} />;
   if (HOCKEY_LEAGUES.has(league))     return <HockeyDetailContent data={data} game={game} />;
-  if (BASKETBALL_LEAGUES.has(league)) return <BasketballDetailContent data={data} />;
+  if (BASKETBALL_LEAGUES.has(league)) return <BasketballDetailContent data={data} game={game} />;
   if (SOCCER_LEAGUES.has(league))     return <SoccerDetailContent data={data} />;
 
   return <div className="detail-error">No detail view available for {league.toUpperCase()}</div>;
