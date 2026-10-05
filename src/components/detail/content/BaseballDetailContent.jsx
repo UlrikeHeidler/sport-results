@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { isGameOngoing } from '../../../config/constants';
+import { LastPlay, resolveTeamLogo } from './LastPlay';
 import './DetailContent.css';
 
 /* ── Helpers ────────────────────────────────────────────── */
@@ -436,13 +438,23 @@ const BaseballDetailContent = ({ data, game }) => {
   const teams            = data?.boxscore?.teams   ?? [];
   const currentBatterId  = game?.situation?.currentBatter?.id ?? null;
   const currentPitcherId = game?.situation?.currentPitcher?.id ?? null;
+  const isLive           = isGameOngoing(game?.status);
 
   const [tabState, setTabState] = useState({ gameId: game?.id, tab: 'scoring' });
   const activeTab = tabState.gameId === game?.id ? tabState.tab : 'scoring';
   const handleTabChange = (tab) => setTabState({ gameId: game?.id, tab });
 
+  const lastPlay = useMemo(() =>
+    [...(data?.plays ?? [])].reverse().find(p => p.text && !isPitchEvent(p.text)) ?? null,
+  [data?.plays]);
+  const lastPlayLogo = resolveTeamLogo(lastPlay, game);
+  const lastPlayTime = lastPlay?.period?.number != null
+    ? `${ordinal(lastPlay.period.number)} Inning`
+    : null;
+
   return (
     <>
+      {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlay?.text} />}
       <PlaysSection plays={data?.plays} teams={teams} activeTab={activeTab} onTabChange={handleTabChange} />
       <PitchingDecisions players={players} />
       <BoxScore
