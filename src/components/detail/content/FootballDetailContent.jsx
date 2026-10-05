@@ -503,18 +503,6 @@ const FootballDetailContent = ({ data }) => {
     <>
       <LineScore scoring={data?.scoring} teams={teams} />
       <CurrentDriveVisual data={data} teams={teams} />
-      <div className="stats-tab-toggle">
-        <button
-          className={`stats-tab${statsTab === 'team' ? ' stats-tab--active' : ''}`}
-          onClick={() => setStatsTab('team')}
-        >Team Stats</button>
-        <button
-          className={`stats-tab${statsTab === 'players' ? ' stats-tab--active' : ''}`}
-          onClick={() => setStatsTab('players')}
-        >Players</button>
-      </div>
-      {statsTab === 'team'    && <TeamStats teams={teams} />}
-      {statsTab === 'players' && <PlayerStats players={data?.boxscore?.players} teams={teams} />}
       <div className="detail-tabs">
         <button
           className={`detail-tab${activeTab === 'scoring' ? ' detail-tab--active' : ''}`}
@@ -527,6 +515,19 @@ const FootballDetailContent = ({ data }) => {
       </div>
       {activeTab === 'scoring' && <ScoringPlays plays={data?.scoringPlays} />}
       {activeTab === 'drives' && <DrivesList drives={data?.drives} teams={teams} />}
+      <div className="stats-tab-toggle">
+        <button
+          className={`stats-tab${statsTab === 'team' ? ' stats-tab--active' : ''}`}
+          onClick={() => setStatsTab('team')}
+        >Team Stats</button>
+        <button
+          className={`stats-tab${statsTab === 'players' ? ' stats-tab--active' : ''}`}
+          onClick={() => setStatsTab('players')}
+        >Players</button>
+      </div>
+      {statsTab === 'team'    && <TeamStats teams={teams} />}
+      {statsTab === 'players' && <PlayerStats players={data?.boxscore?.players} teams={teams} />}
+      
     </>
   );
 };
