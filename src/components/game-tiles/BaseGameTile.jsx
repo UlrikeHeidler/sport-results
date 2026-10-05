@@ -142,6 +142,20 @@ const BaseGameTile = ({
       } : {}}>
         {game.league}
       </span>
+      {(game.seasonType?.type === 1 || game.seasonType?.slug === 'preseason') && (
+        <span className="season-phase-badge" style={{
+          borderColor: leagueColors.primary,
+          background: `${leagueColors.primary}22`,
+          color: leagueColors.primary,
+        }}>PRE-SEASON</span>
+      )}
+      {(game.seasonType?.type === 3 || game.seasonType?.slug === 'post-season') && (
+        <span className="season-phase-badge" style={{
+          borderColor: leagueColors.primary,
+          background: `${leagueColors.primary}22`,
+          color: leagueColors.primary,
+        }}>PLAYOFFS</span>
+      )}
       {!isGameFinal(game.status) && renderBroadcastInfo()}
       {onToggleDetailMode && (
         <button

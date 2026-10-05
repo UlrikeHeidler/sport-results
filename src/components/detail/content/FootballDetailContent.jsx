@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getDownSuffix } from '../../../utils/gameHelpers';
+import { LastPlay, resolveTeamLogo } from './LastPlay';
 import './DetailContent.css';
 
 /* Helpers */
@@ -494,13 +495,31 @@ function PlayerStats({ players, teams }) {
   );
 }
 
-const FootballDetailContent = ({ data }) => {
+const FootballDetailContent = ({ data, game }) => {
   const teams = data?.boxscore?.teams;
   const [activeTab, setActiveTab] = useState('scoring');
   const [statsTab, setStatsTab] = useState('team');
 
+  const detailState = data?.header?.competitions?.[0]?.status?.type?.state;
+  const isLive = detailState ? detailState === 'in' : (game?.status?.state === 'in');
+
+  const lastPlay = useMemo(() => {
+    // Try drives.previous first (most reliable for completed/in-progress)
+    const prevDrives = data?.drives?.previous ?? [];
+    const drivePlay = prevDrives.at(-1)?.plays?.at(-1) ?? null;
+    if (drivePlay?.text) return drivePlay;
+    // Fall back to last scoring play
+    return data?.scoringPlays?.at(-1) ?? null;
+  }, [data]);
+  const lastPlayLogo = resolveTeamLogo(lastPlay, game);
+  const periodLabel = (p) => p > 4 ? 'OT' : `Q${p}`;
+  const lastPlayTime = lastPlay
+    ? `${periodLabel(lastPlay.period?.number ?? 1)} ${lastPlay.clock?.displayValue ?? ''}`.trim()
+    : null;
+
   return (
     <>
+      {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlay?.text} />}
       <LineScore scoring={data?.scoring} teams={teams} />
       <CurrentDriveVisual data={data} teams={teams} />
       <div className="detail-tabs">

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { isGameOngoing, isGameFinal, STATUS_TYPES } from '../../../config/constants';
 import {
   BasketballCourt, PlayList, ScoringList,
   PERIOD_LABEL, getPlayTeamLogo, TeamLogo,
 } from './BasketballCourt';
+import { LastPlay, resolveTeamLogo } from './LastPlay';
 import './DetailContent.css';
 import './BasketballCourt.css';
 
@@ -257,8 +258,18 @@ const BasketballDetailContent = ({ data, game }) => {
     setActiveTab(tab);
   };
 
+  const lastPlay = useMemo(() =>
+    [...plays].reverse().find(p => p.text) ?? null,
+  [plays]);
+  const lastPlayLogo = resolveTeamLogo(lastPlay, game);
+  const lastPlayTime = lastPlay
+    ? `${PERIOD_LABEL(lastPlay.period?.number ?? 1)} ${lastPlay.clock?.displayValue ?? ''}`.trim()
+    : null;
+
   return (
     <>
+      {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlay?.text} />}
+
       <LineScore scoring={data?.scoring} teams={data?.boxscore?.teams} />
 
       <BasketballCourt plays={plays} isLive={isLive} game={game} />

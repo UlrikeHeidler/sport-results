@@ -215,6 +215,7 @@ const parseGamesData = (data, league) => {
       return {
         id: event.id,
         league: league.toUpperCase(),
+        seasonType: event.season ? { type: event.season.type, slug: event.season.slug } : null,
         status: normalizeStatus(competition?.status),
         broadcast: competition?.broadcast || null,
         homeTeam: {

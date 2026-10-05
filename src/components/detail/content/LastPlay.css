@@ -1,0 +1,56 @@
+.last-play {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 0.9rem;
+  background: var(--tile-bg-secondary, #f9fafb);
+  border: 1px solid var(--tile-border, #e5e7eb);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.last-play-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary, #6b7280);
+}
+
+.last-play-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.last-play-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.last-play-time {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.last-play-text {
+  font-size: 0.75rem;
+  color: var(--text-primary, #111827);
+  line-height: 1.45;
+  min-width: 0;
+  /* allow wrapping for multi-line play descriptions */
+}
+
+[data-theme="dark"] .last-play {
+  background: var(--tile-bg-secondary-dark, #1f2937);
+  border-color: var(--tile-border-dark, #374151);
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { LastPlay, resolveTeamLogo } from './LastPlay';
 import './DetailContent.css';
 
 const getEvents = (data) => data?.keyEvents ?? data?.plays ?? [];
@@ -149,12 +150,21 @@ function MatchStats({ teams }) {
   );
 }
 
-const SoccerDetailContent = ({ data }) => {
+const SoccerDetailContent = ({ data, game }) => {
   const events = getEvents(data);
   const teams  = data?.boxscore?.teams;
 
+  const detailState = data?.header?.competitions?.[0]?.status?.type?.state;
+  const isLive = detailState ? detailState === 'in' : (game?.status?.state === 'in');
+
+  const lastEvent = events.length ? events[events.length - 1] : null;
+  const lastPlayLogo = resolveTeamLogo(lastEvent, game);
+  const lastPlayTime = lastEvent?.clock?.displayValue ?? null;
+  const lastPlayText = lastEvent?.text ?? lastEvent?.shortText ?? null;
+
   return (
     <>
+      {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlayText} />}
       <KeyEvents events={events} teams={teams} />
       <MatchEvents commentary={data?.commentary} />
       <MatchStats teams={teams} />

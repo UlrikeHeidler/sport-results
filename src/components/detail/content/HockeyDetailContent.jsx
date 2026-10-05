@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { isGameOngoing, isGameFinal, STATUS_TYPES } from '../../../config/constants';
 import { HockeyRink, PlayList, classifyPlay, MARKER_CFG, PERIOD_LABEL, getPlayTeamLogo, TeamLogo } from './HockeyRink';
+import { LastPlay, resolveTeamLogo } from './LastPlay';
 import './DetailContent.css';
 import './HockeyTabs.css';
 
@@ -109,6 +110,14 @@ function Shots({ teams }) {
 const HockeyDetailContent = ({ data, game }) => {
   const plays = data?.plays ?? data?.gamepackageJSON?.plays ?? [];
 
+  const lastPlay = useMemo(() =>
+    [...plays].reverse().find(p => p.text) ?? null,
+  [plays]);
+  const lastPlayLogo = resolveTeamLogo(lastPlay, game);
+  const lastPlayTime = lastPlay
+    ? `${PERIOD_LABEL(lastPlay.period?.number ?? 1)} ${lastPlay.clock?.displayValue ?? ''}`.trim()
+    : null;
+
 
   // Use status from the fetched detail data when available — it's fresher than the tile's game.status
   // Prefer state ('pre'/'in'/'post') over name ('STATUS_IN_PROGRESS', 'STATUS_INTERMISSION', etc.)
@@ -146,6 +155,7 @@ const HockeyDetailContent = ({ data, game }) => {
 
   return (
     <>
+      {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlay?.text} />}
       <HockeyRink plays={plays} isLive={isLive} game={game} />
       <LineScore scoring={data?.scoringPlays} teams={data?.boxscore?.teams} />
       <Shots teams={data?.boxscore?.teams} />
