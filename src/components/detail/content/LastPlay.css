@@ -1,4 +1,4 @@
-.last-play {
+.detail-pane .last-play {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
