@@ -2,29 +2,36 @@ import React, { useEffect, useRef, useState } from 'react';
 import BaseGameTile from './BaseGameTile';
 import './GameTiles.basketball.css';
 
+// Module-level store: survives component unmount/remount (e.g. opening detail view)
+// Map<gameId, { entries: WinProbEntry[], lastPlayId: string|null }>
+const winProbStore = new Map();
+
 const BasketballGameTile = (props) => {
   const { game } = props;
 
-  // Win probability history state
-  const [winProbHistory, setWinProbHistory] = useState([]);
-  const lastPlayIdRef = useRef(null);
+  // Read initial history from the persistent store so remounts don't lose data
+  const [winProbHistory, setWinProbHistory] = useState(
+    () => winProbStore.get(game.id)?.entries ?? []
+  );
+  const lastPlayIdRef = useRef(winProbStore.get(game.id)?.lastPlayId ?? null);
 
   // Accumulate win probability history as the game progresses
   useEffect(() => {
     const prob = game?.situation?.lastPlay?.probability;
-    // console.log(game.id, 'BasketballGameTile win probability data:', game?.situation);
     const playId = game?.situation?.lastPlay?.id;
     if (!prob || !playId) return;
-    if (lastPlayIdRef.current === playId) return; // Don't add duplicate
+    if (lastPlayIdRef.current === playId) return;
     lastPlayIdRef.current = playId;
-    setWinProbHistory(prev => [
-      ...prev,
-      {
-        time: game?.situation?.time ?? null,
-        home: (prob?.homeWinPercentage != null) ? (prob.homeWinPercentage * 100) : null,
-        away: (prob?.awayWinPercentage != null) ? (prob.awayWinPercentage * 100) : null
-      }
-    ]);
+    const entry = {
+      time: game?.situation?.time ?? null,
+      home: (prob?.homeWinPercentage != null) ? (prob.homeWinPercentage * 100) : null,
+      away: (prob?.awayWinPercentage != null) ? (prob.awayWinPercentage * 100) : null
+    };
+    setWinProbHistory(prev => {
+      const next = [...prev, entry];
+      winProbStore.set(game.id, { entries: next, lastPlayId: playId });
+      return next;
+    });
   }, [game?.situation?.lastPlay?.id]);
 
   // Render SVG win probability graph
