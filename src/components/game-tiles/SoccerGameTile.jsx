@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import BaseGameTile from './BaseGameTile';
 import { useSoccerTimeline } from '../../hooks/useSoccerTimeline';
+import { SoccerTimeline } from '../shared/SoccerTimeline';
 import './GameTiles.soccer.css';
 import { isGameOngoing } from '../../services/gameUtils';
 
@@ -27,56 +28,15 @@ function cleanDescription(desc) {
     .trim();
 }
 
-// Helper to convert minute string to percentage of match duration (0-100)
-function getTimelinePosition(minuteStr, overTime) {
-  // Handles minute strings like "90'+3'", "45+2", "90", "12"
-  if (!minuteStr) return 0;
-  let min = 0;
-  let max = 90;
-  // Match patterns like 90'+3', 45+2, 90+3, etc.
-  const overtimeMatch = minuteStr.match(/^(\d+)[+'’]?(?:\+|’)?(\d+)?/);
-  if (overTime === 'overtime') {
-    const base = parseInt(overtimeMatch[1], 10);
-    const added = overtimeMatch[2] ? parseInt(overtimeMatch[2], 10) : 0;
-    min = base + added;
-    // Cap at 120 for extra time, else 90
-    max=120;
-
-  } else {
-    // fallback: try to parse as integer
-    const base = parseInt(minuteStr, 10);
-    min = isNaN(base) ? 0 : base;
-  }
-  let percent = Math.min(100, Math.round((min / max) * 100));
-  return percent;
-}
-
-
 const SoccerGameTile = (props) => {
   const { game, refreshInterval = 30 } = props;
   const timeline = useSoccerTimeline(game.league, game.id, refreshInterval);
-  const [activeEventIdx, setActiveEventIdx] = useState(null);
   const [activeScorerKey, setActiveScorerKey] = useState(null);
-
-  const handleEventClick = useCallback((idx, e) => {
-    e.stopPropagation();
-    setActiveScorerKey(null);
-    setActiveEventIdx(prev => prev === idx ? null : idx);
-  }, []);
 
   const handleScorerClick = useCallback((key, e) => {
     e.stopPropagation();
-    setActiveEventIdx(null);
     setActiveScorerKey(prev => prev === key ? null : key);
   }, []);
-
-  // Dismiss popups when clicking anywhere outside
-  useEffect(() => {
-    if (activeEventIdx === null) return;
-    const dismiss = () => setActiveEventIdx(null);
-    document.addEventListener('click', dismiss);
-    return () => document.removeEventListener('click', dismiss);
-  }, [activeEventIdx]);
 
   useEffect(() => {
     if (activeScorerKey === null) return;
@@ -87,87 +47,33 @@ const SoccerGameTile = (props) => {
 
   const overTime = game.status?.type?.includes("OVERTIME") ? 'overtime' : 'regular';
 
-  const renderTimelineEvent = (event, idx) => {
-    const isActive = activeEventIdx === idx;
-    const text = event.type.text.toLowerCase();
-    return (
-      <span
-        key={idx}
-        className={`timeline-event timeline-${text.replace(/\s/g, '-')}`.trim()}
-        style={{ left: `calc(${getTimelinePosition(event.minute, overTime)}% - 1em)` }}
-        onClick={(e) => handleEventClick(idx, e)}
-      >
-        {isActive && (
-          <div className="timeline-popup">
-            <strong>{event.minute}</strong> {event.description}
-          </div>
-        )}
-        {event.minute && <span className="timeline-minute">{event.minute}</span>}
-        {(text.includes('goal') || text.includes('scored')) && '⚽'}
-        {text.includes('yellow card') && '🟨'}
-        {text.includes('red card') && '🟥'}
-        {text.includes('substitution') && '🔄'}
-      </span>
-    );
-  };
-
   const renderAdditionalInfo = () => {
+    const { isInDetailMode } = props;
+
     // Goals and cards only — no substitutions in the scorer list
     const scorerEvents = timeline.filter(e => getEventIcon(e.type?.text ?? '') !== null);
     const homeScorers = scorerEvents.filter(e => e.team === game.homeTeam?.id);
     const awayScorers = scorerEvents.filter(e => e.team === game.awayTeam?.id);
 
+    const isFinished = !isGameOngoing(game.status);
+
+    // In detail mode: nothing to show once the game is over (key events panel covers it)
+    if (isInDetailMode && isFinished) return null;
+
     return (
       <div className="soccer-info">
         {/* Timeline — live games only */}
         {isGameOngoing(game.status) && (
-          <div className="soccer-timeline-outer">
-            <div className="soccer-timeline-content">
-              <div className="soccer-timeline-row soccer-timeline-home">
-                <div className="soccer-timeline-logos">
-                  {game.homeTeam?.logo && (
-                    <img
-                      src={game.homeTeam.logo}
-                      alt={game.homeTeam.name + ' logo'}
-                      className="soccer-timeline-logo home"
-                      width={16}
-                      height={16}
-                      loading="lazy"
-                      decoding="async"
-                      onError={e => { e.target.style.display = 'none'; }}
-                    />
-                  )}
-                </div>
-                {timeline && timeline.length > 0 && timeline.map((event, idx) =>
-                  event.team === game.homeTeam.id ? renderTimelineEvent(event, idx) : null
-                )}
-              </div>
-              <div className="soccer-timeline-line" />
-              <div className="soccer-timeline-row soccer-timeline-away">
-                <div className="soccer-timeline-logos">
-                  {game.awayTeam?.logo && (
-                    <img
-                      src={game.awayTeam.logo}
-                      alt={game.awayTeam.name + ' logo'}
-                      className="soccer-timeline-logo away"
-                      width={16}
-                      height={16}
-                      loading="lazy"
-                      decoding="async"
-                      onError={e => { e.target.style.display = 'none'; }}
-                    />
-                  )}
-                </div>
-                {timeline && timeline.length > 0 && timeline.map((event, idx) =>
-                  event.team === game.awayTeam.id ? renderTimelineEvent(event, idx) : null
-                )}
-              </div>
-            </div>
-          </div>
+          <SoccerTimeline
+            timeline={timeline}
+            homeTeam={game.homeTeam}
+            awayTeam={game.awayTeam}
+            overTime={overTime}
+          />
         )}
 
-        {/* Scorer list — shown for final games, aligned with team columns */}
-        {(homeScorers.length > 0 || awayScorers.length > 0) && (!isGameOngoing(game.status)) && (
+        {/* Scorer list — finished games, tile mode only */}
+        {(homeScorers.length > 0 || awayScorers.length > 0) && isFinished && !isInDetailMode && (
           <div className="soccer-scorers">
             <div className="scorer-col scorer-col--away">
               {awayScorers.map((e, i) => {

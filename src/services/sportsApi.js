@@ -210,7 +210,20 @@ const parseGamesData = (data, league) => {
 
       // Extract situation data
       const situation = competition?.situation || {};
-  
+
+      // Extract playoff series data
+      const seriesData = competition?.series || null;
+      let series = null;
+      if (seriesData) {
+        const homeSeriesComp = seriesData.competitors?.find(c => c.id === homeTeam.id);
+        const awaySeriesComp = seriesData.competitors?.find(c => c.id === awayTeam.id);
+        series = {
+          summary: seriesData.summary || null,
+          totalCompetitions: seriesData.totalCompetitions || null,
+          homeWins: homeSeriesComp?.wins ?? null,
+          awayWins: awaySeriesComp?.wins ?? null,
+        };
+      }
 
       return {
         id: event.id,
@@ -250,7 +263,8 @@ const parseGamesData = (data, league) => {
         })(),
         date: new Date(event.date),
         venue: competition?.venue?.fullName || 'TBD',
-        finishedAt: competition?.status?.type?.completed ? new Date() : null
+        finishedAt: competition?.status?.type?.completed ? new Date() : null,
+        series
       };
     } catch (error) {
       console.warn(`Failed to parse game data for event ${event?.id || 'unknown'}:`, {

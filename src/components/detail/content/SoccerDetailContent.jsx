@@ -1,5 +1,6 @@
 import React from 'react';
 import { LastPlay, resolveTeamLogo } from './LastPlay';
+import { SoccerTimeline } from '../../shared/SoccerTimeline';
 import './DetailContent.css';
 
 const getEvents = (data) => data?.keyEvents ?? data?.plays ?? [];
@@ -30,7 +31,17 @@ function eventPlayer(e) {
   return p0 ?? e.shortText ?? '';
 }
 
-// Two-column timeline: away on left, home on right, icon+minute in center
+function KeyEventEntry({ e }) {
+  return (
+    <div className="ke-entry">
+      <span className="ke-icon">{eventIcon(e)}</span>
+      <span className="ke-min">{e.clock.displayValue}</span>
+      <span className="ke-player">{eventPlayer(e)}</span>
+    </div>
+  );
+}
+
+// Two independent columns: away events left, home events right
 function KeyEvents({ events, teams }) {
   const away = teams?.find(t => t.homeAway === 'away')?.team;
   const home = teams?.find(t => t.homeAway === 'home')?.team;
@@ -40,29 +51,21 @@ function KeyEvents({ events, teams }) {
   );
   if (!filtered.length) return null;
 
+  const awayEvents = filtered.filter(e => e.team?.id === away?.id);
+  const homeEvents = filtered.filter(e => e.team?.id === home?.id);
+
   return (
     <>
       <div className="detail-section-title">Key Events</div>
-      <div className="key-events">
-        {filtered.map((e, i) => {
-          const isAway = e.team?.id === away?.id;
-          const isHome = e.team?.id === home?.id;
-          const player = eventPlayer(e);
-          return (
-            <div key={i} className="ke-row">
-              <span className={`ke-side ke-side--away${isAway ? ' ke-side--active' : ''}`}>
-                {isAway ? player : ''}
-              </span>
-              <span className="ke-mid">
-                <span className="ke-icon">{eventIcon(e)}</span>
-                <span className="ke-min">{e.clock.displayValue}</span>
-              </span>
-              <span className={`ke-side ke-side--home${isHome ? ' ke-side--active' : ''}`}>
-                {isHome ? player : ''}
-              </span>
-            </div>
-          );
-        })}
+      <div className="key-events-cols">
+        <div className="ke-col ke-col--away">
+          <div className="ke-col-header">{away?.abbreviation ?? 'Away'}</div>
+          {awayEvents.map((e, i) => <KeyEventEntry key={i} e={e} />)}
+        </div>
+        <div className="ke-col ke-col--home">
+          <div className="ke-col-header">{home?.abbreviation ?? 'Home'}</div>
+          {homeEvents.map((e, i) => <KeyEventEntry key={i} e={e} />)}
+        </div>
       </div>
     </>
   );
@@ -150,21 +153,50 @@ function MatchStats({ teams }) {
   );
 }
 
+const TIMELINE_EVENT_TYPES = new Set(['goal', 'yellow card', 'red card', 'substitution']);
+
+function toTimelineEvents(keyEvents) {
+  if (!keyEvents?.length) return [];
+  return keyEvents
+    .filter(e => {
+      const t = (e.type?.text ?? '').toLowerCase();
+      return TIMELINE_EVENT_TYPES.has(t) ||
+        t.includes('goal') || t.includes('yellow') || t.includes('red');
+    })
+    .map(e => ({
+      minute: e.clock?.displayValue || e.period?.displayValue || '',
+      type: e.type,
+      team: e.team?.id || '',
+      description: e.text || '',
+    }));
+}
+
 const SoccerDetailContent = ({ data, game }) => {
   const events = getEvents(data);
   const teams  = data?.boxscore?.teams;
 
   const detailState = data?.header?.competitions?.[0]?.status?.type?.state;
   const isLive = detailState ? detailState === 'in' : (game?.status?.state === 'in');
+  const overTime = game?.status?.type?.includes('OVERTIME') ? 'overtime' : 'regular';
 
   const lastEvent = events.length ? events[events.length - 1] : null;
   const lastPlayLogo = resolveTeamLogo(lastEvent, game);
   const lastPlayTime = lastEvent?.clock?.displayValue ?? null;
   const lastPlayText = lastEvent?.text ?? lastEvent?.shortText ?? null;
 
+  const timeline = toTimelineEvents(data?.keyEvents);
+
   return (
     <>
       {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlayText} />}
+      {isLive && (
+        <SoccerTimeline
+          timeline={timeline}
+          homeTeam={game?.homeTeam}
+          awayTeam={game?.awayTeam}
+          overTime={overTime}
+        />
+      )}
       <KeyEvents events={events} teams={teams} />
       <MatchEvents commentary={data?.commentary} />
       <MatchStats teams={teams} />

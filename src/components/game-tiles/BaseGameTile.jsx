@@ -156,6 +156,15 @@ const BaseGameTile = ({
           color: leagueColors.primary,
         }}>PLAYOFFS</span>
       )}
+      {game.series?.summary && (
+        <span className="season-phase-badge" style={{
+          borderColor: leagueColors.primary,
+          background: `${leagueColors.primary}22`,
+          color: leagueColors.primary,
+          textTransform: 'none',
+          letterSpacing: 0,
+        }}>{game.series.summary}</span>
+      )}
       {!isGameFinal(game.status) && renderBroadcastInfo()}
       {onToggleDetailMode && (
         <button
