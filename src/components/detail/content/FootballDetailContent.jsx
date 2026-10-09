@@ -209,18 +209,20 @@ function FieldDriveVisual({ drive, teamLookup, teams, game }) {
   const DRAW = 0.45;
   const toX = p => EZ + Math.max(0, Math.min(100, p));
 
-  // Home team scores in the away EZ (left); away team scores in the home EZ (right).
+  // Away team scores in the home EZ (right); home team scores in the away EZ (left).
   // yardsToEndzone always counts toward the SCORING end zone, so the mapping differs by team.
-  const isHomeDrive = homeTeam?.id != null && homeTeam.id === drive.team?.id;
+  const isHomeDrive = homeTeam?.id != null && String(homeTeam.id) === String(drive.team?.id);
   // Convert ESPN yardsToEndzone → SVG position (0=away GL, 100=home GL)
+  // Away scores in home EZ (right=100): yte shrinks as they advance → pos = 100 - yte
+  // Home scores in away EZ (left=0):    yte shrinks as they advance → pos = yte
   const yteToPos = yte => isHomeDrive ? yte : 100 - yte;
 
   // Convert yardLine + side-of-field team → absolute SVG position (0=away GL, 100=home GL).
   // This is unambiguous for turnover TDs where yardsToEndzone=0 could mean either end zone.
   const absPos = (yardLine, teamId) => {
     if (yardLine == null || teamId == null) return null;
-    if (teamId === awayTeam?.id) return yardLine;          // away side: 0–50 from left
-    if (teamId === homeTeam?.id) return 100 - yardLine;    // home side: 50–100 from left
+    if (String(teamId) === String(awayTeam?.id)) return yardLine;       // away side: 0–50 from left
+    if (String(teamId) === String(homeTeam?.id)) return 100 - yardLine; // home side: 50–100 from left
     return null;
   };
 
