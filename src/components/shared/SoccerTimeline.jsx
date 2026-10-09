@@ -27,8 +27,6 @@ export function SoccerTimeline({ timeline, homeTeam, awayTeam, overTime = 'regul
     return () => document.removeEventListener('click', dismiss);
   }, [activeEventIdx]);
 
-  if (!timeline?.length) return null;
-
   const renderEvent = (event, idx) => {
     const isActive = activeEventIdx === idx;
     const text = (event.type?.text ?? '').toLowerCase();
