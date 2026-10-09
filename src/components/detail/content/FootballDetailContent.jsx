@@ -169,25 +169,39 @@ function parseStartPos(drive) {
 }
 
 function classifyDrivePlay(play) {
-  const t = ((play.type?.text ?? '') + ' ' + (play.text ?? '')).toLowerCase();
-  if (/penalty|flag|illegal|false start|holding|offside/i.test(t)) return 'penalty';
+  // Use the structured play type as the primary signal so that "PENALTY" mentioned in
+  // the play text (e.g. a return that had a flag called) doesn't override the real action.
+  const typeText = (play.type?.text ?? '').toLowerCase();
+  if (/kickoff/i.test(typeText))                                    return 'kickoff';
+  if (/punt/i.test(typeText))                                       return 'kick';
+  if (/field goal/i.test(typeText))                                 return 'fg';
+  if (/sack/i.test(typeText))                                       return 'rush';
+  if (/pass|completion|incompletion|interception/i.test(typeText))  return 'pass';
+  if (/rush|run/i.test(typeText))                                   return 'rush';
+  if (/penalty/i.test(typeText))                                    return 'penalty';
+  // Fallback: text-based (penalty keyword excluded — handled via penaltyInfo)
+  const t = (play.text ?? '').toLowerCase();
   if (/kickoff|kick off/i.test(t)) return 'kickoff';
-  if (/punt/i.test(t)) return 'kick';
-  if (/field goal/i.test(t)) return 'fg';
-  if (/sack/i.test(t)) return 'rush'; // sack = negative rush, drawn as red arrow
+  if (/punt/i.test(t))             return 'kick';
+  if (/field goal/i.test(t))       return 'fg';
+  if (/sack/i.test(t))             return 'rush';
   if (/pass|spike|incomplete/i.test(t)) return 'pass';
   return 'rush';
 }
 
-function FieldDriveVisual({ drive, teamLookup, teams }) {
-  // All plays share a single horizontal strip (80px total height).
-  // Past plays → thin colored line. Current/last play → detailed graphic.
-  // 12 equal sections: away EZ (0–10) + 10 yard bands (10–110) + home EZ (110–120)
-  // Field positions 0–100 yards map to SVG x 10–110 via toX.
+function FieldDriveVisual({ drive, teamLookup, teams, game }) {
+  // SVG coordinate space: 0 0 120 80
+  // x=0..10 = away EZ, x=10..110 = 100-yard field, x=110..120 = home EZ
+  // All positions are normalised to "SVG yards from the away goal line" (0=away GL, 100=home GL).
+  // Away team drives left→right (position increases). Home team drives right→left (position decreases).
   const EZ = 10, W = 120, H = 80, MID = H / 2;
 
-  const awayTeam = teams?.find(t => t.homeAway === 'away')?.team;
-  const homeTeam = teams?.find(t => t.homeAway === 'home')?.team;
+  // Use game prop as authoritative home/away source so that mismatched boxscore
+  // homeAway labels can't invert drive direction.
+  const allBoxTeams = teams?.map(t => t.team).filter(Boolean) ?? [];
+  const findById = (id) => allBoxTeams.find(t => t.id != null && String(t.id) === String(id));
+  const homeTeam = findById(game?.homeTeam?.id) ?? teams?.find(t => t.homeAway === 'home')?.team;
+  const awayTeam = findById(game?.awayTeam?.id) ?? teams?.find(t => t.homeAway === 'away')?.team;
   const awayColor = awayTeam?.color ? `#${awayTeam.color}` : '#1e293b';
   const homeColor = homeTeam?.color ? `#${homeTeam.color}` : '#1e293b';
   const awayLogo  = awayTeam?.logo;
@@ -195,16 +209,90 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
   const DRAW = 0.45;
   const toX = p => EZ + Math.max(0, Math.min(100, p));
 
-  const startPos = parseStartPos(drive);
-  const plays = drive.plays ?? [];
+  // Home team scores in the away EZ (left); away team scores in the home EZ (right).
+  // yardsToEndzone always counts toward the SCORING end zone, so the mapping differs by team.
+  const isHomeDrive = homeTeam?.id != null && homeTeam.id === drive.team?.id;
+  // Convert ESPN yardsToEndzone → SVG position (0=away GL, 100=home GL)
+  const yteToPos = yte => isHomeDrive ? yte : 100 - yte;
 
+  // Convert yardLine + side-of-field team → absolute SVG position (0=away GL, 100=home GL).
+  // This is unambiguous for turnover TDs where yardsToEndzone=0 could mean either end zone.
+  const absPos = (yardLine, teamId) => {
+    if (yardLine == null || teamId == null) return null;
+    if (teamId === awayTeam?.id) return yardLine;          // away side: 0–50 from left
+    if (teamId === homeTeam?.id) return 100 - yardLine;    // home side: 50–100 from left
+    return null;
+  };
+
+  const startPos = (() => {
+    const a = absPos(drive.start?.yardLine, drive.start?.team?.id);
+    if (a != null) return a;
+    if (drive.start?.yardsToEndzone != null) return yteToPos(drive.start.yardsToEndzone);
+    // Fallback: parse "ABBR yards" text
+    const text = (drive.start?.text ?? '').trim();
+    const abbr = (drive.team?.abbreviation ?? '').toUpperCase();
+    const m = text.match(/^([A-Za-z]+)\s+(\d+)$/);
+    if (m) {
+      const yard = parseInt(m[2]);
+      const ownSide = m[1].toUpperCase() === abbr;
+      return isHomeDrive ? (ownSide ? 100 - yard : yard) : (ownSide ? yard : 100 - yard);
+    }
+    const nm = text.match(/(\d+)/);
+    const pos = nm ? Math.min(parseInt(nm[1]), 100) : 20;
+    return isHomeDrive ? 100 - pos : pos;
+  })();
+
+  const plays = drive.plays ?? [];
   let curPos = startPos;
   const segments = plays.map((play, idx) => {
-    const sp = curPos;
-    const yards = play.statYardage ?? 0;
-    const ep = Math.max(0, Math.min(100, sp + yards));
-    curPos = ep;
-    return { play, type: classifyDrivePlay(play), sp, ep, idx };
+    let sp, ep, yardsGained;
+    const spAbs = absPos(play.start?.yardLine, play.start?.team?.id);
+    const epAbs = absPos(play.end?.yardLine,   play.end?.team?.id);
+    if (spAbs != null && epAbs != null) {
+      // Best: yardLine + team-side gives unambiguous absolute position
+      sp = spAbs;
+      ep = epAbs;
+      yardsGained = isHomeDrive ? sp - ep : ep - sp;
+    } else if (play.start?.yardsToEndzone != null && play.end?.yardsToEndzone != null) {
+      // Good: yardsToEndzone (correct for normal plays; ambiguous only for turnover TDs)
+      sp = yteToPos(play.start.yardsToEndzone);
+      ep = yteToPos(play.end.yardsToEndzone);
+      yardsGained = play.start.yardsToEndzone - play.end.yardsToEndzone;
+    } else {
+      // Fallback: cumulative statYardage
+      sp = curPos;
+      yardsGained = play.statYardage ?? 0;
+      ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -yardsGained : yardsGained)));
+    }
+    const type = classifyDrivePlay(play);
+    const actualEp = ep; // final position after any penalty enforcement
+
+    // Detect an inline penalty (a flag called during a return/rush/pass).
+    // The penalty yards are extracted from text: "PENALTY … 10 yards from …"
+    // Works for both drive directions: penaltyFrom is calculated by walking back
+    // penaltyYards from the final position in the backward direction for that team.
+    const penaltyMatch = /PENALTY\b.*?(\d+)\s*yards?\s+from\b/i.exec(play.text ?? '');
+    const inlinePenaltyYards = penaltyMatch && type !== 'penalty' ? parseInt(penaltyMatch[1]) : 0;
+    let penaltyInfo = null;
+    if (inlinePenaltyYards > 0) {
+      // Recalculate the natural end of the action using statYardage (pre-penalty yards)
+      const actionYards = Math.abs(play.statYardage ?? 0);
+      if (actionYards > 0) {
+        ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -actionYards : actionYards)));
+        yardsGained = actionYards; // positive — the action itself was a gain
+      }
+      // Penalty enforcement: the ball moved backward from penaltyFrom → actualEp
+      // penaltyFrom is penaltyYards ahead (in drive direction) of the final spot
+      penaltyInfo = {
+        from: Math.max(0, Math.min(100, isHomeDrive
+          ? actualEp - inlinePenaltyYards   // home drives right→left; penalty reverses leftward
+          : actualEp + inlinePenaltyYards)), // away drives left→right; penalty reverses rightward
+        to: actualEp,
+      };
+    }
+
+    curPos = actualEp;
+    return { play, type, sp, ep, yardsGained, penaltyInfo, idx };
   });
 
   return (
@@ -233,25 +321,32 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
         stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2,1.5" />
 
       {/* ── Past plays — thin lines with purple separators ── */}
-      {segments.slice(0, -1).map(({ sp, ep, idx }) => {
+      {segments.slice(0, -1).map(({ sp, ep, yardsGained, penaltyInfo, idx }) => {
         const x1 = toX(sp), x2 = toX(ep);
-        const gain = ep >= sp;
         return (
           <g key={`past-${idx}`}>
             <line x1={x1} y1={MID - 5} x2={x1} y2={MID + 5} stroke="#7c3aed" strokeWidth="0.8" />
             <line x1={x1} y1={MID} x2={x2} y2={MID}
-              stroke={gain ? 'rgba(255,255,255,0.8)' : '#ef4444'} strokeWidth="10" />
+              stroke={yardsGained >= 0 ? 'rgba(255,255,255,0.8)' : '#ef4444'} strokeWidth="10" />
+            {penaltyInfo && (
+              <line x1={toX(penaltyInfo.from)} y1={MID} x2={toX(penaltyInfo.to)} y2={MID}
+                stroke="#ef4444" strokeWidth="10" strokeDasharray="4,3" />
+            )}
           </g>
         );
       })}
 
       {/* ── Current play — simple colored line with arrowhead ── */}
       {segments.length > 0 && (() => {
-        const { type, sp, ep } = segments[segments.length - 1];
+        const { type, sp, ep, yardsGained, penaltyInfo } = segments[segments.length - 1];
         const x1 = toX(sp), x2 = toX(ep);
-        const gain = ep >= sp;
-        const col = type === 'penalty' ? '#ef4444' : gain ? 'rgba(255,255,255,0.9)' : '#f87171';
+        const col = type === 'penalty' ? '#ef4444' : yardsGained >= 0 ? 'rgba(255,255,255,0.9)' : '#f87171';
         const separator = <line x1={x1} y1={MID - 5} x2={x1} y2={MID + 5} stroke="#7c3aed" strokeWidth="0.8" />;
+        const penaltyOverlay = penaltyInfo && (
+          <line x1={toX(penaltyInfo.from)} y1={MID} x2={toX(penaltyInfo.to)} y2={MID}
+            stroke="#ef4444" strokeWidth="10" strokeDasharray="4,3"
+            style={{ opacity: 0, animation: `df-fade .2s ${DRAW}s ease-out both` }} />
+        );
 
         if (type === 'penalty') {
           return (
@@ -260,6 +355,7 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
               <line x1={x1} y1={MID} x2={x2} y2={MID}
                 stroke={col} strokeWidth="10" strokeDasharray="4,3"
                 style={{ opacity: 0, animation: 'df-fade .2s ease-out both' }} />
+              {penaltyOverlay}
             </g>
           );
         }
@@ -270,6 +366,7 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
               {separator}
               <circle cx={x1} cy={MID} r="2" fill={col}
                 style={{ opacity: 0, animation: 'df-fade .1s both' }} />
+              {penaltyOverlay}
             </g>
           );
         }
@@ -280,6 +377,7 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
             <line x1={x1} y1={MID} x2={x2} y2={MID}
               stroke={col} strokeWidth="10"
               style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: `df-draw ${DRAW}s ease-out both` }} />
+            {penaltyOverlay}
           </g>
         );
       })()}
@@ -302,7 +400,7 @@ function FieldDriveVisual({ drive, teamLookup, teams }) {
   );
 }
 
-function CurrentDriveVisual({ data, teams }) {
+function CurrentDriveVisual({ data, teams, game }) {
   const drive = data?.drives?.current ?? null;
   if (!drive?.plays?.length) return null;
 
@@ -336,7 +434,7 @@ function CurrentDriveVisual({ data, teams }) {
         </div>
         {downDistText && <span className="current-drive-situation">{downDistText}</span>}
       </div>
-      <FieldDriveVisual drive={drive} teamLookup={teamLookup} teams={teams} />
+      <FieldDriveVisual drive={drive} teamLookup={teamLookup} teams={teams} game={game} />
       <div className="drive-legend">
         <span className="drive-legend-item"><span className="dl dl-rush" />Rush</span>
         <span className="drive-legend-item"><span className="dl dl-sack" />Sack</span>
@@ -521,7 +619,7 @@ const FootballDetailContent = ({ data, game }) => {
     <>
       {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlay?.text} />}
       <LineScore scoring={data?.scoring} teams={teams} />
-      <CurrentDriveVisual data={data} teams={teams} />
+      <CurrentDriveVisual data={data} teams={teams} game={game} />
       <div className="detail-tabs">
         <button
           className={`detail-tab${activeTab === 'scoring' ? ' detail-tab--active' : ''}`}

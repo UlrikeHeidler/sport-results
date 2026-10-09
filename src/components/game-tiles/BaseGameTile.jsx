@@ -149,7 +149,7 @@ const BaseGameTile = ({
           color: leagueColors.primary,
         }}>PRE-SEASON</span>
       )}
-      {(game.seasonType?.type === 3 || game.seasonType?.slug === 'post-season') && (
+      {(game.seasonType?.type === 3 || game.seasonType?.slug === 'playoffs' || game.seasonType?.slug === 'post-season') && (
         <span className="season-phase-badge" style={{
           borderColor: leagueColors.primary,
           background: `${leagueColors.primary}22`,

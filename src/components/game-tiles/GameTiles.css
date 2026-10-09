@@ -84,6 +84,9 @@
   .team-name {
     display: none;
   }
+  .team-record {
+    display: none;
+  }
   .batter-pitcher-info {
     flex: 0 0 45%;
     max-width: 45%;

@@ -184,6 +184,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  // Records fetched via detail pane, keyed by gameKey, used to enrich main-tile display
+  const [recordsOverlay, setRecordsOverlay] = useState({});
+
+  const handleRecordsUpdate = useCallback((gameKey, homeRecord, awayRecord) => {
+    setRecordsOverlay(prev => ({ ...prev, [gameKey]: { homeRecord, awayRecord } }));
+  }, []);
 
   // Bulk-replace the selected leagues array (used by LeagueSelector sport-group toggle)
   const handleSelectLeagues = useCallback((newLeagues) => {
@@ -450,10 +456,16 @@ function App() {
                       >
                         {games.map((game, index) => {
                           const gameKey = `${game.league}-${game.id}`;
+                          const overlay = recordsOverlay[gameKey];
+                          const enrichedGame = overlay ? {
+                            ...game,
+                            homeTeam: game.homeTeam ? { ...game.homeTeam, record: game.homeTeam.record ?? overlay.homeRecord } : game.homeTeam,
+                            awayTeam: game.awayTeam ? { ...game.awayTeam, record: game.awayTeam.record ?? overlay.awayRecord } : game.awayTeam,
+                          } : game;
                           return (
                             <GameTile
                               key={gameKey}
-                              game={{ ...game, refreshInterval: settings.refreshInterval }}
+                              game={{ ...enrichedGame, refreshInterval: settings.refreshInterval }}
                               index={index}
                               colorCoding={settings.colorCoding}
                               isDragDisabled={false}
@@ -489,6 +501,7 @@ function App() {
                       onTogglePin={() => togglePin(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
                       onClose={() => toggleDetailMode(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
                       refreshInterval={settings.refreshInterval}
+                      onRecordsUpdate={(h, a) => handleRecordsUpdate(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`, h, a)}
                     />
                   </div>
 
@@ -503,6 +516,7 @@ function App() {
                         onTogglePin={() => togglePin(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
                         onClose={() => toggleDetailMode(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
                         refreshInterval={settings.refreshInterval}
+                        onRecordsUpdate={(h, a) => handleRecordsUpdate(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`, h, a)}
                       />
                     ) : (
                       <div className="split-grid-pane">

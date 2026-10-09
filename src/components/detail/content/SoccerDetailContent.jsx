@@ -12,6 +12,14 @@ const KEY_EVENT_TYPES = new Set([
   'substitution',
 ]);
 
+function isVarCancelled(e) {
+  const type = (e.type?.type ?? '').toLowerCase();
+  if (type.includes('var') || type.includes('disallowed') || type.includes('cancelled')) return true;
+  if (e.cancelled === true || e.disallowed === true) return true;
+  const text = ((e.text ?? '') + ' ' + (e.shortText ?? '')).toLowerCase();
+  return text.includes('var') || text.includes('ruled out') || text.includes('disallowed') || text.includes('goal cancelled');
+}
+
 function eventIcon(e) {
   const t = e.type?.type ?? '';
   if (t.startsWith('goal') || t === 'penalty---scored') return '⚽';
@@ -32,9 +40,10 @@ function eventPlayer(e) {
 }
 
 function KeyEventEntry({ e }) {
+  const varCancelled = isVarCancelled(e);
   return (
     <div className="ke-entry">
-      <span className="ke-icon">{eventIcon(e)}</span>
+      <span className="ke-icon" style={varCancelled ? { opacity: 0.2 } : undefined}>{eventIcon(e)}</span>
       <span className="ke-min">{e.clock.displayValue}</span>
       <span className="ke-player">{eventPlayer(e)}</span>
     </div>
@@ -168,6 +177,7 @@ function toTimelineEvents(keyEvents) {
       type: e.type,
       team: e.team?.id || '',
       description: e.text || '',
+      varCancelled: isVarCancelled(e),
     }));
 }
 

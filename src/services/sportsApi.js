@@ -197,6 +197,12 @@ const parseGamesData = (data, league) => {
       const homeTeam = competitors.find(comp => comp.homeAway === 'home');
       const awayTeam = competitors.find(comp => comp.homeAway === 'away');
 
+      const getRecord = (competitor) => {
+        const recs = competitor.records ?? competitor.record;
+        if (!Array.isArray(recs) || !recs.length) return null;
+        return (recs.find(r => r.type === 'total') ?? recs.find(r => r.type === 'overall') ?? recs[0])?.summary ?? null;
+      };
+
       if (!homeTeam || !awayTeam) {
         console.warn(`Missing team data for event ${event.id}:`, {
           eventId: event.id,
@@ -241,7 +247,8 @@ const parseGamesData = (data, league) => {
           winner: homeTeam.winner ?? false,
           shootoutScore: homeTeam.shootoutScore ?? null,
           hits: homeTeam.hits ?? null,
-          errors: homeTeam.errors ?? null
+          errors: homeTeam.errors ?? null,
+          record: getRecord(homeTeam)
         },
         awayTeam: {
           id: awayTeam.id,
@@ -253,7 +260,8 @@ const parseGamesData = (data, league) => {
           winner: awayTeam.winner ?? false,
           shootoutScore: awayTeam.shootoutScore ?? null,
           hits: awayTeam.hits ?? null,
-          errors: awayTeam.errors ?? null
+          errors: awayTeam.errors ?? null,
+          record: getRecord(awayTeam)
         },
         situation: normalizeSituation(league, situation, competition, homeTeam, awayTeam),
         linescores: (() => {

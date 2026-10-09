@@ -117,6 +117,9 @@ export const PossessionIndicator = ({ team, game, isHome }) => {
  */
 export const TeamName = ({ team, game, isHome, showForm = true, showPossession = true }) => {
   const hasPossession = showPossession && game && isFootballGame(game);
+  const isPreseason = game?.seasonType?.type === 1 || game?.seasonType?.slug === 'preseason';
+  const isPlayoffs = game?.seasonType?.type === 3 || game?.seasonType?.slug === 'playoffs' || game?.seasonType?.slug === 'post-season';
+  const showRecord = !isPreseason && !isPlayoffs;
 
   return (
     <div className={`team-details${isHome ? ' home' : ''}`}>
@@ -126,7 +129,7 @@ export const TeamName = ({ team, game, isHome, showForm = true, showPossession =
         {showPossession && <PossessionIndicator team={team} game={game} isHome={isHome} />}
         <span className="tooltip">{team?.name}</span>
       </div>
-      {team?.record && <span className="team-record">({team.record})</span>}
+      {showRecord && team?.record && <span className="team-record">{team.record}</span>}
     </div>
   );
 };

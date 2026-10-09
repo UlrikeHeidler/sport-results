@@ -32,6 +32,8 @@ export function SoccerTimeline({ timeline, homeTeam, awayTeam, overTime = 'regul
   const renderEvent = (event, idx) => {
     const isActive = activeEventIdx === idx;
     const text = (event.type?.text ?? '').toLowerCase();
+    const isGoal = text.includes('goal') || text.includes('scored');
+    const iconStyle = (isGoal && event.varCancelled) ? { opacity: 0.2 } : undefined;
     return (
       <span
         key={idx}
@@ -45,7 +47,7 @@ export function SoccerTimeline({ timeline, homeTeam, awayTeam, overTime = 'regul
           </div>
         )}
         {event.minute && <span className="timeline-minute">{event.minute}</span>}
-        {(text.includes('goal') || text.includes('scored')) && '⚽'}
+        {isGoal && <span style={iconStyle}>⚽</span>}
         {text.includes('yellow card') && '🟨'}
         {text.includes('red card') && '🟥'}
         {text.includes('substitution') && '🔄'}

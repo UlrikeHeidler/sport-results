@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import GameTile from '../game-tiles/GameTileFactory';
 import { useGameDetail } from '../../hooks/useGameDetail';
 import { isGameOngoing } from '../../config/constants';
@@ -50,6 +50,7 @@ const DetailPane = ({
   onTogglePin,
   onClose,
   refreshInterval = 30,
+  onRecordsUpdate,
 }) => {
   // For baseball: re-fetch whenever the at-bat situation changes
   const refreshKey = useMemo(() => {
@@ -63,11 +64,21 @@ const DetailPane = ({
   const leagueLabel = (game.league || '').toUpperCase();
 
   const competitors = data?.header?.competitions?.[0]?.competitors ?? [];
+  const homeRecord = competitors.length ? getOverallRecord(competitors, 'home') : null;
+  const awayRecord = competitors.length ? getOverallRecord(competitors, 'away') : null;
   const gameWithRecords = competitors.length ? {
     ...game,
-    homeTeam: { ...game.homeTeam, record: getOverallRecord(competitors, 'home') },
-    awayTeam: { ...game.awayTeam, record: getOverallRecord(competitors, 'away') },
+    homeTeam: { ...game.homeTeam, record: homeRecord },
+    awayTeam: { ...game.awayTeam, record: awayRecord },
   } : game;
+
+  const reportedRef = useRef(false);
+  useEffect(() => {
+    if (onRecordsUpdate && homeRecord && awayRecord && !reportedRef.current) {
+      reportedRef.current = true;
+      onRecordsUpdate(homeRecord, awayRecord);
+    }
+  }, [homeRecord, awayRecord, onRecordsUpdate]);
 
   return (
     <div className="detail-pane">

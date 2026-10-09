@@ -15,9 +15,9 @@
 
 .team-details {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.35rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
   min-width: 0;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .team-details.home {
-  flex-direction: row-reverse;
+  align-items: flex-end;
   text-align: right;
 }
 
