@@ -199,7 +199,7 @@ const SoccerDetailContent = ({ data, game }) => {
   return (
     <>
       {isLive && <LastPlay logo={lastPlayLogo} time={lastPlayTime} text={lastPlayText} />}
-      {isLive && (
+      {!isLive && (
         <SoccerTimeline
           timeline={timeline}
           homeTeam={game?.homeTeam}
