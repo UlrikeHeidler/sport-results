@@ -54,11 +54,6 @@
   font-size: 0.9rem;
 }
 
-.team-name.has-possession {
-  color: var(--possession-color, #2563eb);
-  font-weight: 700;
-}
-
 .team-name .abbrev {
   font-weight: inherit;
   white-space: nowrap;
