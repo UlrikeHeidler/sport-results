@@ -85,31 +85,28 @@ function ShotMap({ commentary, teams }) { ... }
 */
 
 function MatchEvents({ commentary }) {
-  if (!commentary?.length) return null;
+  if (!commentary?.length) return <div className="detail-empty">Commentary unavailable</div>;
   const entries = [...commentary]
     .filter(c => c.text)
     .reverse();
-  if (!entries.length) return null;
+  if (!entries.length) return <div className="detail-empty">Commentary unavailable</div>;
 
   return (
-    <>
-      <div className="detail-section-title">Commentary</div>
-      <div className="live-ticker">
-        {entries.map((c, i) => (
-          <div key={i} className="ticker-entry">
-            <span className="ticker-time">{c.time?.displayValue ?? ''}</span>
-            <span className="ticker-text">{c.text}</span>
-          </div>
-        ))}
-      </div>
-    </>
+    <div className="live-ticker">
+      {entries.map((c, i) => (
+        <div key={i} className="ticker-entry">
+          <span className="ticker-time">{c.time?.displayValue ?? ''}</span>
+          <span className="ticker-text">{c.text}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
 function MatchStats({ teams }) {
   const away = teams?.find(t => t.homeAway === 'away');
   const home = teams?.find(t => t.homeAway === 'home');
-  if (!away || !home) return null;
+  if (!away || !home) return <div className="detail-empty">Match stats unavailable</div>;
 
   const statKeys = [
     { name: 'possessionPct',  label: 'Possession %' },
@@ -133,32 +130,29 @@ function MatchStats({ teams }) {
     return { label, a: a ?? '—', h: h ?? '—', aPct: (an / total) * 100, hPct: (hn / total) * 100 };
   }).filter(Boolean);
 
-  if (!rows.length) return null;
+  if (!rows.length) return <div className="detail-empty">Match stats unavailable</div>;
 
   return (
-    <>
-      <div className="detail-section-title">Match Stats</div>
-      <div className="team-stats">
-        <div className="stat-row">
-          <span className="stat-row-away">{away.team?.abbreviation}</span>
-          <span className="stat-row-label"></span>
-          <span className="stat-row-home">{home.team?.abbreviation}</span>
-        </div>
-        {rows.map(r => (
-          <React.Fragment key={r.label}>
-            <div className="stat-row">
-              <span className="stat-row-away">{r.a}</span>
-              <span className="stat-row-label">{r.label}</span>
-              <span className="stat-row-home">{r.h}</span>
-            </div>
-            <div className="stat-bar-wrap">
-              <div className="stat-bar-away" style={{ width: `${r.aPct}%` }} />
-              <div className="stat-bar-home" style={{ width: `${r.hPct}%` }} />
-            </div>
-          </React.Fragment>
-        ))}
+    <div className="team-stats">
+      <div className="stat-row">
+        <span className="stat-row-away">{away.team?.abbreviation}</span>
+        <span className="stat-row-label"></span>
+        <span className="stat-row-home">{home.team?.abbreviation}</span>
       </div>
-    </>
+      {rows.map(r => (
+        <React.Fragment key={r.label}>
+          <div className="stat-row">
+            <span className="stat-row-away">{r.a}</span>
+            <span className="stat-row-label">{r.label}</span>
+            <span className="stat-row-home">{r.h}</span>
+          </div>
+          <div className="stat-bar-wrap">
+            <div className="stat-bar-away" style={{ width: `${r.aPct}%` }} />
+            <div className="stat-bar-home" style={{ width: `${r.hPct}%` }} />
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
   );
 }
 
@@ -181,18 +175,197 @@ function toTimelineEvents(keyEvents) {
     }));
 }
 
+function getPlayerStat(player, name) {
+  const stat = player.stats?.find(item => item.name === name);
+  return Number(stat?.value ?? stat?.displayValue) || 0;
+}
+
+function getPlayerLine(player, separateAttackingMidfield) {
+  const position = `${player.position?.name ?? ''} ${player.position?.abbreviation ?? ''}`.toLowerCase();
+  if (position.includes('goalkeeper') || /\b(g|gk)\b/.test(position)) return 'Goalkeeper';
+  if (/\b(cb|cd|lb|rb|lwb|rwb|df|def)\b|defender|back/.test(position)) return 'Defence';
+  if (/\b(f|fw|st|cf|lf|rf|lw|rw|att)\b|forward|striker|winger/.test(position)) return 'Forwards';
+  if (separateAttackingMidfield && (position.includes('attacking') || /\b(am|am-l|am-r|cam|cam-l|cam-r)\b/.test(position))) {
+    return 'Attacking Midfield';
+  }
+  if (/\b(cm|cdm|cam|lm|rm|dm|am|mf|mid)\b|midfield/.test(position)) return 'Midfield';
+  return 'Other';
+}
+
+function getPlayerSide(player) {
+  const position = `${player.position?.name ?? ''} ${player.position?.abbreviation ?? ''}`.toLowerCase();
+  if (/left back|\blb\b|\blwb\b/.test(position)) return -3;
+  if (/right back|\brb\b|\brwb\b/.test(position)) return 3;
+  if (/center left|cd-l|cb-l/.test(position)) return -1;
+  if (/center right|cd-r|cb-r/.test(position)) return 1;
+  if (/\bleft\b|-l\b/.test(position)) return -1;
+  if (/\bright\b|-r\b/.test(position)) return 1;
+  return 0;
+}
+
+function getTeamAccent(team) {
+  const toHex = color => {
+    const value = color?.replace(/^#/, '');
+    return /^[0-9a-f]{6}$/i.test(value ?? '') ? `#${value}` : null;
+  };
+  const luminance = hex => {
+    const channels = hex.slice(1).match(/.{2}/g).map(value => parseInt(value, 16) / 255);
+    const [red, green, blue] = channels.map(value =>
+      value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    );
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+  const colors = [toHex(team?.color), toHex(team?.alternateColor)].filter(Boolean);
+  return colors.find(color => luminance(color) <= 0.18) ?? '#1f2937';
+}
+
+function getPlayerStatus(player) {
+  if (player.subbedIn && player.subbedOut) return 'Subbed in/out';
+  if (player.subbedIn) return 'Subbed in';
+  if (player.subbedOut) return 'Subbed out';
+  if (player.starter) return 'Starter';
+  return 'Bench';
+}
+
+function PlayerIndicators({ player }) {
+  const goals = getPlayerStat(player, 'totalGoals');
+  const yellowCards = getPlayerStat(player, 'yellowCards');
+  const redCards = getPlayerStat(player, 'redCards');
+
+  return (
+    <span className="soccer-player-indicators">
+      {goals > 0 && (
+        <span className="soccer-player-goals" aria-label={`${goals} goals`} title={`${goals} goals`}>
+          <span aria-hidden="true">⚽</span>{goals > 1 && ` ${goals}`}
+        </span>
+      )}
+      {yellowCards > 0 && (
+        <span className="soccer-player-card soccer-player-card--yellow" aria-label={`${yellowCards} yellow cards`} title={`${yellowCards} yellow cards`}>
+          <span className="soccer-card-shape" aria-hidden="true" />{yellowCards > 1 && ` ${yellowCards}`}
+        </span>
+      )}
+      {redCards > 0 && (
+        <span className="soccer-player-card soccer-player-card--red" aria-label={`${redCards} red cards`} title={`${redCards} red cards`}>
+          <span className="soccer-card-shape" aria-hidden="true" />{redCards > 1 && ` ${redCards}`}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function TeamLineup({ roster }) {
+  const players = roster.roster ?? [];
+  const starters = players.filter(player => player.starter);
+  const formationParts = (roster.formation ?? '').split('-');
+  const separateAttackingMidfield = formationParts.slice(1, -1).length > 1;
+  const lineOrder = [
+    'Forwards',
+    ...(separateAttackingMidfield ? ['Attacking Midfield'] : []),
+    'Midfield',
+    'Other',
+    'Defence',
+    'Goalkeeper',
+  ];
+  const lines = lineOrder
+    .map(name => ({
+      name,
+      players: starters
+        .filter(player => getPlayerLine(player, separateAttackingMidfield) === name)
+        .sort((a, b) => getPlayerSide(a) - getPlayerSide(b) || Number(a.formationPlace) - Number(b.formationPlace)),
+    }))
+    .filter(line => line.players.length);
+  const orderedPlayers = [...players].sort((a, b) => Number(b.starter) - Number(a.starter));
+  const color = getTeamAccent(roster.team);
+
+  return (
+    <section
+      className="soccer-lineup"
+      style={{ '--soccer-team-color': color }}
+      aria-label={`${roster.team?.displayName ?? 'Team'} lineup`}
+    >
+      <div className="soccer-lineup-heading">
+        <h2>{roster.team?.displayName ?? 'Team'}</h2>
+        {roster.formation && <span>Formation {roster.formation}</span>}
+      </div>
+      <div className="soccer-lineup-layout">
+        <div className="soccer-pitch" role="group" aria-label={`${roster.formation ?? ''} formation pitch`}>
+          {lines.length ? lines.map(line => (
+            <div
+              className={`soccer-pitch-line soccer-pitch-line--${line.name.toLowerCase().replace(/\s+/g, '-')}`}
+              key={line.name}
+              role="group"
+              aria-label={line.name}
+            >
+              {line.players.map(player => (
+                <div
+                  className="soccer-pitch-player"
+                  key={player.athlete?.id ?? `${player.jersey}-${player.athlete?.displayName}`}
+                  title={`${player.jersey ?? '—'} ${player.athlete?.displayName ?? ''}`}
+                  aria-label={`Number ${player.jersey ?? 'unknown'}, ${player.athlete?.displayName ?? 'Unknown player'}`}
+                >
+                  <span className="soccer-pitch-number">{player.jersey ?? '—'}</span>
+                  <span className="soccer-pitch-name">{player.athlete?.lastName ?? player.athlete?.displayName}</span>
+                </div>
+              ))}
+            </div>
+          )) : <div className="soccer-pitch-empty">Starting lineup unavailable</div>}
+        </div>
+        <div className="soccer-roster-wrap">
+          <div className="soccer-roster-heading">
+            <span>Players</span><span>Status</span>
+          </div>
+          {orderedPlayers.length ? orderedPlayers.map((player, index) => {
+            const status = getPlayerStatus(player);
+            const name = player.athlete?.displayName ?? 'Unknown player';
+            return (
+              <div
+                className="soccer-roster-row"
+                key={player.athlete?.id ?? `${player.jersey}-${index}`}
+              >
+                <span className="soccer-roster-number">{player.jersey ?? '—'}</span>
+                <span className="soccer-roster-name" title={name}>{name}</span>
+                <span className="soccer-roster-position" title={player.position?.name ?? ''}>
+                  {player.position?.abbreviation ?? '—'}
+                </span>
+                <PlayerIndicators player={player} />
+                <span className={`soccer-roster-status soccer-roster-status--${status.toLowerCase().replace(/[^a-z]+/g, '-')}`}>
+                  {status}
+                </span>
+              </div>
+            );
+          }) : <div className="detail-empty">Roster unavailable</div>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const SoccerDetailContent = ({ data, game }) => {
+  const [activeTab, setActiveTab] = React.useState('commentary');
   const events = getEvents(data);
   const teams  = data?.boxscore?.teams;
+  const rosters = data?.rosters ?? [];
+  const tabs = [
+    { key: 'commentary', label: 'Commentary' },
+    { key: 'stats', label: 'Match Stats' },
+    ...rosters.map((roster, index) => ({
+      key: `team-${roster.team?.id ?? index}`,
+      label: roster.team?.abbreviation ?? roster.team?.shortDisplayName ?? roster.team?.displayName ?? `Team ${index + 1}`,
+      roster,
+    })),
+  ];
+  const selectedTab = tabs.some(tab => tab.key === activeTab) ? activeTab : 'commentary';
 
   const detailState = data?.header?.competitions?.[0]?.status?.type?.state;
   const isLive = detailState ? detailState === 'in' : (game?.status?.state === 'in');
   const overTime = game?.status?.type?.includes('OVERTIME') ? 'overtime' : 'regular';
 
   const lastEvent = events.length ? events[events.length - 1] : null;
-  const lastPlayLogo = resolveTeamLogo(lastEvent, game);
-  const lastPlayTime = lastEvent?.clock?.displayValue ?? null;
-  const lastPlayText = lastEvent?.text ?? lastEvent?.shortText ?? null;
+  const latestCommentary = [...(data?.commentary ?? [])].filter(item => item.text).at(-1);
+  const lastPlay = latestCommentary ?? lastEvent;
+  const lastPlayLogo = resolveTeamLogo(lastPlay, game) ?? resolveTeamLogo(lastEvent, game);
+  const lastPlayTime = lastPlay?.time?.displayValue ?? lastPlay?.clock?.displayValue ?? null;
+  const lastPlayText = lastPlay?.text ?? lastPlay?.shortText ?? null;
 
   const timeline = toTimelineEvents(data?.keyEvents);
 
@@ -208,8 +381,45 @@ const SoccerDetailContent = ({ data, game }) => {
         />
       )}
       <KeyEvents events={events} teams={teams} />
-      <MatchEvents commentary={data?.commentary} />
-      <MatchStats teams={teams} />
+      <div className="detail-tabs" role="tablist" aria-label="Soccer match details">
+        {tabs.map(tab => (
+          <button
+            className={`detail-tab${selectedTab === tab.key ? ' detail-tab--active' : ''}`}
+            id={`soccer-tab-${tab.key}`}
+            type="button"
+            role="tab"
+            aria-selected={selectedTab === tab.key}
+            aria-controls={`soccer-panel-${tab.key}`}
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {selectedTab === 'commentary' && (
+        <div role="tabpanel" id="soccer-panel-commentary" aria-labelledby="soccer-tab-commentary">
+          <MatchEvents commentary={data?.commentary} />
+        </div>
+      )}
+      {selectedTab === 'stats' && (
+        <div
+          role="tabpanel"
+          id="soccer-panel-stats"
+          aria-labelledby="soccer-tab-stats"
+        >
+          <MatchStats teams={teams} />
+        </div>
+      )}
+      {selectedTab.startsWith('team-') && (
+        <div
+          role="tabpanel"
+          id={`soccer-panel-${selectedTab}`}
+          aria-labelledby={`soccer-tab-${selectedTab}`}
+        >
+          <TeamLineup roster={tabs.find(tab => tab.key === selectedTab)?.roster ?? {}} />
+        </div>
+      )}
     </>
   );
 };

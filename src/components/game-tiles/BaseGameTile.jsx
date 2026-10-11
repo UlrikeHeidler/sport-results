@@ -16,6 +16,7 @@ const BaseGameTile = ({
   isPinned = false,
   onTogglePin,
   isInDetailMode = false,
+  powerPlayTeamId = null,
   onToggleDetailMode
 }) => {
   const statusClass = getStatusClass(game.status || {});
@@ -134,6 +135,17 @@ const BaseGameTile = ({
 
   const renderTeam = (team, isHome = false) => {
     const isWinner = winner && ((winner === 'home' && isHome) || (winner === 'away' && !isHome));
+    const hasPowerPlay = powerPlayTeamId != null && String(powerPlayTeamId) === String(team?.id);
+    const powerPlayMarker = hasPowerPlay && (
+      <span
+        className="power-play-marker"
+        role="status"
+        aria-label={`Power play for ${team?.displayName || team?.name || team?.abbreviation || ''}`}
+        title={`Power play for ${team?.displayName || team?.name || team?.abbreviation || ''}`}
+      >
+        PP
+      </span>
+    );
     const teamInfo = (
       <div className={`team-info${isHome ? ' home' : ''}`}>
         {isHome ? <TeamRanking team={team} /> : renderTeamLogo(team)}
@@ -144,8 +156,8 @@ const BaseGameTile = ({
     const score = renderTeamScore(team, isHome, animations);
     return (
       <div className={`team${isWinner ? ' winner' : ''}`}>
-        {isHome ? score : teamInfo}
-        {isHome ? teamInfo : score}
+        {isHome ? score : <>{powerPlayMarker}{teamInfo}</>}
+        {isHome ? <>{teamInfo}{powerPlayMarker}</> : score}
       </div>
     );
   };

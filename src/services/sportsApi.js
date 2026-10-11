@@ -599,33 +599,63 @@ export const normalizeGameSummary = (raw) => {
     };
   };
 
+  const normalizePowerPlay = () => {
+    const plays = Array.isArray(raw.plays) ? raw.plays : [];
+    const latestPlay = plays[plays.length - 1];
+    const strength = latestPlay?.strength || {};
+    const strengthId = String(strength.id ?? '');
+    const strengthName = String(strength.abbreviation || strength.text || '')
+      .toLowerCase()
+      .replace(/[\s_]+/g, '-');
+    const isPowerPlay = strengthId === '702' || strengthName === 'power-play';
+    const isShortHanded = strengthId === '703' || strengthName === 'short-handed';
+    const playTeamId = latestPlay?.team?.id;
+
+    if ((!isPowerPlay && !isShortHanded) || playTeamId == null) {
+      return { powerPlay: false, powerPlayTeamId: null, powerPlayTeam: null };
+    }
+
+    const competitors = raw.header?.competitions?.[0]?.competitors || [];
+    const powerPlayTeam = competitors.find((competitor) => {
+      const competitorId = String(competitor.id ?? competitor.team?.id ?? '');
+      return isPowerPlay
+        ? competitorId === String(playTeamId)
+        : competitorId !== String(playTeamId);
+    });
+
+    return {
+      powerPlay: Boolean(powerPlayTeam),
+      powerPlayTeamId: powerPlayTeam?.id ?? null,
+      powerPlayTeam: powerPlayTeam?.team?.displayName || powerPlayTeam?.team?.name || null
+    };
+  };
+
+  const withPowerPlay = (teams) => ({
+    teams,
+    situation: normalizePowerPlay()
+  });
+
   // Handle different response formats
   if (Array.isArray(teamsArr) && teamsArr.length >= 2) {
-    return {
-      teams: {
-        home: normalizeTeam(teamsArr[0]),
-        away: normalizeTeam(teamsArr[1])
-      }
-    };
+    return withPowerPlay({
+      home: normalizeTeam(teamsArr[0]),
+      away: normalizeTeam(teamsArr[1])
+    });
   }
 
   if (src && src.teams && (src.teams.home || src.teams.away)) {
-    return {
-      teams: {
-        home: normalizeTeam(src.teams.home),
-        away: normalizeTeam(src.teams.away)
-      }
-    };
+    return withPowerPlay({
+      home: normalizeTeam(src.teams.home),
+      away: normalizeTeam(src.teams.away)
+    });
   }
 
   if (src && src.teamsById) {
     const ids = Object.keys(src.teamsById);
-    return {
-      teams: {
-        home: normalizeTeam(src.teamsById[ids[0]]),
-        away: normalizeTeam(src.teamsById[ids[1]])
-      }
-    };
+    return withPowerPlay({
+      home: normalizeTeam(src.teamsById[ids[0]]),
+      away: normalizeTeam(src.teamsById[ids[1]])
+    });
   }
 
   return null;

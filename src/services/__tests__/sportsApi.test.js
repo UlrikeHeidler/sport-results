@@ -34,6 +34,68 @@ const makeEvent = ({ id, date, status, home, away }) => ({
   ]
 });
 
+describe('sportsApi.normalizeGameSummary', () => {
+  const makeSummary = (teamId, strength) => ({
+    boxscore: {
+      teams: [
+        { team: { id: '37', displayName: 'Vegas Golden Knights' } },
+        { team: { id: '8', displayName: 'Los Angeles Kings' } }
+      ]
+    },
+    header: {
+      competitions: [{
+        competitors: [
+          { id: '37', team: { displayName: 'Vegas Golden Knights' } },
+          { id: '8', team: { displayName: 'Los Angeles Kings' } }
+        ]
+      }]
+    },
+    plays: [{ team: { id: teamId }, strength }]
+  });
+
+  it('identifies the team on a power play from play strength', () => {
+    const summary = api.normalizeGameSummary(makeSummary('8', {
+      id: '702',
+      text: 'Power Play',
+      abbreviation: 'power-play'
+    }));
+
+    expect(summary.situation).toEqual({
+      powerPlay: true,
+      powerPlayTeamId: '8',
+      powerPlayTeam: 'Los Angeles Kings'
+    });
+  });
+
+  it('identifies the opponent when a play is shorthanded', () => {
+    const summary = api.normalizeGameSummary(makeSummary('37', {
+      id: '703',
+      text: 'Shorthanded',
+      abbreviation: 'short-handed'
+    }));
+
+    expect(summary.situation).toEqual({
+      powerPlay: true,
+      powerPlayTeamId: '8',
+      powerPlayTeam: 'Los Angeles Kings'
+    });
+  });
+
+  it('clears the power-play indicator at even strength', () => {
+    const summary = api.normalizeGameSummary(makeSummary('37', {
+      id: '701',
+      text: 'Even Strength',
+      abbreviation: 'even-strength'
+    }));
+
+    expect(summary.situation).toEqual({
+      powerPlay: false,
+      powerPlayTeamId: null,
+      powerPlayTeam: null
+    });
+  });
+});
+
 describe('sportsApi.fetchAllGames', () => {
   afterEach(() => {
     vi.restoreAllMocks();

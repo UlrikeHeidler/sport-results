@@ -957,3 +957,245 @@
   flex: 1;
   color: var(--text-primary);
 }
+
+/* ── Soccer formation and roster ─────────────────────────── */
+.soccer-lineup {
+  --soccer-team-color: #286a48;
+}
+
+.soccer-lineup-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.7rem 0;
+}
+
+.soccer-lineup-heading h2 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.soccer-lineup-heading > span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.soccer-lineup-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(15rem, 0.9fr);
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.soccer-pitch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 0.35rem;
+  min-height: 25rem;
+  padding: 1.1rem 0.4rem;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 4px;
+  background-color: #28764b;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 50%, transparent 50%);
+  background-size: 100% 5rem;
+  box-shadow: inset 0 0 0 1px rgba(15, 45, 30, 0.25);
+}
+
+.soccer-pitch::before {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.65);
+  content: '';
+}
+
+.soccer-pitch::after {
+  position: absolute;
+  top: calc(50% - 1.7rem);
+  left: calc(50% - 1.7rem);
+  width: 3.4rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
+  content: '';
+}
+
+.soccer-pitch-line {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0.2rem;
+}
+
+.soccer-pitch-line--goalkeeper {
+  margin: 0 auto;
+}
+
+.soccer-pitch-player {
+  display: flex;
+  width: 3.5rem;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+.soccer-pitch-number {
+  display: grid;
+  width: 2rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--soccer-team-color);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--soccer-team-color);
+  font-size: 0.73rem;
+  font-weight: 800;
+  text-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.soccer-pitch-name {
+  width: 100%;
+  overflow: hidden;
+  font-size: 0.56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soccer-pitch-empty {
+  z-index: 1;
+  padding: 0.5rem;
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+.soccer-roster-wrap {
+  max-height: 27rem;
+  overflow: auto;
+}
+
+.soccer-roster-heading,
+.soccer-roster-row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) 2rem auto 4.8rem;
+  align-items: center;
+  column-gap: 0.25rem;
+}
+
+.soccer-roster-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.35rem 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--panel-bg, var(--background-color));
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.soccer-roster-heading span:last-child {
+  grid-column: 5;
+}
+
+.soccer-roster-heading span:first-child {
+  grid-column: 1 / 5;
+}
+
+.soccer-roster-row {
+  min-height: 2rem;
+  padding: 0.2rem 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 0.68rem;
+}
+
+.soccer-roster-number {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.soccer-roster-position {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.58rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soccer-roster-name {
+  overflow: hidden;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soccer-player-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.soccer-player-goals,
+.soccer-player-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.soccer-player-card--yellow { color: #987000; }
+.soccer-player-card--red { color: #c32d32; }
+
+.soccer-card-shape {
+  width: 0.48rem;
+  height: 0.68rem;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.soccer-roster-status {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soccer-roster-status--subbed-in { color: #16804a; }
+.soccer-roster-status--subbed-out { color: #a45a22; }
+.soccer-roster-status--subbed-in-out { color: #7b5190; }
+
+@media (max-width: 640px) {
+  .soccer-lineup-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .soccer-pitch {
+    min-height: 23rem;
+  }
+
+  .soccer-roster-wrap {
+    max-height: none;
+  }
+}

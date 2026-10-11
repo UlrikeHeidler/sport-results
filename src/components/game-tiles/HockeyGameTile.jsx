@@ -4,7 +4,7 @@ import './GameTiles.hockey.css';
 import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi';
 
 const HockeyGameTile = (props) => {
-  const { game } = props;
+  const { game, refreshInterval = 30 } = props;
 
   // Persist timeline events across updates
   const timelineRef = useRef([]);
@@ -28,13 +28,14 @@ const HockeyGameTile = (props) => {
 
   // Hockey-specific additional info renderer
   const renderAdditionalInfo = () => {
-    if (!game.situation) return null;
+    if (!game.situation && !summary) return null;
+    const situation = game.situation || {};
     const shotHome = getShotCount(true);
     const shotAway = getShotCount(false);
     const status = game.status || {};
-    const lastPlay = game.situation.lastPlay || null;
-    const lastPlayTeam = game.situation.lastPlayTeam || null;
-    const lastPlayTime = game.situation.lastPlayTime || null;
+    const lastPlay = situation.lastPlay || null;
+    const lastPlayTeam = situation.lastPlayTeam || null;
+    const lastPlayTime = situation.lastPlayTime || null;
     let eventLogo = null;
   const timeline = timelineRef.current;
 
@@ -112,19 +113,6 @@ const HockeyGameTile = (props) => {
                 )}&nbsp;
           {lastPlay && <span className="last-play">{lastPlay}</span>}
         </div>
-        {game.situation.powerPlay && (
-          <div
-            className="power-play"
-            role="status"
-            aria-label={`Power play for ${game.situation.powerPlayTeam || ''}${game.situation.powerPlayTime ? `, ${game.situation.powerPlayTime} remaining` : ''}`}>
-            <span className="power-play-text">
-              Power Play: {game.situation.powerPlayTeam}
-            </span>
-            {game.situation.powerPlayTime && (
-              <span className="power-play-time">{game.situation.powerPlayTime}</span>
-            )}
-          </div>
-        )}
         {(shotHome != null || shotAway != null) && (
           <div className="shots-on-goal">
             <div className="shots away">SOG: {shotAway != null ? shotAway : '-'}</div>
@@ -140,8 +128,8 @@ const HockeyGameTile = (props) => {
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const fetchSummary = useCallback(async () => {
-    if (summary || loadingSummary) return;
+  const fetchSummary = useCallback(async (force = false) => {
+    if ((!force && summary) || loadingSummary) return;
     try {
       setLoadingSummary(true);
 
@@ -159,6 +147,16 @@ const HockeyGameTile = (props) => {
       setLoadingSummary(false);
     }
   }, [game.id, game.league, loadingSummary, summary]);
+
+  useEffect(() => {
+    const statusType = game?.status?.type || '';
+    const isLive = statusType === 'STATUS_IN_PROGRESS' || String(statusType).toLowerCase().includes('in_progress');
+    if (!isLive || !summary) return undefined;
+
+    const intervalMs = Math.max(5, Number(refreshInterval) || 30) * 1000;
+    const interval = setInterval(() => fetchSummary(true), intervalMs);
+    return () => clearInterval(interval);
+  }, [fetchSummary, game?.status?.type, refreshInterval, summary]);
 
   // Only fetch summary when the tile becomes visible. Use IntersectionObserver
   // when available; otherwise fall back to immediate fetch for older browsers
@@ -262,10 +260,17 @@ const HockeyGameTile = (props) => {
     }
   }
 
+  const powerPlaySituation = summary?.situation || game.situation || {};
+  const powerPlayTeamName = String(powerPlaySituation.powerPlayTeamId ?? powerPlaySituation.powerPlayTeam ?? '').toLowerCase();
+  const powerPlayTeam = [game.awayTeam || game.teams?.away, game.homeTeam || game.teams?.home]
+    .find(team => [team?.id, team?.name, team?.displayName, team?.abbreviation]
+      .some(value => value != null && String(value).toLowerCase() === powerPlayTeamName));
+
   return (
     <div ref={containerRef}>
       <BaseGameTile
         {...props}
+        powerPlayTeamId={powerPlaySituation.powerPlay ? powerPlaySituation.powerPlayTeamId ?? powerPlayTeam?.id : null}
         renderAdditionalInfo={renderAdditionalInfo}
         renderScore={renderScore}
       />

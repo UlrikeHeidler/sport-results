@@ -287,15 +287,6 @@
   border: 1px solid var(--border-color);
 }
 
-.power-play {
-  text-align: center;
-  color: var(--text-color);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.9rem;
-}
-
 .period-clock {
   display: flex;
   justify-content: center;
@@ -308,17 +299,6 @@
 .period-clock .period {
   font-weight: 700;
   color: var(--text-color);
-}
-
-.power-play {
-  display: inline-flex;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  background: rgba(255, 215, 0, 0.12);
-  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .shots-on-goal {
