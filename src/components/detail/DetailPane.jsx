@@ -7,6 +7,7 @@ import BaseballDetailContent from './content/BaseballDetailContent';
 import HockeyDetailContent from './content/HockeyDetailContent';
 import BasketballDetailContent from './content/BasketballDetailContent';
 import SoccerDetailContent from './content/SoccerDetailContent';
+import { getFootballTimeoutsRemaining } from '../../utils/footballTimeouts';
 import './DetailPane.css';
 
 const FOOTBALL_LEAGUES  = new Set(['nfl', 'fbs', 'fcs']);
@@ -67,11 +68,22 @@ const DetailPane = ({
   const competitors = data?.header?.competitions?.[0]?.competitors ?? [];
   const homeRecord = competitors.length ? getOverallRecord(competitors, 'home') : null;
   const awayRecord = competitors.length ? getOverallRecord(competitors, 'away') : null;
-  const gameWithRecords = competitors.length ? {
+  const timeoutCounts = FOOTBALL_LEAGUES.has((synchronizedGame.league || '').toLowerCase())
+    ? getFootballTimeoutsRemaining(data, synchronizedGame)
+    : null;
+  const gameWithRecords = {
     ...synchronizedGame,
-    homeTeam: { ...synchronizedGame.homeTeam, record: homeRecord },
-    awayTeam: { ...synchronizedGame.awayTeam, record: awayRecord },
-  } : synchronizedGame;
+    homeTeam: {
+      ...synchronizedGame.homeTeam,
+      ...(homeRecord ? { record: homeRecord } : {}),
+      ...(timeoutCounts ? { timeoutsRemaining: timeoutCounts.home } : {})
+    },
+    awayTeam: {
+      ...synchronizedGame.awayTeam,
+      ...(awayRecord ? { record: awayRecord } : {}),
+      ...(timeoutCounts ? { timeoutsRemaining: timeoutCounts.away } : {})
+    }
+  };
 
   const reportedRef = useRef(false);
   useEffect(() => {

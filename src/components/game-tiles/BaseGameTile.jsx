@@ -80,6 +80,33 @@ const BaseGameTile = ({
     borderLeft: `4px solid ${leagueColors.primary}`,
     backgroundColor: leagueColors.background
   } : {};
+  const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(game.league || game.sport || '');
+
+  const renderTeamLogo = (team) => {
+    const showTimeouts = isInDetailMode && isFootball && team?.logo &&
+      Number.isInteger(team.timeoutsRemaining);
+    if (!showTimeouts) return <TeamLogo team={team} />;
+
+    return (
+      <div className="team-logo-timeout-stack">
+        <TeamLogo team={team} />
+        <div
+          className="team-timeouts"
+          role="img"
+          aria-label={`${team.abbreviation} has ${team.timeoutsRemaining} of 3 timeouts remaining`}
+          title={`${team.timeoutsRemaining} timeouts remaining`}
+        >
+          {[0, 1, 2].map(index => (
+            <span
+              key={index}
+              className={`timeout-circle${index < team.timeoutsRemaining ? ' available' : ' taken'}`}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   // Render methods that can be overridden by sport-specific tiles
 
@@ -109,9 +136,9 @@ const BaseGameTile = ({
     const isWinner = winner && ((winner === 'home' && isHome) || (winner === 'away' && !isHome));
     const teamInfo = (
       <div className={`team-info${isHome ? ' home' : ''}`}>
-        {isHome ? <TeamRanking team={team} /> : <TeamLogo team={team} />}
+        {isHome ? <TeamRanking team={team} /> : renderTeamLogo(team)}
         <TeamName team={team} game={game} isHome={isHome} showForm={showTeamForm} />
-        {isHome ? <TeamLogo team={team} /> : <TeamRanking team={team} />}
+        {isHome ? renderTeamLogo(team) : <TeamRanking team={team} />}
       </div>
     );
     const score = renderTeamScore(team, isHome, animations);
