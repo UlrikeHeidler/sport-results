@@ -53,11 +53,12 @@ describe('football drive orientation', () => {
     expect(awayLoss[1]).toBeLessThan(awayLoss[0]);
   });
 
-  it('renders every play as a uniform white line and bounds only the latest play', () => {
+  it('renders a negative latest play red and bounds only the latest play', () => {
     const plays = [
       { start: { yardsToEndzone: 80 }, end: { yardsToEndzone: 70 }, statYardage: 10, type: { text: 'Rush' } },
       { start: { yardsToEndzone: 70 }, end: { yardsToEndzone: 75 }, statYardage: -5, type: { text: 'Sack' } },
-      { start: { yardsToEndzone: 75 }, end: { yardsToEndzone: 70 }, statYardage: 5, type: { text: 'Penalty' }, text: 'PENALTY 5 yards' }
+      { start: { yardsToEndzone: 75 }, end: { yardsToEndzone: 70 }, statYardage: 5, type: { text: 'Penalty' }, text: 'PENALTY 5 yards' },
+      { start: { yardsToEndzone: 70 }, end: { yardsToEndzone: 75 }, statYardage: -5, type: { text: 'Sack' } }
     ];
     const homeTeam = { id: 'home-id', abbreviation: 'HOM' };
     const awayTeam = { id: 'away-id', abbreviation: 'AWY' };
@@ -84,18 +85,16 @@ describe('football drive orientation', () => {
       />
     );
 
-    const playLines = container.querySelectorAll('.drive-play-line');
-    expect(playLines).toHaveLength(3);
-    playLines.forEach(line => {
-      expect(line.getAttribute('stroke')).toBe('white');
-      expect(line.getAttribute('stroke-width')).toBe('10');
-      expect(line.getAttribute('stroke-linecap')).toBe('butt');
-      expect(line.getAttribute('stroke-dasharray')).toBeNull();
-    });
-    expect(playLines[0].getAttribute('x1')).toBe('90');
-    expect(playLines[0].getAttribute('x2')).toBe('80');
-    expect(playLines[1].getAttribute('x1')).toBe('80');
-    expect(playLines[1].getAttribute('x2')).toBe('85');
+    const whiteDriveLine = container.querySelector('.drive-play-line');
+    const redLastPlayLine = container.querySelector('.last-play-line');
+    expect(whiteDriveLine.getAttribute('stroke')).toBe('white');
+    expect(whiteDriveLine.getAttribute('stroke-width')).toBe('10');
+    expect(whiteDriveLine.getAttribute('stroke-linecap')).toBe('butt');
+    expect(whiteDriveLine.getAttribute('x1')).toBe('90');
+    expect(whiteDriveLine.getAttribute('x2')).toBe('85');
+    expect(redLastPlayLine.getAttribute('stroke')).toBe('#ef4444');
+    expect(redLastPlayLine.getAttribute('x1')).toBe('80');
+    expect(redLastPlayLine.getAttribute('x2')).toBe('85');
     expect(container.querySelectorAll('.last-play-boundary')).toHaveLength(2);
     expect(container.querySelector('.drive-legend')).toBeNull();
   });

@@ -248,8 +248,11 @@ function FieldDriveVisual({ drive, teams, game }) {
       ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -yards : yards)));
     }
     curPos = ep;
-    return { sp, ep, idx };
+    const yardsGained = isHomeDrive ? sp - ep : ep - sp;
+    return { sp, ep, idx, yardsGained };
   });
+  const lastSegment = segments.at(-1) ?? null;
+  const currentPosition = lastSegment?.ep ?? startPos;
 
   return (
     <div className="drive-field-wrapper">
@@ -272,19 +275,28 @@ function FieldDriveVisual({ drive, teams, game }) {
         stroke="white" strokeWidth={0.6} opacity={0.5} />
 
 
-      {segments.map(({ sp, ep, idx }) => (
+      <line
+        className="drive-play-line"
+        x1={toX(startPos)}
+        y1={MID}
+        x2={toX(currentPosition)}
+        y2={MID}
+        stroke="white"
+        strokeWidth="10"
+        strokeLinecap="butt"
+      />
+      {lastSegment?.yardsGained < 0 && (
         <line
-          key={`play-${idx}`}
-          className="drive-play-line"
-          x1={toX(sp)}
+          className="last-play-line"
+          x1={toX(lastSegment.sp)}
           y1={MID}
-          x2={toX(ep)}
+          x2={toX(lastSegment.ep)}
           y2={MID}
-          stroke="white"
+          stroke="#ef4444"
           strokeWidth="10"
           strokeLinecap="butt"
         />
-      ))}
+      )}
       {segments.length > 0 && (() => {
         const { sp, ep } = segments[segments.length - 1];
         const firstX = toX(Math.min(sp, ep));
@@ -351,12 +363,6 @@ function CurrentDriveVisual({ data, teams, game }) {
         {downDistText && <span className="current-drive-situation">{downDistText}</span>}
       </div>
       <FieldDriveVisual drive={drive} teams={teams} game={game} />
-      {(() => {
-        const lastPlay = drive.plays?.[drive.plays.length - 1];
-        return lastPlay?.text
-          ? <div className="drive-last-play">{lastPlay.text}</div>
-          : null;
-      })()}
     </div>
   );
 }
