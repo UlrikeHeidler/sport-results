@@ -146,18 +146,24 @@ const BaseGameTile = ({
         PP
       </span>
     );
+    const teamLogo = hasPowerPlay ? (
+      <div className="team-logo-pp-stack">
+        {renderTeamLogo(team)}
+        {powerPlayMarker}
+      </div>
+    ) : renderTeamLogo(team);
     const teamInfo = (
       <div className={`team-info${isHome ? ' home' : ''}`}>
-        {isHome ? <TeamRanking team={team} /> : renderTeamLogo(team)}
+        {isHome ? <TeamRanking team={team} /> : teamLogo}
         <TeamName team={team} game={game} isHome={isHome} showForm={showTeamForm} />
-        {isHome ? renderTeamLogo(team) : <TeamRanking team={team} />}
+        {isHome ? teamLogo : <TeamRanking team={team} />}
       </div>
     );
     const score = renderTeamScore(team, isHome, animations);
     return (
       <div className={`team${isWinner ? ' winner' : ''}`}>
-        {isHome ? score : <>{powerPlayMarker}{teamInfo}</>}
-        {isHome ? <>{teamInfo}{powerPlayMarker}</> : score}
+        {isHome ? score : teamInfo}
+        {isHome ? teamInfo : score}
       </div>
     );
   };

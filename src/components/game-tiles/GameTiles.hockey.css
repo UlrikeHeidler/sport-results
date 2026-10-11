@@ -62,6 +62,23 @@
   line-height: 1;
 }
 
+.team-logo-pp-stack {
+  display: flex;
+  flex: 0 0 36px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.team-logo-pp-stack .team-logo {
+  display: block;
+}
+
+.team-logo-pp-stack .power-play-marker {
+  width: 22px;
+  flex: 0 0 18px;
+}
+
 .shots-on-goal {
   display: flex;
   justify-content: space-between;
