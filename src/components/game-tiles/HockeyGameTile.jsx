@@ -6,112 +6,51 @@ import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi
 const HockeyGameTile = (props) => {
   const { game, refreshInterval = 30 } = props;
 
-  // Persist timeline events across updates
-  const timelineRef = useRef([]);
-  // On every update, accumulate new timeline events (by id/text)
-  useEffect(() => {
-    if (!game?.situation?.timeline) return;
-    const prev = timelineRef.current;
-    const seen = new Set(prev.map(e => e.id || e.text));
-    const newEvents = game.situation.timeline.filter(e => {
-      const key = e.id || e.text;
-      return key && !seen.has(key);
-    });
-    if (newEvents.length > 0) {
-      timelineRef.current = [...prev, ...newEvents];
-    }
-    // If timeline is reset (e.g. new game), allow clearing
-    if (game.situation.timeline.length === 0) {
-      timelineRef.current = [];
-    }
-  }, [game?.situation?.timeline]);
-
   // Hockey-specific additional info renderer
   const renderAdditionalInfo = () => {
     if (!game.situation && !summary) return null;
     const situation = game.situation || {};
     const shotHome = getShotCount(true);
     const shotAway = getShotCount(false);
-    const status = game.status || {};
     const lastPlay = situation.lastPlay || null;
     const lastPlayTeam = situation.lastPlayTeam || null;
-    const lastPlayTime = situation.lastPlayTime || null;
+    const lastPlayEvent = Array.isArray(situation.timeline)
+      ? [...situation.timeline].reverse().find(event => event.text === lastPlay)
+      : null;
+    const lastPlayMarker = lastPlayEvent?.type === 'goal'
+      ? '🥅'
+      : lastPlayEvent?.type === 'penalty'
+        ? '🚫'
+        : null;
     let eventLogo = null;
-  const timeline = timelineRef.current;
 
-    // Helper: convert period/clock to elapsed seconds (regulation: 3x20min, OT: 5min, ignore SO)
-    const getElapsedSeconds = (period, clock) => {
-      const periodNum = Number(period) || 1;
-      // Parse clock as mm:ss
-      let secondsLeft = 0;
-      if (typeof clock === 'string' && clock.includes(':')) {
-        const [min, sec] = clock.split(':').map(Number);
-        secondsLeft = (min || 0) * 60 + (sec || 0);
-      }
-      // Each period is 20min (1200s), OT is 5min (300s)
-      const periodLength = periodNum > 3 ? 300 : 1200;
-      const periodsCompleted = Math.max(0, periodNum - 1);
-      const elapsed = periodsCompleted * 1200 + (periodLength - secondsLeft);
-      return elapsed;
-    };
-
-    //
     if (lastPlayTeam == game.awayTeam?.id) {
         eventLogo = game.awayTeam?.logo;
     } else if (lastPlayTeam == game.homeTeam?.id) {
         eventLogo = game.homeTeam?.logo;
     }
 
-    
-
-    // Timeline rendering: horizontal line, home events above, away below, position by time
-    const renderTimeline = () => {
-      if (!timeline.length) return null;
-      const totalGameSeconds = 3 * 1200 + 300; // 3 periods + OT
-      return (
-        <div className="hockey-timeline">
-          <div className="timeline-line" />
-          {timeline.map((event, idx) => {
-            const isHome = event.team && game.homeTeam && (event.team === game.homeTeam.abbreviation || event.team === game.homeTeam.name || event.team === game.homeTeam.displayName);
-            const isAway = event.team && game.awayTeam && (event.team === game.awayTeam.abbreviation || event.team === game.awayTeam.name || event.team === game.awayTeam.displayName);
-            const elapsed = getElapsedSeconds(event.period, event.clock);
-            const elapsedMinutes = Math.floor(elapsed / 60);
-            //console.log('Event elapsed minutes:', elapsedMinutes, event.period, event.clock);
-            const left = `${Math.max(0, Math.min(1, elapsed / totalGameSeconds)) * 100}%`;
-            const markerClass = `timeline-marker ${event.type} ${isHome ? 'home' : isAway ? 'away' : ''}`;
-            return (
-              <div
-                key={event.id || idx}
-                className={markerClass}
-                style={{ left, top: isHome ? '-18px' : isAway ? '18px' : '0' }}
-                title={`${elapsedMinutes + ': '}${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' - ' + event.team : ''}${event.athlete ? ' - ' + event.athlete : ''}${event.text ? ': ' + event.text : ''}`}
-                aria-label={`${event.type === 'goal' ? 'Goal' : 'Penalty'}${event.team ? ' by ' + event.team : ''}${event.athlete ? ' (' + event.athlete + ')' : ''}`}
-              >
-                {event.type === 'goal' ? '🥅' : '🚫'}
-              </div>
-            );
-          })}
-        </div>
-      );
-    };
-
     return (
       <div className="hockey-info">
-        {renderTimeline()}
-        <div className="lastPlay" aria-hidden>
+        <div className="hockey-last-play" aria-hidden>
+          {lastPlayMarker && (
+            <span className="hockey-last-play-marker" aria-hidden="true">
+              {lastPlayMarker}
+            </span>
+          )}
           {eventLogo && (
-                  <img
-                    src={eventLogo}
-                    alt={lastPlayTeam + ' logo'}
-                    className="nhl-timeline-logo"
-                    width={16}
-                    height={16}
-                    loading="lazy"
-                    decoding="async"
-                    onError={e => { e.target.style.display = 'none'; }}
-                  />
-                )}&nbsp;
-          {lastPlay && <span className="last-play">{lastPlay}</span>}
+            <img
+              src={eventLogo}
+              alt={lastPlayTeam + ' logo'}
+              className="nhl-timeline-logo"
+              width={16}
+              height={16}
+              loading="lazy"
+              decoding="async"
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+          )}
+          {lastPlay && <span className="hockey-last-play-text">{lastPlay}</span>}
         </div>
         {(shotHome != null || shotAway != null) && (
           <div className="shots-on-goal">

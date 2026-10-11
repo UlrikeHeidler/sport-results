@@ -4,11 +4,32 @@
   border: 1px solid var(--border-color);
 }
 
-.lastPlay {
+.hockey-last-play {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0.25rem;
   text-align: left;
   font-size: 0.9rem;
   color: var(--text-secondary);
   margin: 0.4rem;
+}
+
+.hockey-last-play-marker {
+  flex: 0 0 auto;
+  line-height: 1.35;
+}
+
+.hockey-last-play .nhl-timeline-logo {
+  flex: 0 0 16px;
+}
+
+.hockey-last-play-text {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .period-clock {
