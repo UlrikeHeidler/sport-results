@@ -189,6 +189,53 @@ function classifyDrivePlay(play) {
   return 'rush';
 }
 
+export function isHomeTeamPossession(driveTeam, homeTeam) {
+  if (driveTeam?.id != null && homeTeam?.id != null && String(driveTeam.id) === String(homeTeam.id)) {
+    return true;
+  }
+  if (driveTeam?.abbreviation && homeTeam?.abbreviation) {
+    return driveTeam.abbreviation.toUpperCase() === homeTeam.abbreviation.toUpperCase();
+  }
+  return false;
+}
+
+export function yardsToFieldPosition(yardsToEndzone, isHomeDrive) {
+  const yards = Number(yardsToEndzone);
+  return Math.max(0, Math.min(100, isHomeDrive ? yards : 100 - yards));
+}
+
+export function getDriveFieldPosition(position, isHomeDrive, driveTeam, homeTeam, awayTeam) {
+  if (position?.yardsToEndzone != null) {
+    return yardsToFieldPosition(position.yardsToEndzone, isHomeDrive);
+  }
+
+  const textMatch = String(position?.text ?? '').trim().match(/^(.+?)\s+(\d+)$/);
+  if (textMatch) {
+    const label = textMatch[1].toUpperCase();
+    const yards = Number(textMatch[2]);
+    let ownSide = null;
+    if (/^(OWN|OUR)$/.test(label)) ownSide = true;
+    else if (/^(OPP|OPPONENT)$/.test(label)) ownSide = false;
+    else if (driveTeam?.abbreviation && label === driveTeam.abbreviation.toUpperCase()) ownSide = true;
+    else if (homeTeam?.abbreviation && label === homeTeam.abbreviation.toUpperCase()) {
+      ownSide = isHomeTeamPossession(driveTeam, homeTeam);
+    } else if (awayTeam?.abbreviation && label === awayTeam.abbreviation.toUpperCase()) {
+      ownSide = isHomeTeamPossession(driveTeam, homeTeam) ? false : true;
+    }
+
+    if (ownSide !== null) {
+      return isHomeDrive ? (ownSide ? 100 - yards : yards) : (ownSide ? yards : 100 - yards);
+    }
+  }
+
+  const yardLine = position?.yardLine;
+  const teamId = position?.team?.id;
+  if (yardLine == null || teamId == null) return null;
+  if (String(teamId) === String(awayTeam?.id)) return Number(yardLine);
+  if (String(teamId) === String(homeTeam?.id)) return 100 - Number(yardLine);
+  return null;
+}
+
 function FieldDriveVisual({ drive, teamLookup, teams, game }) {
   // SVG coordinate space: 0 0 120 80
   // x=0..10 = away EZ, x=10..110 = 100-yard field, x=110..120 = home EZ
@@ -211,55 +258,26 @@ function FieldDriveVisual({ drive, teamLookup, teams, game }) {
 
   // Away team scores in the home EZ (right); home team scores in the away EZ (left).
   // yardsToEndzone always counts toward the SCORING end zone, so the mapping differs by team.
-  const isHomeDrive = homeTeam?.id != null && String(homeTeam.id) === String(drive.team?.id);
+  const isHomeDrive = isHomeTeamPossession(drive.team, homeTeam);
   // Convert ESPN yardsToEndzone → SVG position (0=away GL, 100=home GL)
   // Away scores in home EZ (right=100): yte shrinks as they advance → pos = 100 - yte
   // Home scores in away EZ (left=0):    yte shrinks as they advance → pos = yte
-  const yteToPos = yte => isHomeDrive ? yte : 100 - yte;
-
-  // Convert yardLine + side-of-field team → absolute SVG position (0=away GL, 100=home GL).
-  // This is unambiguous for turnover TDs where yardsToEndzone=0 could mean either end zone.
-  const absPos = (yardLine, teamId) => {
-    if (yardLine == null || teamId == null) return null;
-    if (String(teamId) === String(awayTeam?.id)) return yardLine;       // away side: 0–50 from left
-    if (String(teamId) === String(homeTeam?.id)) return 100 - yardLine; // home side: 50–100 from left
-    return null;
-  };
 
   const startPos = (() => {
-    const a = absPos(drive.start?.yardLine, drive.start?.team?.id);
-    if (a != null) return a;
-    if (drive.start?.yardsToEndzone != null) return yteToPos(drive.start.yardsToEndzone);
-    // Fallback: parse "ABBR yards" text
-    const text = (drive.start?.text ?? '').trim();
-    const abbr = (drive.team?.abbreviation ?? '').toUpperCase();
-    const m = text.match(/^([A-Za-z]+)\s+(\d+)$/);
-    if (m) {
-      const yard = parseInt(m[2]);
-      const ownSide = m[1].toUpperCase() === abbr;
-      return isHomeDrive ? (ownSide ? 100 - yard : yard) : (ownSide ? yard : 100 - yard);
-    }
-    const nm = text.match(/(\d+)/);
-    const pos = nm ? Math.min(parseInt(nm[1]), 100) : 20;
-    return isHomeDrive ? 100 - pos : pos;
+    return getDriveFieldPosition(drive.start, isHomeDrive, drive.team, homeTeam, awayTeam) ??
+      (isHomeDrive ? 80 : 20);
   })();
 
   const plays = drive.plays ?? [];
   let curPos = startPos;
   const segments = plays.map((play, idx) => {
     let sp, ep, yardsGained;
-    const spAbs = absPos(play.start?.yardLine, play.start?.team?.id);
-    const epAbs = absPos(play.end?.yardLine,   play.end?.team?.id);
-    if (spAbs != null && epAbs != null) {
-      // Best: yardLine + team-side gives unambiguous absolute position
-      sp = spAbs;
-      ep = epAbs;
+    const startPosition = getDriveFieldPosition(play.start, isHomeDrive, drive.team, homeTeam, awayTeam);
+    const endPosition = getDriveFieldPosition(play.end, isHomeDrive, drive.team, homeTeam, awayTeam);
+    if (startPosition != null && endPosition != null) {
+      sp = startPosition;
+      ep = endPosition;
       yardsGained = isHomeDrive ? sp - ep : ep - sp;
-    } else if (play.start?.yardsToEndzone != null && play.end?.yardsToEndzone != null) {
-      // Good: yardsToEndzone (correct for normal plays; ambiguous only for turnover TDs)
-      sp = yteToPos(play.start.yardsToEndzone);
-      ep = yteToPos(play.end.yardsToEndzone);
-      yardsGained = play.start.yardsToEndzone - play.end.yardsToEndzone;
     } else {
       // Fallback: cumulative statYardage
       sp = curPos;
@@ -595,6 +613,16 @@ function PlayerStats({ players, teams }) {
   );
 }
 
+export function getFootballLastPlay(data) {
+  const currentDrivePlay = data?.drives?.current?.plays?.at(-1) ?? null;
+  if (currentDrivePlay?.text) return currentDrivePlay;
+
+  const previousDrivePlay = data?.drives?.previous?.at(-1)?.plays?.at(-1) ?? null;
+  if (previousDrivePlay?.text) return previousDrivePlay;
+
+  return data?.scoringPlays?.at(-1) ?? null;
+}
+
 const FootballDetailContent = ({ data, game }) => {
   const teams = data?.boxscore?.teams;
   const [activeTab, setActiveTab] = useState('scoring');
@@ -603,14 +631,7 @@ const FootballDetailContent = ({ data, game }) => {
   const detailState = data?.header?.competitions?.[0]?.status?.type?.state;
   const isLive = detailState ? detailState === 'in' : (game?.status?.state === 'in');
 
-  const lastPlay = useMemo(() => {
-    // Try drives.previous first (most reliable for completed/in-progress)
-    const prevDrives = data?.drives?.previous ?? [];
-    const drivePlay = prevDrives.at(-1)?.plays?.at(-1) ?? null;
-    if (drivePlay?.text) return drivePlay;
-    // Fall back to last scoring play
-    return data?.scoringPlays?.at(-1) ?? null;
-  }, [data]);
+  const lastPlay = useMemo(() => getFootballLastPlay(data), [data]);
   const lastPlayLogo = resolveTeamLogo(lastPlay, game);
   const periodLabel = (p) => p > 4 ? 'OT' : `Q${p}`;
   const lastPlayTime = lastPlay

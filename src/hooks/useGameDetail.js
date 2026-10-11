@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
-import { API_ENDPOINTS, isGameOngoing } from '../config/constants';
+import { API_ENDPOINTS } from '../config/constants';
 
 /**
  * Fetches the ESPN summary endpoint for a game.
- * Re-fetches when refreshKey changes (baseball situation trigger) and,
- * for live games, polls on the same interval as the tile scoreboard.
+ * Fetches once for each scoreboard snapshot. The returned game and summary are
+ * kept together so the detail pane never renders different update generations.
  */
-export function useGameDetail(game, refreshKey, pollInterval = 0) {
-  const [data, setData] = useState(null);
+export function useGameDetail(game, refreshKey) {
+  const [snapshot, setSnapshot] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [requestError, setRequestError] = useState(null);
+
+  const snapshotKey = game?.snapshotFetchedAt ?? JSON.stringify([
+    game?.status,
+    game?.homeTeam?.score,
+    game?.awayTeam?.score,
+    game?.situation
+  ]);
 
   useEffect(() => {
     if (!game?.id || !game?.league) return;
@@ -19,30 +26,39 @@ export function useGameDetail(game, refreshKey, pollInterval = 0) {
 
     const summaryUrl = endpoint.split('?')[0].replace('/scoreboard', '/summary') + `?event=${game.id}`;
 
+    const controller = new AbortController();
     let cancelled = false;
-
-    const doFetch = () => {
-      fetch(summaryUrl)
-        .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
-        .then(d => { if (!cancelled) { setData(d); setLoading(false); } })
-        .catch(e => { if (!cancelled) { setError(String(e)); setLoading(false); } });
-    };
-
     setLoading(true);
-    doFetch();
+    setRequestError(null);
 
-    // Poll for live games at the same interval as the scoreboard tiles
-    let timer = null;
-    if (pollInterval > 0 && isGameOngoing(game.status)) {
-      timer = setInterval(doFetch, pollInterval * 1000);
-    }
+    fetch(summaryUrl, { signal: controller.signal })
+      .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
+      .then(data => {
+        if (!cancelled) {
+          setSnapshot({ game, data });
+          setLoading(false);
+        }
+      })
+      .catch(error => {
+        if (!cancelled && error.name !== 'AbortError') {
+          setRequestError(String(error));
+          setLoading(false);
+        }
+      });
 
     return () => {
       cancelled = true;
-      if (timer) clearInterval(timer);
+      controller.abort();
     };
-  // game.status included so the interval is torn down when a live game goes final
-  }, [game?.id, game?.league, game?.status, refreshKey, pollInterval]);
+  }, [game?.id, game?.league, snapshotKey, refreshKey]);
 
-  return { data, loading, error };
+  const sameGame = snapshot?.game?.id === game?.id &&
+    snapshot?.game?.league === game?.league;
+
+  return {
+    data: sameGame ? snapshot.data : null,
+    displayGame: sameGame ? snapshot.game : game,
+    loading,
+    error: sameGame ? null : requestError
+  };
 }

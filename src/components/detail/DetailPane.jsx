@@ -60,17 +60,18 @@ const DetailPane = ({
     return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}-${s.balls}-${s.strikes}`;
   }, [game.status, game.situation]);
 
-  const { data, loading, error } = useGameDetail(game, refreshKey, refreshInterval);
+  const { data, displayGame, loading, error } = useGameDetail(game, refreshKey);
+  const synchronizedGame = displayGame ?? game;
   const leagueLabel = (game.league || '').toUpperCase();
 
   const competitors = data?.header?.competitions?.[0]?.competitors ?? [];
   const homeRecord = competitors.length ? getOverallRecord(competitors, 'home') : null;
   const awayRecord = competitors.length ? getOverallRecord(competitors, 'away') : null;
   const gameWithRecords = competitors.length ? {
-    ...game,
-    homeTeam: { ...game.homeTeam, record: homeRecord },
-    awayTeam: { ...game.awayTeam, record: awayRecord },
-  } : game;
+    ...synchronizedGame,
+    homeTeam: { ...synchronizedGame.homeTeam, record: homeRecord },
+    awayTeam: { ...synchronizedGame.awayTeam, record: awayRecord },
+  } : synchronizedGame;
 
   const reportedRef = useRef(false);
   useEffect(() => {
@@ -111,7 +112,7 @@ const DetailPane = ({
       </div>
 
       <div className="detail-content">
-        <DetailContent game={game} data={data} loading={loading} error={error} />
+        <DetailContent game={synchronizedGame} data={data} loading={loading} error={error} />
       </div>
     </div>
   );

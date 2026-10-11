@@ -5,15 +5,14 @@ import { fetchGameSummary } from '../services/sportsApi';
  * Hook to fetch and filter timeline events for a soccer game
  * @param {string} league - League key (e.g. 'mls')
  * @param {string} eventId - ESPN event id
+ * @param {string|number} snapshotKey - Scoreboard snapshot that triggers a refresh
  * @returns {Array} Array of timeline events: { minute, type, team, description }
  */
-export function useSoccerTimeline(league, eventId, refreshInterval = 30) {
+export function useSoccerTimeline(league, eventId, snapshotKey) {
   const [timeline, setTimeline] = useState([]);
 
   useEffect(() => {
     let mounted = true;
-    let intervalId;
-
     async function fetchTimeline() {
       const summary = await fetchGameSummary(league, eventId);
       //console.log('Fetched soccer summary for', eventId, summary);
@@ -39,13 +38,11 @@ export function useSoccerTimeline(league, eventId, refreshInterval = 30) {
     }
 
     fetchTimeline();
-    intervalId = setInterval(fetchTimeline, refreshInterval * 1000);
 
     return () => {
       mounted = false;
-      if (intervalId) clearInterval(intervalId);
     };
-  }, [league, eventId, refreshInterval]);
+  }, [league, eventId, snapshotKey]);
 
   return timeline;
 }

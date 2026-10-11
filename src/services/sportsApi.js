@@ -183,6 +183,8 @@ const parseGamesData = (data, league) => {
     return [];
   }
 
+  const snapshotFetchedAt = Date.now();
+
   // debug(`Parsing ${data.events.length} events for ${league}`);
 
   return data.events.map(event => {
@@ -234,6 +236,7 @@ const parseGamesData = (data, league) => {
       return {
         id: event.id,
         league: league.toUpperCase(),
+        snapshotFetchedAt,
         seasonType: event.season ? { type: event.season.type, slug: event.season.slug } : null,
         status: normalizeStatus(competition?.status),
         broadcast: competition?.broadcast || null,

@@ -29,8 +29,14 @@ function cleanDescription(desc) {
 }
 
 const SoccerGameTile = (props) => {
-  const { game, refreshInterval = 30 } = props;
-  const timeline = useSoccerTimeline(game.league, game.id, refreshInterval);
+  const { game } = props;
+  const snapshotKey = game.snapshotFetchedAt ?? JSON.stringify([
+    game.status,
+    game.homeTeam?.score,
+    game.awayTeam?.score,
+    game.situation
+  ]);
+  const timeline = useSoccerTimeline(game.league, game.id, snapshotKey);
   const [activeScorerKey, setActiveScorerKey] = useState(null);
 
   const handleScorerClick = useCallback((key, e) => {
