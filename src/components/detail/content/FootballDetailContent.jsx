@@ -154,41 +154,6 @@ function DriveRow({ drive, teamInfo }) {
 
 /* ── Current Drive Field Visualization ─────────────────── */
 
-// Parse "DET 14" / "Own 22" / "50" → absolute 0-100 field position (0=own EZ)
-function parseStartPos(drive) {
-  const text = (drive.start?.text ?? '').trim();
-  const abbr = (drive.team?.abbreviation ?? '').toUpperCase();
-  const m = text.match(/^([A-Za-z]+)\s+(\d+)$/);
-  if (m) {
-    const side = m[1].toUpperCase();
-    const yard = parseInt(m[2]);
-    return side === abbr ? yard : 100 - yard;
-  }
-  const nm = text.match(/(\d+)/);
-  return nm ? Math.min(parseInt(nm[1]), 100) : 20;
-}
-
-function classifyDrivePlay(play) {
-  // Use the structured play type as the primary signal so that "PENALTY" mentioned in
-  // the play text (e.g. a return that had a flag called) doesn't override the real action.
-  const typeText = (play.type?.text ?? '').toLowerCase();
-  if (/kickoff/i.test(typeText))                                    return 'kickoff';
-  if (/punt/i.test(typeText))                                       return 'kick';
-  if (/field goal/i.test(typeText))                                 return 'fg';
-  if (/sack/i.test(typeText))                                       return 'rush';
-  if (/pass|completion|incompletion|interception/i.test(typeText))  return 'pass';
-  if (/rush|run/i.test(typeText))                                   return 'rush';
-  if (/penalty/i.test(typeText))                                    return 'penalty';
-  // Fallback: text-based (penalty keyword excluded — handled via penaltyInfo)
-  const t = (play.text ?? '').toLowerCase();
-  if (/kickoff|kick off/i.test(t)) return 'kickoff';
-  if (/punt/i.test(t))             return 'kick';
-  if (/field goal/i.test(t))       return 'fg';
-  if (/sack/i.test(t))             return 'rush';
-  if (/pass|spike|incomplete/i.test(t)) return 'pass';
-  return 'rush';
-}
-
 export function isHomeTeamPossession(driveTeam, homeTeam) {
   if (driveTeam?.id != null && homeTeam?.id != null && String(driveTeam.id) === String(homeTeam.id)) {
     return true;
@@ -236,7 +201,7 @@ export function getDriveFieldPosition(position, isHomeDrive, driveTeam, homeTeam
   return null;
 }
 
-function FieldDriveVisual({ drive, teamLookup, teams, game }) {
+function FieldDriveVisual({ drive, teams, game }) {
   // SVG coordinate space: 0 0 120 80
   // x=0..10 = away EZ, x=10..110 = 100-yard field, x=110..120 = home EZ
   // All positions are normalised to "SVG yards from the away goal line" (0=away GL, 100=home GL).
@@ -253,7 +218,6 @@ function FieldDriveVisual({ drive, teamLookup, teams, game }) {
   const homeColor = homeTeam?.color ? `#${homeTeam.color}` : '#1e293b';
   const awayLogo  = awayTeam?.logo;
   const homeLogo  = homeTeam?.logo;
-  const DRAW = 0.45;
   const toX = p => EZ + Math.max(0, Math.min(100, p));
 
   // Away team scores in the home EZ (right); home team scores in the away EZ (left).
@@ -271,48 +235,20 @@ function FieldDriveVisual({ drive, teamLookup, teams, game }) {
   const plays = drive.plays ?? [];
   let curPos = startPos;
   const segments = plays.map((play, idx) => {
-    let sp, ep, yardsGained;
+    let sp, ep;
     const startPosition = getDriveFieldPosition(play.start, isHomeDrive, drive.team, homeTeam, awayTeam);
     const endPosition = getDriveFieldPosition(play.end, isHomeDrive, drive.team, homeTeam, awayTeam);
     if (startPosition != null && endPosition != null) {
       sp = startPosition;
       ep = endPosition;
-      yardsGained = isHomeDrive ? sp - ep : ep - sp;
     } else {
       // Fallback: cumulative statYardage
       sp = curPos;
-      yardsGained = play.statYardage ?? 0;
-      ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -yardsGained : yardsGained)));
+      const yards = play.statYardage ?? 0;
+      ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -yards : yards)));
     }
-    const type = classifyDrivePlay(play);
-    const actualEp = ep; // final position after any penalty enforcement
-
-    // Detect an inline penalty (a flag called during a return/rush/pass).
-    // The penalty yards are extracted from text: "PENALTY … 10 yards from …"
-    // Works for both drive directions: penaltyFrom is calculated by walking back
-    // penaltyYards from the final position in the backward direction for that team.
-    const penaltyMatch = /PENALTY\b.*?(\d+)\s*yards?\s+from\b/i.exec(play.text ?? '');
-    const inlinePenaltyYards = penaltyMatch && type !== 'penalty' ? parseInt(penaltyMatch[1]) : 0;
-    let penaltyInfo = null;
-    if (inlinePenaltyYards > 0) {
-      // Recalculate the natural end of the action using statYardage (pre-penalty yards)
-      const actionYards = Math.abs(play.statYardage ?? 0);
-      if (actionYards > 0) {
-        ep = Math.max(0, Math.min(100, sp + (isHomeDrive ? -actionYards : actionYards)));
-        yardsGained = actionYards; // positive — the action itself was a gain
-      }
-      // Penalty enforcement: the ball moved backward from penaltyFrom → actualEp
-      // penaltyFrom is penaltyYards ahead (in drive direction) of the final spot
-      penaltyInfo = {
-        from: Math.max(0, Math.min(100, isHomeDrive
-          ? actualEp - inlinePenaltyYards   // home drives right→left; penalty reverses leftward
-          : actualEp + inlinePenaltyYards)), // away drives left→right; penalty reverses rightward
-        to: actualEp,
-      };
-    }
-
-    curPos = actualEp;
-    return { play, type, sp, ep, yardsGained, penaltyInfo, idx };
+    curPos = ep;
+    return { sp, ep, idx };
   });
 
   return (
@@ -336,68 +272,28 @@ function FieldDriveVisual({ drive, teamLookup, teams, game }) {
         stroke="white" strokeWidth={0.6} opacity={0.5} />
 
 
-      {/* Drive start marker */}
-      <line x1={toX(startPos)} y1={0} x2={toX(startPos)} y2={H}
-        stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2,1.5" />
-
-      {/* ── Past plays — thin lines with purple separators ── */}
-      {segments.slice(0, -1).map(({ sp, ep, yardsGained, penaltyInfo, idx }) => {
-        const x1 = toX(sp), x2 = toX(ep);
-        return (
-          <g key={`past-${idx}`}>
-            <line x1={x1} y1={MID - 5} x2={x1} y2={MID + 5} stroke="#7c3aed" strokeWidth="0.8" />
-            <line x1={x1} y1={MID} x2={x2} y2={MID}
-              stroke={yardsGained >= 0 ? 'rgba(255,255,255,0.8)' : '#ef4444'} strokeWidth="10" />
-            {penaltyInfo && (
-              <line x1={toX(penaltyInfo.from)} y1={MID} x2={toX(penaltyInfo.to)} y2={MID}
-                stroke="#ef4444" strokeWidth="10" strokeDasharray="4,3" />
-            )}
-          </g>
-        );
-      })}
-
-      {/* ── Current play — simple colored line with arrowhead ── */}
+      {segments.map(({ sp, ep, idx }) => (
+        <line
+          key={`play-${idx}`}
+          className="drive-play-line"
+          x1={toX(sp)}
+          y1={MID}
+          x2={toX(ep)}
+          y2={MID}
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="butt"
+        />
+      ))}
       {segments.length > 0 && (() => {
-        const { type, sp, ep, yardsGained, penaltyInfo } = segments[segments.length - 1];
-        const x1 = toX(sp), x2 = toX(ep);
-        const col = type === 'penalty' ? '#ef4444' : yardsGained >= 0 ? 'rgba(255,255,255,0.9)' : '#f87171';
-        const separator = <line x1={x1} y1={MID - 5} x2={x1} y2={MID + 5} stroke="#7c3aed" strokeWidth="0.8" />;
-        const penaltyOverlay = penaltyInfo && (
-          <line x1={toX(penaltyInfo.from)} y1={MID} x2={toX(penaltyInfo.to)} y2={MID}
-            stroke="#ef4444" strokeWidth="10" strokeDasharray="4,3"
-            style={{ opacity: 0, animation: `df-fade .2s ${DRAW}s ease-out both` }} />
-        );
-
-        if (type === 'penalty') {
-          return (
-            <g>
-              {separator}
-              <line x1={x1} y1={MID} x2={x2} y2={MID}
-                stroke={col} strokeWidth="10" strokeDasharray="4,3"
-                style={{ opacity: 0, animation: 'df-fade .2s ease-out both' }} />
-              {penaltyOverlay}
-            </g>
-          );
-        }
-
-        if (Math.abs(x2 - x1) < 0.5) {
-          return (
-            <g>
-              {separator}
-              <circle cx={x1} cy={MID} r="2" fill={col}
-                style={{ opacity: 0, animation: 'df-fade .1s both' }} />
-              {penaltyOverlay}
-            </g>
-          );
-        }
-
+        const { sp, ep } = segments[segments.length - 1];
+        const firstX = toX(Math.min(sp, ep));
+        const secondX = toX(Math.max(sp, ep));
+        const isZeroYardPlay = Math.abs(secondX - firstX) < 1;
         return (
-          <g>
-            {separator}
-            <line x1={x1} y1={MID} x2={x2} y2={MID}
-              stroke={col} strokeWidth="10"
-              style={{ strokeDasharray: 300, strokeDashoffset: 300, animation: `df-draw ${DRAW}s ease-out both` }} />
-            {penaltyOverlay}
+          <g className="last-play-bounds">
+            <line className="last-play-boundary" x1={firstX - (isZeroYardPlay ? 1 : 0)} y1={MID - 6} x2={firstX - (isZeroYardPlay ? 1 : 0)} y2={MID + 6} stroke="#7c3aed" strokeWidth="1.5" />
+            <line className="last-play-boundary" x1={secondX + (isZeroYardPlay ? 1 : 0)} y1={MID - 6} x2={secondX + (isZeroYardPlay ? 1 : 0)} y2={MID + 6} stroke="#7c3aed" strokeWidth="1.5" />
           </g>
         );
       })()}
@@ -454,15 +350,7 @@ function CurrentDriveVisual({ data, teams, game }) {
         </div>
         {downDistText && <span className="current-drive-situation">{downDistText}</span>}
       </div>
-      <FieldDriveVisual drive={drive} teamLookup={teamLookup} teams={teams} game={game} />
-      <div className="drive-legend">
-        <span className="drive-legend-item"><span className="dl dl-rush" />Rush</span>
-        <span className="drive-legend-item"><span className="dl dl-sack" />Sack</span>
-        <span className="drive-legend-item"><span className="dl dl-pass" />Pass</span>
-        <span className="drive-legend-item"><span className="dl dl-incomplete" />Incomplete</span>
-        <span className="drive-legend-item"><span className="dl dl-kick" />Kick/Punt</span>
-        <span className="drive-legend-item"><span className="dl dl-penalty" />Penalty</span>
-      </div>
+      <FieldDriveVisual drive={drive} teams={teams} game={game} />
       {(() => {
         const lastPlay = drive.plays?.[drive.plays.length - 1];
         return lastPlay?.text

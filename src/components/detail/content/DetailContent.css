@@ -738,49 +738,6 @@
   display: block;
 }
 
-/* play draw: stroke-dashoffset 300→0 reveals the path */
-@keyframes df-draw {
-  from { stroke-dashoffset: 300; }
-  to   { stroke-dashoffset: 0; }
-}
-
-/* generic opacity fade-in */
-@keyframes df-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-
-.drive-legend {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.28rem 0.65rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--hover-bg);
-}
-
-.drive-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.6rem;
-  color: var(--text-secondary);
-}
-
-.dl {
-  display: inline-block;
-  height: 3px;
-  border-radius: 1.5px;
-  flex-shrink: 0;
-}
-
-.dl-rush       { width: 14px; background: rgba(255,255,255,0.85); }
-.dl-sack       { width: 14px; background: #f87171; }
-.dl-pass       { width: 14px; background: #fbbf24; }
-.dl-incomplete { width: 14px; background: rgba(0,0,0,0.55); border-top: 2px dashed rgba(0,0,0,0.55); height: 0; border-radius: 0; }
-.dl-kick       { width: 14px; height: 0; border-top: 2px dashed #93c5fd; border-radius: 0; }
-.dl-penalty    { width: 3px;  height: 10px; background: #ef4444; border-radius: 1px; }
-
 .drive-last-play {
   padding: 0.28rem 0.65rem;
   font-size: 0.65rem;

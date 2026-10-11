@@ -1,5 +1,7 @@
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
+  default as FootballDetailContent,
   getFootballLastPlay,
   getDriveFieldPosition,
   isHomeTeamPossession,
@@ -49,6 +51,53 @@ describe('football drive orientation', () => {
     expect(homeLoss[1]).toBeGreaterThan(homeLoss[0]);
     expect(awayGain[1]).toBeGreaterThan(awayGain[0]);
     expect(awayLoss[1]).toBeLessThan(awayLoss[0]);
+  });
+
+  it('renders every play as a uniform white line and bounds only the latest play', () => {
+    const plays = [
+      { start: { yardsToEndzone: 80 }, end: { yardsToEndzone: 70 }, statYardage: 10, type: { text: 'Rush' } },
+      { start: { yardsToEndzone: 70 }, end: { yardsToEndzone: 75 }, statYardage: -5, type: { text: 'Sack' } },
+      { start: { yardsToEndzone: 75 }, end: { yardsToEndzone: 70 }, statYardage: 5, type: { text: 'Penalty' }, text: 'PENALTY 5 yards' }
+    ];
+    const homeTeam = { id: 'home-id', abbreviation: 'HOM' };
+    const awayTeam = { id: 'away-id', abbreviation: 'AWY' };
+    const { container } = render(
+      <FootballDetailContent
+        game={{
+          league: 'NFL',
+          status: { type: 'STATUS_IN_PROGRESS', state: 'in' },
+          homeTeam,
+          awayTeam
+        }}
+        data={{
+          header: { competitions: [{ status: { type: { state: 'in' } } }] },
+          boxscore: { teams: [
+            { homeAway: 'away', team: awayTeam },
+            { homeAway: 'home', team: homeTeam }
+          ] },
+          drives: { current: {
+            team: homeTeam,
+            start: { yardsToEndzone: 80 },
+            plays
+          } }
+        }}
+      />
+    );
+
+    const playLines = container.querySelectorAll('.drive-play-line');
+    expect(playLines).toHaveLength(3);
+    playLines.forEach(line => {
+      expect(line.getAttribute('stroke')).toBe('white');
+      expect(line.getAttribute('stroke-width')).toBe('10');
+      expect(line.getAttribute('stroke-linecap')).toBe('butt');
+      expect(line.getAttribute('stroke-dasharray')).toBeNull();
+    });
+    expect(playLines[0].getAttribute('x1')).toBe('90');
+    expect(playLines[0].getAttribute('x2')).toBe('80');
+    expect(playLines[1].getAttribute('x1')).toBe('80');
+    expect(playLines[1].getAttribute('x2')).toBe('85');
+    expect(container.querySelectorAll('.last-play-boundary')).toHaveLength(2);
+    expect(container.querySelector('.drive-legend')).toBeNull();
   });
 
   it('prefers offense-relative coordinates and understands own/opponent field labels', () => {
