@@ -31,4 +31,26 @@ describe('BaseGameTile power-play marker', () => {
     expect(marker.parentElement).toBe(logo.parentElement);
     expect(Array.from(logo.parentElement.children)).toEqual([logo, marker]);
   });
+
+  it('hides additional info only for hockey tiles in detail mode', () => {
+    const game = {
+      id: 'hockey-game',
+      league: 'NHL',
+      date: '2026-10-10T20:00:00Z',
+      status: { type: 'STATUS_IN_PROGRESS', state: 'in', completed: false },
+      awayTeam: { id: 'away-id', name: 'Away Team', abbreviation: 'AWY', score: 1 },
+      homeTeam: { id: 'home-id', name: 'Home Team', abbreviation: 'HOM', score: 2 },
+    };
+    const additionalInfo = () => <div data-testid="additional-info">Hockey last play</div>;
+    const props = { game, colorCoding: false, showTeamForm: false, renderAdditionalInfo: additionalInfo };
+    const { container, rerender } = render(<BaseGameTile {...props} isInDetailMode />);
+
+    expect(container.querySelector('.additional-info-wrapper')).toBeNull();
+
+    rerender(<BaseGameTile {...props} />);
+    expect(container.querySelector('.additional-info-wrapper')).toBeInTheDocument();
+
+    rerender(<BaseGameTile {...props} game={{ ...game, league: 'NFL' }} isInDetailMode />);
+    expect(container.querySelector('.additional-info-wrapper')).toBeInTheDocument();
+  });
 });

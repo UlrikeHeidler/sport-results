@@ -55,6 +55,88 @@
   color: var(--text-secondary, #6b7280);
 }
 
+.hockey-player-stat-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 0.5rem 0;
+}
+
+.hockey-player-stat-title {
+  margin: 0 0 0.3rem;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hockey-player-table-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.hockey-player-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: var(--text-primary, #111827);
+  font-size: 0.64rem;
+}
+
+.hockey-player-table th,
+.hockey-player-table td {
+  padding: 0.25rem 0.12rem;
+  border-bottom: 1px solid var(--tile-border, #e5e7eb);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hockey-player-table th {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.hockey-player-table th:first-child,
+.hockey-player-table td:first-child {
+  width: 2rem;
+  text-align: center;
+}
+
+.hockey-player-table th:nth-child(2),
+.hockey-player-table td:nth-child(2) {
+  width: 24%;
+  max-width: 24%;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.hockey-player-table th:last-child,
+.hockey-player-table td:last-child {
+  width: 3.25rem;
+}
+
+.hockey-player-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+[data-theme="dark"] .hockey-player-table {
+  color: var(--text-primary-dark, #f9fafb);
+}
+
+[data-theme="dark"] .hockey-player-table th,
+[data-theme="dark"] .hockey-player-stat-title {
+  color: var(--text-secondary-dark, #9ca3af);
+}
+
+[data-theme="dark"] .hockey-player-table th,
+[data-theme="dark"] .hockey-player-table td {
+  border-bottom-color: var(--tile-border-dark, #374151);
+}
+
 [data-theme="dark"] .hockey-tab {
   color: var(--text-secondary-dark, #9ca3af);
 }

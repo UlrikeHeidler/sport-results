@@ -107,8 +107,117 @@ function Shots({ teams }) {
   );
 }
 
+const SKATER_STAT_COLUMNS = [
+  { key: 'goals', label: 'G', title: 'Goals' },
+  { key: 'assists', label: 'A', title: 'Assists' },
+  { key: 'plusMinus', label: '+/-', title: 'Plus/minus' },
+  { key: 'hits', label: 'HT', title: 'Hits' },
+  { key: 'shotsTotal', label: 'S', title: 'Shots' },
+  { key: 'timeOnIce', label: 'TOI', title: 'Time on ice' },
+];
+
+const GOALIE_STAT_COLUMNS = [
+  { key: 'saves', label: 'SV', title: 'Saves' },
+  { key: 'shotsAgainst', label: 'SA', title: 'Shots against' },
+  { key: 'goalsAgainst', label: 'GA', title: 'Goals against' },
+  { key: 'savePct', label: 'SV%', title: 'Save percentage' },
+  { key: 'timeOnIce', label: 'TOI', title: 'Time on ice' },
+];
+
+function getPlayerStatValue(player, group, key) {
+  const index = group.keys?.indexOf(key) ?? -1;
+  if (index < 0) return '—';
+
+  const rawValue = player.stats?.[index];
+  const value = rawValue && typeof rawValue === 'object'
+    ? rawValue.displayValue ?? rawValue.value
+    : rawValue;
+  if (value === undefined || value === null || value === '') return '—';
+
+  if (key === 'savePct') {
+    const percentage = Number.parseFloat(value);
+    if (Number.isFinite(percentage) && percentage <= 1) return `${(percentage * 100).toFixed(1)}%`;
+  }
+  return value;
+}
+
+function PlayerStatGroup({ title, group, columns }) {
+  const athletes = group?.athletes ?? [];
+  if (!athletes.length) return null;
+
+  return (
+    <section className="hockey-player-stat-group">
+      <h3 className="hockey-player-stat-title">{title}</h3>
+      <div className="hockey-player-table-wrap">
+        <table className="hockey-player-table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Player</th>
+              {columns.map(column => (
+                <th scope="col" key={column.key} title={column.title}>{column.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {athletes.map((player, index) => {
+              const athlete = player.athlete ?? {};
+              return (
+                <tr key={athlete.id ?? `${athlete.jersey}-${index}`}>
+                  <td>{athlete.jersey ?? player.jersey ?? '—'}</td>
+                  <td>{athlete.displayName ?? athlete.fullName ?? 'Unknown player'}</td>
+                  {columns.map(column => (
+                    <td key={column.key}>{getPlayerStatValue(player, group, column.key)}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function PlayerStats({ statistics }) {
+  const groups = statistics ?? [];
+  const goalies = groups.find(group => /goal/i.test(group.name ?? ''));
+  const defense = groups.find(group => /defen/i.test(group.name ?? ''));
+  const forwards = groups.find(group => /forward/i.test(group.name ?? '') && group.athletes?.length)
+    ?? groups.find(group => group.name === 'skaters' && group.athletes?.length);
+  const hasStats = [goalies, defense, forwards].some(group => group?.athletes?.length);
+
+  if (!hasStats) return <div className="hockey-empty-tab">Player statistics unavailable.</div>;
+
+  return (
+    <div className="hockey-player-stat-groups">
+      <PlayerStatGroup title="Goalies" group={goalies} columns={GOALIE_STAT_COLUMNS} />
+      <PlayerStatGroup title="Defense" group={defense} columns={SKATER_STAT_COLUMNS} />
+      <PlayerStatGroup title="Offense" group={forwards} columns={SKATER_STAT_COLUMNS} />
+    </div>
+  );
+}
+
 const HockeyDetailContent = ({ data, game }) => {
   const plays = data?.plays ?? data?.gamepackageJSON?.plays ?? [];
+  const playerGroups = data?.boxscore?.players ?? [];
+  const teamEntries = [...(data?.boxscore?.teams ?? [])].sort((a, b) =>
+    (a.homeAway === 'away' ? 0 : 1) - (b.homeAway === 'away' ? 0 : 1)
+  );
+  const teamsForPlayerTabs = teamEntries.length
+    ? teamEntries
+    : playerGroups.map(group => ({ team: group.team, homeAway: group.homeAway }));
+  const playerTabs = teamsForPlayerTabs.map((entry, index) => {
+    const team = entry.team ?? entry;
+    const playerGroup = playerGroups.find(group => String(group.team?.id) === String(team.id));
+    const side = entry.homeAway ?? playerGroup?.homeAway;
+    return {
+      key: `player-stats-${side ?? team.id ?? index}`,
+      label: team.abbreviation ?? team.shortDisplayName ?? team.displayName ?? `Team ${index + 1}`,
+      teamName: team.displayName ?? team.name ?? team.abbreviation ?? 'Team',
+      playerGroup,
+    };
+  });
 
   const lastPlay = useMemo(() =>
     [...plays].reverse().find(p => p.text) ?? null,
@@ -174,12 +283,24 @@ const HockeyDetailContent = ({ data, game }) => {
         >
           Goals
         </button>
+        {playerTabs.map(tab => (
+          <button
+            className={`hockey-tab${activeTab === tab.key ? ' active' : ''}`}
+            key={tab.key}
+            title={`${tab.teamName} player stats`}
+            onClick={() => handleTabChange(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="hockey-tab-content">
         {activeTab === 'plays'
           ? <PlayList plays={plays} game={game} />
-          : <GoalsList plays={plays.length ? plays : data?.scoringPlays} game={game} />
+          : activeTab === 'goals'
+            ? <GoalsList plays={plays.length ? plays : data?.scoringPlays} game={game} />
+            : <PlayerStats statistics={playerTabs.find(tab => tab.key === activeTab)?.playerGroup?.statistics} />
         }
       </div>
     </>

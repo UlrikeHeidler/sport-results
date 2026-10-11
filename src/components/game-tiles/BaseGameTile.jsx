@@ -82,6 +82,7 @@ const BaseGameTile = ({
     backgroundColor: leagueColors.background
   } : {};
   const isFootball = /football|fbs|fcs|ncaaf|nfl|cfb/i.test(game.league || game.sport || '');
+  const isHockey = /hockey|nhl/i.test(game.league || game.sport || '');
 
   const renderTeamLogo = (team) => {
     const showTimeouts = isInDetailMode && isFootball && team?.logo &&
@@ -302,7 +303,7 @@ const BaseGameTile = ({
       )}
 
        {/* Render additional info — shown for live/final games */}
-      {game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && (
+      {game.status && (isGameOngoing(game.status) || isGameFinal(game.status)) && customRenderAdditionalInfo && !(isInDetailMode && isHockey) && (
         <div className="additional-info-wrapper">
           {customRenderAdditionalInfo()}
         </div>
