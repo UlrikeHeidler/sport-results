@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { debug } from '../utils/logger';
 import { 
   initializeIncrementalUpdates, 
+  disableIncrementalUpdates,
   getGamesWithIncrementalUpdates, 
   addChangeListener,
   getIncrementalCacheStats,
@@ -15,7 +16,7 @@ import { isGameOngoing } from '../services/gameUtils';
 /**
  * Custom hook for managing incremental updates in React components
  */
-export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30) => {
+export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30, enabled = true) => {
   const [games, setGames] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,8 +33,13 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
    * Initialize the incremental updates system
    */
   useEffect(() => {
+    if (!enabled) {
+      disableIncrementalUpdates();
+      return undefined;
+    }
     initializeIncrementalUpdates(refreshInterval);
-  }, [refreshInterval]);
+    return disableIncrementalUpdates;
+  }, [enabled, refreshInterval]);
 
   /**
    * Handle real-time changes from the incremental updates system
@@ -101,6 +107,7 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
    * Set up change listener
    */
   useEffect(() => {
+    if (!enabled) return undefined;
     if (changeListenerCleanup.current) {
       changeListenerCleanup.current();
     }
@@ -112,12 +119,13 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
         changeListenerCleanup.current();
       }
     };
-  }, [handleChanges]);
+  }, [enabled, handleChanges]);
 
   /**
    * Load games with incremental updates
    */
   const loadGames = useCallback(async (forceRefresh = false) => {
+    if (!enabled) return;
     if (updateInProgress.current && !forceRefresh) {
       return;
     }
@@ -144,7 +152,7 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
       setLoading(false);
       updateInProgress.current = false;
     }
-  }, [selectedLeagues]);
+  }, [enabled, selectedLeagues]);
 
   /**
    * Force refresh all data
@@ -157,6 +165,14 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
    * Load games when selected leagues change
    */
   useEffect(() => {
+    if (!enabled) {
+      setTrackedLeagues([]);
+      setGames({});
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     // Tell the manager which leagues we want tracked and remove any cached
     // data for leagues the user has deselected. Then load current games.
     setTrackedLeagues(selectedLeagues || []);
@@ -167,7 +183,7 @@ export const useIncrementalUpdates = (selectedLeagues = [], refreshInterval = 30
       // If user has deselected all leagues, clear local games state
       setGames({});
     }
-  }, [selectedLeagues, loadGames]);
+  }, [enabled, selectedLeagues, loadGames]);
 
   /**
    * Get change summary for UI display

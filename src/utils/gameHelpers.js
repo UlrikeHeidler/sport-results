@@ -4,10 +4,7 @@
  */
 
 import { 
-  isGameOngoing, 
-  isGameInBreak, 
   isGameFinal, 
-  isGameScheduled,
   getLeagueColors,
   getLeagueInfo 
 } from '../config/constants';
@@ -89,34 +86,6 @@ export const getDisplayStatus = (status, situation, date) => {
 };
 
 /**
- * Extract all unique teams from games data
- * Consolidates duplicate extractTeams functions from sportsApi.js and gameUtils.js
- */
-export const extractTeams = (gamesData) => {
-  const teams = [];
-  const teamIds = new Set();
-  
-  Object.entries(gamesData).forEach(([league, games]) => {
-    games.forEach(game => {
-      [game.homeTeam, game.awayTeam].forEach(team => {
-        const uniqueId = league + team.id;
-        if (!teamIds.has(uniqueId)) {
-          teamIds.add(uniqueId);
-          teams.push({
-            id: uniqueId,
-            name: team.name,
-            abbreviation: team.abbreviation,
-            league: league.toUpperCase()
-          });
-        }
-      });
-    });
-  });
-  
-  return teams.sort((a, b) => a.name.localeCompare(b.name));
-};
-
-/**
  * Get winner information for completed games
  */
 export const getGameWinner = (game) => {
@@ -157,99 +126,6 @@ export const getSafeTeamData = (game, isHome) => {
       id: null, name: '', abbreviation: '', score: 0, logo: '' 
     };
   }
-};
-
-/**
- * Format game time for display with sport-specific logic
- */
-export const formatGameTime = (date, status = {}, league = '') => {
-  try {
-    // For MLB, don't show time during live games
-    if (league && String(league).toLowerCase() === 'mlb') {
-      if (isGameOngoing(status) || isGameFinal(status)) {
-        return '';
-      }
-      if (date instanceof Date) {
-        return date.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-      }
-      return String(date);
-    }
-
-    if (isGameFinal(status)) {
-      return 'Final';
-    }
-    
-    if (isGameInBreak(status)) {
-      return getBreakLabel(status);
-    }
-
-    if (isGameOngoing(status)) {
-      if (status.type === 'STATUS_PENALTIES' || status.type === 'STATUS_SHOOTOUT') {
-        return 'Penalty Shootout';
-      }
-      const clock = `${status.displayClock || ''}`.trim();
-      if (!clock) return 'Live';
-      const periodLabel = status.type === 'STATUS_EXTRA_TIME' || status.type === 'STATUS_OVERTIME'
-        ? 'ET'
-        : `Period ${status.period}`;
-      return `${clock} - ${periodLabel}`;
-    }
-
-    if (isGameScheduled(status)) {
-      if (date instanceof Date) {
-        return date.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-      }
-      return String(date);
-    }
-
-    return status && status.type ? 
-      String(status.type).replace('STATUS_', '').replace('_', ' ') : 
-      '';
-  } catch (e) {
-    console.error('formatGameTime error', e, date, status, league);
-    return '';
-  }
-};
-
-/**
- * Get break/intermission label
- */
-export const getBreakLabel = (status) => {
-  if (!status || !status.type) return 'Break';
-  
-  const breakLabels = {
-    'STATUS_HALFTIME': 'Halftime',
-    'STATUS_HALFTIME_ET': 'Halftime (ET)',
-    'STATUS_END_OF_REGULATION': 'End of Regulation',
-    'STATUS_END_PERIOD': 'End of Period',
-    'STATUS_BREAK': 'Break',
-    'STATUS_INTERMISSION': 'Intermission'
-  };
-  
-  return breakLabels[status.type] || 'Break';
-};
-
-/**
- * Get CSS class for game status
- */
-export const getStatusClass = (status) => {
-  if (isGameFinal(status)) {
-    return 'final';
-  }
-  
-  if (isGameOngoing(status)) {
-    return 'live';
-  }
-  
-  return 'scheduled';
 };
 
 /**
@@ -330,10 +206,20 @@ export const getDateInCurrentUsersTimezone = (dateStr, serverTimezone) => {
 
 // Re-export utility functions from constants for convenience
 export {
-  isGameOngoing,
-  isGameInBreak,
   isGameFinal,
-  isGameScheduled,
   getLeagueColors,
   getLeagueInfo
 };
+
+export {
+  extractTeams,
+  isGameOngoing,
+  isGameInBreak,
+  isGameScheduled
+} from '../services/gameUtils';
+
+export {
+  formatGameTimeForGameHelpers as formatGameTime,
+  getBreakLabel,
+  getStatusClass
+} from '../services/gamePresentation';

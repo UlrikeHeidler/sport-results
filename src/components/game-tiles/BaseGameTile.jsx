@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatGameTime, getStatusClass } from '../../services/sportsApi';
+import { formatGameTime, getStatusClass } from '../../services/gamePresentation';
 import { getLeagueColors, isGameOngoing, isGameFinal } from '../../services/gameUtils';
 import { TeamLogo, TeamName, TeamRanking } from '../shared/TeamInfo';
 

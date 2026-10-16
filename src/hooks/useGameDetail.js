@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { API_ENDPOINTS, isGameOngoing } from '../config/constants';
+import { isGameOngoing } from '../config/constants';
+import { fetchGameSummary } from '../services/sportsApi';
 
 /**
  * Fetches the ESPN summary endpoint for a game.
@@ -33,26 +34,20 @@ export function useGameDetail(game, refreshKey, refreshInterval = 30) {
   useEffect(() => {
     if (!game?.id || !game?.league) return;
 
-    const endpoint = API_ENDPOINTS[(game.league || '').toLowerCase()];
-    if (!endpoint) return;
-
-    const summaryUrl = endpoint.split('?')[0].replace('/scoreboard', '/summary') + `?event=${game.id}`;
-
-    const controller = new AbortController();
     let cancelled = false;
     setLoading(true);
     setRequestError(null);
 
-    fetch(summaryUrl, { signal: controller.signal })
-      .then(r => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
+    fetchGameSummary(game.league, game.id)
       .then(data => {
+        if (!data) throw new Error('Could not load game summary');
         if (!cancelled) {
           setSnapshot({ game, data });
           setLoading(false);
         }
       })
       .catch(error => {
-        if (!cancelled && error.name !== 'AbortError') {
+        if (!cancelled) {
           setRequestError(String(error));
           setLoading(false);
         }
@@ -60,7 +55,6 @@ export function useGameDetail(game, refreshKey, refreshInterval = 30) {
 
     return () => {
       cancelled = true;
-      controller.abort();
     };
   }, [game?.id, game?.league, snapshotKey, refreshKey, refreshSequence]);
 

@@ -7,8 +7,8 @@ import { useIncrementalUpdates } from '../useIncrementalUpdates';
 import * as manager from '../../services/incrementalUpdates';
 
 // Simple test component that uses the hook and renders values we can assert
-const TestComponent = ({ selectedLeagues }) => {
-  const { games, liveGamesCount } = useIncrementalUpdates(selectedLeagues);
+const TestComponent = ({ selectedLeagues, enabled = true }) => {
+  const { games, liveGamesCount } = useIncrementalUpdates(selectedLeagues, 30, enabled);
   const count = games?.nfl?.length ?? 0;
   const homeScore = games?.nfl?.[0]?.homeTeam?.score ?? '';
   return (
@@ -27,8 +27,10 @@ describe('useIncrementalUpdates hook', () => {
     listener = null;
     // Mock manager functions
     vi.spyOn(manager, 'initializeIncrementalUpdates').mockImplementation(() => {});
+    vi.spyOn(manager, 'disableIncrementalUpdates').mockImplementation(() => {});
     vi.spyOn(manager, 'setTrackedLeagues').mockImplementation(() => {});
     vi.spyOn(manager, 'getIncrementalCacheStats').mockImplementation(() => ({ cachedLeagues: 0, totalGames: 0 }));
+    vi.spyOn(manager, 'getGamesWithIncrementalUpdates').mockResolvedValue({});
     vi.spyOn(manager, 'addChangeListener').mockImplementation((cb) => {
       listener = cb;
       return () => { listener = null; };
@@ -56,7 +58,7 @@ describe('useIncrementalUpdates hook', () => {
     };
 
     // Mock getGamesWithIncrementalUpdates to return initial games
-    vi.spyOn(manager, 'getGamesWithIncrementalUpdates').mockResolvedValue({ nfl: [initialGame] });
+    vi.mocked(manager.getGamesWithIncrementalUpdates).mockResolvedValue({ nfl: [initialGame] });
 
     render(<TestComponent selectedLeagues={[ 'nfl' ]} />);
 
@@ -77,5 +79,15 @@ describe('useIncrementalUpdates hook', () => {
 
     // Now the hook should update the rendered score
     await waitFor(() => expect(screen.getByTestId('homeScore').textContent).toBe('2'));
+  });
+
+  it('does not initialize or load incremental updates when disabled', () => {
+    render(<TestComponent selectedLeagues={['nfl']} enabled={false} />);
+
+    expect(manager.initializeIncrementalUpdates).not.toHaveBeenCalled();
+    expect(manager.disableIncrementalUpdates).toHaveBeenCalled();
+    expect(manager.addChangeListener).not.toHaveBeenCalled();
+    expect(manager.getGamesWithIncrementalUpdates).not.toHaveBeenCalled();
+    expect(manager.setTrackedLeagues).toHaveBeenCalledWith([]);
   });
 });

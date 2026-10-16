@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatGameTime } from '../sportsApi';
+import { formatGameTime } from '../gamePresentation';
 
 // Shared status builders
 const status = (type, opts = {}) => ({
@@ -97,5 +97,12 @@ describe('formatGameTime — scheduled', () => {
     future.setHours(19, 0, 0, 0);
     const result = formatGameTime(future, schedStatus(), 'nfl');
     expect(result).toMatch(/\d+:\d{2}/);
+  });
+});
+
+describe('formatGameTime — break labels', () => {
+  it('preserves the ESPN live-state label for period breaks', () => {
+    const result = formatGameTime(new Date(), status('STATUS_END_PERIOD', { period: 2 }), 'nhl');
+    expect(result).toBe('End of period (2)');
   });
 });

@@ -3,8 +3,6 @@
  * Centralized constants for better maintainability
  */
 
-import type { LeagueType, SportType, LeagueColors, LeagueInfo } from '../types';
-
 // Animation constants
 export const ANIMATION_DURATIONS = {
   SCORE_CHANGE: 15000,
@@ -16,7 +14,7 @@ export const ANIMATION_DURATIONS = {
 
 // CSS class constants
 export const CSS_CLASSES = {
-  GAME_TILE: 'unified-game-tile',
+  GAME_TILE: 'game-tile',
   DRAGGING: 'dragging',
   WINNER: 'winner',
   LIVE: 'live',
@@ -74,105 +72,9 @@ export const GAME_STATUS_TYPES = {
   CANCELED: 'STATUS_CANCELED',
 } as const;
 
-// League configurations
-export const LEAGUE_CONFIGS: Record<LeagueType, LeagueInfo> = {
-  NFL: {
-    name: 'National Football League',
-    sport: 'football',
-    colors: {
-      primary: '#013369',
-      secondary: '#D50A0A',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
-  },
-  NHL: {
-    name: 'National Hockey League',
-    sport: 'hockey',
-    colors: {
-      primary: '#000000',
-      secondary: '#C8102E',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard',
-  },
-  NBA: {
-    name: 'National Basketball Association',
-    sport: 'basketball',
-    colors: {
-      primary: '#C8102E',
-      secondary: '#1D428A',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard',
-  },
-  MLB: {
-    name: 'Major League Baseball',
-    sport: 'baseball',
-    colors: {
-      primary: '#041E42',
-      secondary: '#C4CED4',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard',
-  },
-  FCS: {
-    name: 'Football Championship Subdivision',
-    sport: 'football',
-    colors: {
-      primary: '#4B0082',
-      secondary: '#FFD700',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard',
-  },
-  FBS: {
-    name: 'Football Bowl Subdivision',
-    sport: 'football',
-    colors: {
-      primary: '#8B0000',
-      secondary: '#FFD700',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard',
-  },
-  BUNDESLIGA: {
-    name: 'German Bundesliga',
-    sport: 'soccer',
-    colors: {
-      primary: '#D20515',
-      secondary: '#000000',
-      background: '#f8f9fa',
-    },
-    apiEndpoint: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard',
-  },
-} as const;
-
-// Available leagues array
-export const AVAILABLE_LEAGUES: LeagueType[] = Object.keys(LEAGUE_CONFIGS) as LeagueType[];
-
-// Sport mappings
-export const SPORT_MAPPINGS: Record<LeagueType, SportType> = {
-  NFL: 'football',
-  FCS: 'football',
-  FBS: 'football',
-  NHL: 'hockey',
-  NBA: 'basketball',
-  MLB: 'baseball',
-  BUNDESLIGA: 'soccer',
-} as const;
-
-// API endpoints
-export const API_ENDPOINTS: Record<string, string> = Object.fromEntries(
-  Object.entries(LEAGUE_CONFIGS).map(([league, config]) => [
-    league.toLowerCase(),
-    config.apiEndpoint,
-  ]),
-);
-
 // Default settings
 export const DEFAULT_SETTINGS = {
-  selectedLeagues: ['NFL', 'NHL', 'NBA', 'MLB'] as LeagueType[],
+  selectedLeagues: ['NFL', 'NHL', 'NBA', 'MLB'] as string[],
   refreshInterval: 30,
   colorCoding: true,
   showTeamForm: true,
@@ -232,23 +134,6 @@ export const KEYBOARD_SHORTCUTS = {
   ENTER: ['Enter'],
   SPACE: [' '],
 } as const;
-
-// Utility functions for constants
-export const getLeagueInfo = (league: LeagueType): LeagueInfo => {
-  return LEAGUE_CONFIGS[league];
-};
-
-export const getLeagueColors = (league: LeagueType): LeagueColors => {
-  return LEAGUE_CONFIGS[league]?.colors || {
-    primary: '#000000',
-    secondary: '#ffffff',
-    background: '#f8f9fa',
-  };
-};
-
-export const getSportFromLeague = (league: LeagueType): SportType => {
-  return SPORT_MAPPINGS[league] || 'football';
-};
 
 export const isGameOngoing = (status: any): boolean => {
   if (!status) return false;

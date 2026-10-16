@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectPossession } from '../sportsApi';
+import { detectPossession } from '../detectPossession';
 
 describe('detectPossession lastPlay preference', () => {
   it('prefers lastPlay.team id over other signals', () => {

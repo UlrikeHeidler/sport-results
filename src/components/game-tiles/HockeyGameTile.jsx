@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import BaseGameTile from './BaseGameTile';
 import './GameTiles.hockey.css';
-import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi';
+import { fetchGameSummary } from '../../services/sportsApi';
+import { normalizeGameSummary } from '../../services/normalizeGameSummary';
 import { isGameOngoing } from '../../config/constants';
 import { isShootoutInProgress, ShootoutTracker } from '../shared/ShootoutTracker';
 

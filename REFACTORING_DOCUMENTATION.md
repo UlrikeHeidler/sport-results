@@ -17,29 +17,20 @@ This document outlines the comprehensive refactoring performed on the Sports Res
 - [`useGameAnimations`](src/hooks/useGameAnimations.js) - Unified animation logic
 - [`TeamInfo`](src/components/shared/TeamInfo.jsx) & [`TeamScore`](src/components/shared/TeamScore.jsx) - Reusable team components
 - [`gameHelpers`](src/utils/gameHelpers.js) - Consolidated utility functions
-- [`apiService`](src/services/apiService.js) & [`dataProcessor`](src/services/dataProcessor.js) - Unified API and data processing
+- [`sportsApi`](src/services/sportsApi.js) - ESPN request orchestration
+- Scoreboard and summary normalization in [`normalizeScoreboard`](src/services/normalizeScoreboard.js) and [`normalizeGameSummary`](src/services/normalizeGameSummary.js)
 
 ### ✅ 2. Large File Decomposition
 
-**Before:** [`App.jsx`](src/App.jsx) was 473 lines with multiple responsibilities.
-
-**After:** Split into focused components:
-- [`ZoomControls`](src/components/layout/ZoomControls.jsx) - Zoom functionality (186 lines)
-- [`AppHeader`](src/components/layout/AppHeader.jsx) - Header management (142 lines)
-- [`GameGrid`](src/components/layout/GameGrid.jsx) - Games display logic (147 lines)
-
-**Before:** [`sportsApi.js`](src/services/sportsApi.js) was 556 lines mixing concerns.
-
-**After:** Separated into:
-- [`apiService.js`](src/services/apiService.js) - API client logic (298 lines)
-- [`dataProcessor.js`](src/services/dataProcessor.js) - Data processing (349 lines)
+**After:** Reusable layout components handle the game grid, while [`App.jsx`](src/App.jsx) composes the app and owns top-level state. ESPN requests live in [`sportsApi.js`](src/services/sportsApi.js), response mapping in focused normalizers, and display formatting in [`gamePresentation.js`](src/services/gamePresentation.js).
 
 ### ✅ 3. Code Harmonization
 
 **Before:** Inconsistent patterns across sport-specific game tiles.
 
 **After:** Unified architecture:
-- [`UnifiedGameTile`](src/components/game-tiles/UnifiedGameTile.jsx) - Consistent base for all sports
+- [`GameTileFactory`](src/components/game-tiles/GameTileFactory.jsx) - Selects the sport-specific game tile
+- [`BaseGameTile`](src/components/game-tiles/BaseGameTile.jsx) - Shared base behavior for game tiles
 - [`useUIStateManager`](src/hooks/useUIStateManager.js) - Advanced state management patterns
 - [`formValidation`](src/utils/formValidation.js) - Standardized validation utilities
 
@@ -57,18 +48,18 @@ src/
 │   │   ├── ZoomControls.jsx      # Zoom functionality
 │   │   ├── ZoomControls.css
 │   │   ├── AppHeader.jsx         # Header management
-│   │   ├── AppHeader.css
-│   │   ├── GameGrid.jsx          # Games display
-│   │   └── GameGrid.css
+│   │   └── AppHeader.css
 │   └── game-tiles/
-│       ├── UnifiedGameTile.jsx   # Harmonized game tile base
-│       └── UnifiedGameTile.css
+│       ├── GameTileFactory.jsx   # Selects the sport-specific tile
+│       └── BaseGameTile.jsx      # Shared tile behavior
 ├── hooks/
 │   ├── useGameAnimations.js      # Consolidated animation logic
 │   └── useUIStateManager.js      # Advanced UI state management
 ├── services/
-│   ├── apiService.js             # Unified API client
-│   └── dataProcessor.js          # Consolidated data processing
+│   ├── sportsApi.js              # ESPN request orchestration
+│   ├── normalizeScoreboard.js    # Scoreboard response normalization
+│   ├── normalizeGameSummary.js   # Summary/boxscore normalization
+│   └── gamePresentation.js       # Game status and time display
 └── utils/
     ├── gameHelpers.js            # Game utility functions
     └── formValidation.js         # Form validation utilities
@@ -119,39 +110,18 @@ const { getScoreClass } = useScoreAnimations(game);
 - **Features:** Minimized/expanded states, responsive design
 - **Components:** `MinimizedHeader`, `ExpandedHeader`
 
-#### GameGrid (`GameGrid.jsx`)
-- **Extracted from:** Games display logic in `App.jsx`
-- **Features:** Loading/error states, drag-and-drop, responsive grid
-- **Components:** `LoadingState`, `ErrorState`, `NoGamesState`
+### 4. Sport-Specific Game Tile Factory
 
-### 4. Unified Game Tile (`UnifiedGameTile.jsx`)
+`GameTileFactory.jsx` selects the dedicated tile component for each sport. Sport-specific
+components preserve their own display behavior while shared elements and status utilities
+are reused where appropriate.
 
-**Problem Solved:** Inconsistent patterns across sport-specific tiles
+### 5. Service and Data Boundaries
 
-**Solution:** Harmonized architecture with:
-- Consistent structure across all sports
-- Pluggable additional info renderers
-- Sport-specific styling via CSS classes
-- Factory functions for easy sport tile creation
-
-```javascript
-const FootballTile = createSportTile('football', footballInfoRenderer);
-const BaseballTile = createSportTile('baseball', baseballInfoRenderer);
-```
-
-### 5. Service Layer Refactoring
-
-#### API Service (`apiService.js`)
-- **Base `ApiClient`:** Generic HTTP client with retries, caching
-- **`SportsApiClient`:** ESPN-specific functionality
-- **`CachedApiClient`:** Automatic response caching
-- **Features:** Parallel requests, error handling, cache management
-
-#### Data Processor (`dataProcessor.js`)
-- **`EspnDataProcessor`:** ESPN API response processing
-- **`GameSummaryProcessor`:** Boxscore data processing
-- **`DataAggregator`:** Multi-source data combination
-- **Features:** Validation, normalization, deduplication
+- `sportsApi.js` owns ESPN requests, date aggregation, and summary-request caching.
+- `normalizeScoreboard.js`, `normalizeGameSummary.js`, `normalizeSituation.js`, and `normalizeStatus.js` map provider payloads into app data.
+- `gamePresentation.js` owns game-time and status display formatting.
+- `gameUtils.js` contains shared game-data utilities.
 
 ### 6. Utility Consolidation
 
@@ -187,9 +157,8 @@ const BaseballTile = createSportTile('baseball', baseballInfoRenderer);
 - **API logic:** Consolidated ~300 lines of scattered API code
 
 ### File Size Reduction
-- **App.jsx:** 473 → ~200 lines (58% reduction)
-- **sportsApi.js:** 556 → 298 lines (46% reduction)
-- **Game tiles:** Unified architecture reduces maintenance overhead
+- Game filtering is consumed directly from `useGameFiltering`, avoiding duplicate filtered-list state.
+- Unused unified-tile implementation and its no-op preload path have been removed.
 
 ### Maintainability Improvements
 - **Single source of truth** for animations, team rendering, utilities
@@ -221,15 +190,10 @@ const { animations, getAnimationClass } = useGameAnimations(game);
 <TeamInfo team={team} game={game} isHome={isHome} />
 ```
 
-### Using Unified Game Tile
+### Using the Game Tile Factory
 ```javascript
-// Before: Separate components with duplicate logic
-<BaseballGameTile {...props} />
-<FootballGameTile {...props} />
-
-// After: Unified base with sport-specific renderers
-<UnifiedGameTile {...props} renderAdditionalInfo={baseballRenderer} />
-<UnifiedGameTile {...props} renderAdditionalInfo={footballRenderer} />
+// GameTileFactory chooses the matching component based on game.league
+<GameTileFactory game={game} index={index} />
 ```
 
 ### Using New API Service
@@ -252,13 +216,13 @@ const { data } = await sportsApiClient.fetchLeagueGames('nfl');
 1. **Replace animation logic** with `useGameAnimations` hook
 2. **Use `TeamInfo` and `TeamScore`** instead of custom team rendering
 3. **Import utilities** from `gameHelpers` instead of local functions
-4. **Use `UnifiedGameTile`** as base for new sport tiles
+4. **Add new sport-specific tiles** and register them in `GameTileFactory`
 
 ### For New Features
 1. **Use `useUIStateManager`** hooks for complex state management
 2. **Leverage `formValidation`** utilities for form handling
-3. **Extend `apiService`** for new API endpoints
-4. **Follow `UnifiedGameTile`** pattern for consistent UI
+3. **Extend `sportsApi`** for ESPN request orchestration and add a normalizer for new payload shapes
+4. **Follow the existing sport-specific tile pattern** and reuse shared components
 
 ## 🎯 Benefits Achieved
 
@@ -282,10 +246,10 @@ const { data } = await sportsApiClient.fetchLeagueGames('nfl');
 ## 🔮 Future Enhancements
 
 The refactored architecture enables easy addition of:
-- **New sports** via `UnifiedGameTile` factory functions
+- **New sports** via sport-specific components registered in `GameTileFactory`
 - **Advanced animations** through `useGameAnimations` extensions
 - **Complex UI patterns** using `useUIStateManager` hooks
-- **New data sources** via `apiService` and `dataProcessor` extensions
+- **New data sources** via focused transport and normalization modules
 - **Enhanced validation** through `formValidation` utilities
 
 ## 📝 Conclusion

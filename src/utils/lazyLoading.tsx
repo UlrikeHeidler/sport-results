@@ -187,7 +187,6 @@ export const bundleUtils = {
   // Preload critical components
   preloadCritical: async () => {
     const promises = [
-      preloadComponent(() => import('../components/game-tiles/UnifiedGameTile')),
       preloadComponent(() => import('../components/shared/TeamInfo')),
       preloadComponent(() => import('../components/shared/TeamScore')),
     ];

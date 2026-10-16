@@ -199,6 +199,11 @@ describe('gameHelpers', () => {
       expect(result).toMatch(/\d{1,2}:\d{2}\s?(AM|PM)/);
     });
 
+    it('preserves the helper break label format', () => {
+      const result = formatGameTime(new Date(), { type: 'STATUS_END_PERIOD', period: 2 });
+      expect(result).toBe('End of Period');
+    });
+
     it('should return empty string for MLB live games', () => {
       const date = new Date('2023-01-01T15:00:00Z');
       const status = { type: 'STATUS_IN_PROGRESS' };

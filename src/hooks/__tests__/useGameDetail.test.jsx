@@ -13,10 +13,12 @@ function deferred() {
 describe('useGameDetail', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
   it('keeps the displayed game paired with its summary until the next summary arrives', async () => {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1000);
     const firstRequest = deferred();
     const secondRequest = deferred();
     const fetchMock = vi.fn()
@@ -52,6 +54,7 @@ describe('useGameDetail', () => {
     await waitFor(() => expect(result.current.data).toEqual({ snapshot: 100 }));
     expect(result.current.displayGame.snapshotFetchedAt).toBe(100);
 
+    now.mockReturnValue(6000);
     rerender({ game: nextGame });
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 

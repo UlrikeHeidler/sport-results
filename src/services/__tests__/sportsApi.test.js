@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as api from '../sportsApi';
+import { normalizeGameSummary } from '../normalizeGameSummary';
 
 const makeEvent = ({ id, date, status, home, away }) => ({
   id,
@@ -34,7 +35,7 @@ const makeEvent = ({ id, date, status, home, away }) => ({
   ]
 });
 
-describe('sportsApi.normalizeGameSummary', () => {
+describe('normalizeGameSummary', () => {
   const makeSummary = (teamId, strength) => ({
     boxscore: {
       teams: [
@@ -54,7 +55,7 @@ describe('sportsApi.normalizeGameSummary', () => {
   });
 
   it('identifies the team on a power play from play strength', () => {
-    const summary = api.normalizeGameSummary(makeSummary('8', {
+    const summary = normalizeGameSummary(makeSummary('8', {
       id: '702',
       text: 'Power Play',
       abbreviation: 'power-play'
@@ -68,7 +69,7 @@ describe('sportsApi.normalizeGameSummary', () => {
   });
 
   it('identifies the opponent when a play is shorthanded', () => {
-    const summary = api.normalizeGameSummary(makeSummary('37', {
+    const summary = normalizeGameSummary(makeSummary('37', {
       id: '703',
       text: 'Shorthanded',
       abbreviation: 'short-handed'
@@ -82,7 +83,7 @@ describe('sportsApi.normalizeGameSummary', () => {
   });
 
   it('clears the power-play indicator at even strength', () => {
-    const summary = api.normalizeGameSummary(makeSummary('37', {
+    const summary = normalizeGameSummary(makeSummary('37', {
       id: '701',
       text: 'Even Strength',
       abbreviation: 'even-strength'
@@ -99,6 +100,7 @@ describe('sportsApi.normalizeGameSummary', () => {
 describe('sportsApi.fetchAllGames', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     delete global.fetch;
   });
 
@@ -173,5 +175,50 @@ describe('sportsApi.fetchAllGames', () => {
     expect(result.mlb).toBeDefined();
     expect(result.mlb.some((game) => game.id === 'mlb-overnight-1')).toBe(true);
     expect(result.mlb.some((game) => game.id === 'mlb-today-1')).toBe(true);
+  });
+
+  it('rejects when a league scoreboard request fails instead of returning an empty league', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }));
+
+    await expect(api.fetchGames('mlb')).rejects.toThrow('HTTP error! status: 503');
+    await expect(api.fetchAllGames(['mlb'])).rejects.toThrow('HTTP error! status: 503');
+  });
+
+  it('rejects malformed scoreboard responses without an events array', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: 'unexpected API response' }),
+    }));
+
+    await expect(api.fetchGames('mlb')).rejects.toThrow('missing events array');
+  });
+});
+
+describe('sportsApi.fetchGameSummary', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    delete global.fetch;
+  });
+
+  it('shares in-flight and recently fetched summaries for the same event', async () => {
+    const summary = { plays: [{ id: 'play-1' }] };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => summary,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const requests = [
+      api.fetchGameSummary('nhl', 'shared-event-1'),
+      api.fetchGameSummary('NHL', 'shared-event-1'),
+    ];
+    const [first, second] = await Promise.all(requests);
+    const cached = await api.fetchGameSummary('nhl', 'shared-event-1');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(first).toBe(summary);
+    expect(second).toBe(summary);
+    expect(cached).toBe(summary);
   });
 });

@@ -117,4 +117,13 @@ describe('IncrementalUpdatesManager', () => {
 
     unsub();
   });
+
+  it('propagates failed league requests instead of returning missing league data', async () => {
+    vi.spyOn(api, 'fetchGames').mockRejectedValue(new Error('Scoreboard unavailable'));
+
+    await expect(
+      incrementalUpdatesManager.getGamesIncremental(['mlb'], true)
+    ).rejects.toThrow('Scoreboard unavailable');
+    expect(incrementalUpdatesManager.cache.has('games_mlb')).toBe(false);
+  });
 });

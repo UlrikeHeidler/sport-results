@@ -23,7 +23,8 @@ import { useSettings } from './hooks/useSettings';
 import { useUIState } from './hooks/useUIState';
 import { useGameFiltering } from './hooks/useGameFiltering';
 import { useDetailMode } from './hooks/useDetailMode';
-import { fetchAllGames, extractTeams } from './services/sportsApi';
+import { fetchAllGames } from './services/sportsApi';
+import { extractTeams } from './services/gameUtils';
 import { AVAILABLE_LEAGUES } from './config/constants';
 
 function App() {
@@ -44,7 +45,6 @@ function App() {
   } = useUIState();
 
   // Game data state
-  const [filteredGames, setFilteredGames] = useState([]);
   const [availableTeams, setAvailableTeams] = useState([]);
   const [useIncrementalMode, setUseIncrementalMode] = useState(true);
 
@@ -75,7 +75,7 @@ function App() {
     changeSummary,
     liveGamesCount,
     updateFrequency
-  } = useIncrementalUpdates(settings.selectedLeagues, settings.refreshInterval);
+  } = useIncrementalUpdates(settings.selectedLeagues, settings.refreshInterval, useIncrementalMode);
 
   // Zoom state (scale factor). Persist in localStorage so user's zoom survives reloads
   const ZOOM_KEY = 'sportsAppZoom';
@@ -223,18 +223,13 @@ function App() {
   const currentLastUpdated = useIncrementalMode ? incrementalLastUpdated : lastUpdated;
 
   // Game filtering and sorting
-  const { filteredGames: processedGames } = useGameFiltering({
+  const { filteredGames } = useGameFiltering({
     games: currentGames,
     selectedLeagues: settings.selectedLeagues,
     hiddenTeams: settings.hiddenTeams,
     pinnedIds,
     showYesterdayResults: settings.showYesterdayResults
   });
-
-  // Update filteredGames when processed games change
-  useEffect(() => {
-    setFilteredGames(processedGames);
-  }, [processedGames]);
 
   // Extract teams when games change
   useEffect(() => {

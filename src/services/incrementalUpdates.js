@@ -24,6 +24,13 @@ class IncrementalUpdatesManager {
     this.updateQueue = new Map(); // Queued updates
     this.isUpdating = false;
     this.updateInterval = null;
+    this.isEnabled = false;
+    this.visibilityListenerAttached = false;
+    this.handleVisibilityChange = () => {
+      if (!this.isEnabled) return;
+      if (document.hidden) this.pauseUpdates();
+      else this.resumeUpdates();
+    };
     this.userRefreshInterval = 30; // Default to 30s if not set
     // Configuration
     this.config = {
@@ -105,16 +112,13 @@ class IncrementalUpdatesManager {
   initialize(userRefreshInterval = 30) {
     debugIncremental('Initializing IncrementalUpdatesManager with refreshInterval:', userRefreshInterval);
     this.userRefreshInterval = userRefreshInterval || 30;
+    this.isEnabled = true;
     this.loadCacheFromStorage();
-    this.startPeriodicUpdates();
-    // Listen for visibility changes to optimize updates
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.pauseUpdates();
-      } else {
-        this.resumeUpdates();
-      }
-    });
+    if (typeof document !== 'undefined' && !this.visibilityListenerAttached) {
+      document.addEventListener('visibilitychange', this.handleVisibilityChange);
+      this.visibilityListenerAttached = true;
+    }
+    if (typeof document === 'undefined' || !document.hidden) this.startPeriodicUpdates();
   }
 
   /**
@@ -169,15 +173,12 @@ class IncrementalUpdatesManager {
     }
 
     // Wait for all updates to complete
-    const updates = await Promise.allSettled(updatePromises);
+    const updates = await Promise.all(updatePromises);
     
     // Merge updated data with cached data
-    updates.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        const { league, games } = result.value;
-        // Return clones to callers to avoid exposing internal cache references
-          results[league] = (games || []).map(g => this.cloneGame(g));
-      }
+    updates.forEach(({ league, games }) => {
+      // Return clones to callers to avoid exposing internal cache references
+      results[league] = (games || []).map(g => this.cloneGame(g));
     });
 
     return results;
@@ -439,6 +440,7 @@ class IncrementalUpdatesManager {
    * Start periodic updates
    */
   startPeriodicUpdates() {
+    if (!this.isEnabled) return;
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
@@ -454,7 +456,7 @@ class IncrementalUpdatesManager {
    * Perform scheduled updates for all cached leagues
    */
   async performScheduledUpdates() {
-    if (this.isUpdating) return;
+    if (!this.isEnabled || this.isUpdating) return;
     
     this.isUpdating = true;
     
@@ -492,9 +494,21 @@ class IncrementalUpdatesManager {
    * Resume updates (when tab becomes visible)
    */
   resumeUpdates() {
+    if (!this.isEnabled || (typeof document !== 'undefined' && document.hidden)) return;
     this.startPeriodicUpdates();
     // Trigger immediate update when resuming
-    setTimeout(() => this.performScheduledUpdates(), 100);
+    setTimeout(() => {
+      if (this.isEnabled) this.performScheduledUpdates();
+    }, 100);
+  }
+
+  disableUpdates() {
+    this.isEnabled = false;
+    this.pauseUpdates();
+    if (this.visibilityListenerAttached && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+      this.visibilityListenerAttached = false;
+    }
   }
 
   /**
@@ -534,7 +548,7 @@ class IncrementalUpdatesManager {
    * Cleanup resources
    */
   destroy() {
-    this.pauseUpdates();
+    this.disableUpdates();
     this.changeListeners.clear();
     this.cache.clear();
     this.lastFetch.clear();
@@ -547,6 +561,10 @@ export const incrementalUpdatesManager = new IncrementalUpdatesManager();
 // Export utility functions
 export const initializeIncrementalUpdates = (userRefreshInterval = 30) => {
   incrementalUpdatesManager.initialize(userRefreshInterval);
+};
+
+export const disableIncrementalUpdates = () => {
+  incrementalUpdatesManager.disableUpdates();
 };
 
 export const getGamesWithIncrementalUpdates = (leagues, forceRefresh = false) => {

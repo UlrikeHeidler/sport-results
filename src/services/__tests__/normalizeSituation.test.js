@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { normalizeSituation } from '../normalizeSituation';
 
-// detectPossession is imported inside normalizeSituation — stub it at the module level
-vi.mock('../sportsApi', () => ({
+// Stub the possession resolver to test situation normalization independently.
+vi.mock('../detectPossession', () => ({
   detectPossession: vi.fn(() => ({ which: null, label: null }))
 }));
 

@@ -86,7 +86,7 @@ src/
 ├── components/
 │   ├── ErrorBoundary.tsx          # Enhanced error boundary component
 │   └── game-tiles/
-│       └── UnifiedGameTile.tsx     # Optimized with React.memo and performance
+│       └── GameTileFactory.jsx     # Routes games to sport-specific tiles
 ├── hooks/
 │   └── useGameAnimations.ts        # Performance-optimized animation system
 └── test/

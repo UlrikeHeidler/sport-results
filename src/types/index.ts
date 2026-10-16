@@ -134,11 +134,6 @@ export interface ToastAction {
   variant?: 'primary' | 'secondary';
 }
 
-export interface LoadingState {
-  loading: boolean;
-  message: string;
-}
-
 // Settings types
 export interface AppSettings {
   selectedLeagues: LeagueType[];
@@ -165,19 +160,6 @@ export interface ValidationResult {
 }
 
 // Component prop types
-export interface UnifiedGameTileProps {
-  game: GameData;
-  index: number;
-  colorCoding?: boolean;
-  isDragDisabled?: boolean;
-  draggableId?: string;
-  showTeamForm?: boolean;
-  renderAdditionalInfo?: (() => React.ReactNode) | null | undefined;
-  customClassName?: string;
-  provided?: any;
-  snapshot?: any;
-}
-
 export interface TeamInfoProps {
   team: TeamData;
   game: GameData;

@@ -1,5 +1,5 @@
 // Per-sport situation normalization helper
-import { detectPossession } from './sportsApi';
+import { detectPossession } from './detectPossession';
 
 /**
  * Returns the total elapsed game time in seconds.

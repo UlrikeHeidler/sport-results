@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectPossession } from '../sportsApi';
-
-// Since parseGamesData expects full ESPN-like responses, we will instead
-// import the helper by requiring the file and extracting the function via
-// eval of the source. Simpler approach: craft a minimal competition object
-// and call detectPossession if it were exported. But detectPossession is
-// currently internal — instead we'll exercise the football parsing path by
-// constructing a minimal `data` object similar to ESPN's shape and assert
-// the parsed game's situation contains normalized possession fields.
+import { detectPossession } from '../detectPossession';
 
 describe('detectPossession helper', () => {
   it('identifies home team by abbreviation', () => {

@@ -1,7 +1,8 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import HockeyGameTile from './HockeyGameTile';
-import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi';
+import { fetchGameSummary } from '../../services/sportsApi';
+import { normalizeGameSummary } from '../../services/normalizeGameSummary';
 import { isShootoutInProgress } from '../shared/ShootoutTracker';
 
 vi.mock('./BaseGameTile', () => ({
@@ -10,6 +11,9 @@ vi.mock('./BaseGameTile', () => ({
 
 vi.mock('../../services/sportsApi', () => ({
   fetchGameSummary: vi.fn(),
+}));
+
+vi.mock('../../services/normalizeGameSummary', () => ({
   normalizeGameSummary: vi.fn(),
 }));
 
