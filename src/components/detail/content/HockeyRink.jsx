@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import rinkSvg from '../../../../public/bg-rink.svg';
+import { ShootoutTracker } from '../../shared/ShootoutTracker';
 import './HockeyRink.css';
 
 // ESPN hockey coordinates: x = -100..100 (left goal → right goal), y = -42.5..42.5 (top boards → bottom boards)
@@ -262,6 +263,7 @@ export function HockeyRink({ plays = [], isLive, game }) {
 
   return (
     <div className="hockey-rink-wrap">
+      <ShootoutTracker plays={plays} game={game} />
       <div className="detail-section-title">
         {isLive ? 'Last 10 Events' : 'Goal Positions'}
       </div>
@@ -300,4 +302,3 @@ export function HockeyRink({ plays = [], isLive, game }) {
     </div>
   );
 }
-

@@ -13,6 +13,7 @@ function deferred() {
 describe('useGameDetail', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it('keeps the displayed game paired with its summary until the next summary arrives', async () => {
@@ -63,5 +64,34 @@ describe('useGameDetail', () => {
     });
     await waitFor(() => expect(result.current.data).toEqual({ snapshot: 200 }));
     expect(result.current.displayGame.snapshotFetchedAt).toBe(200);
+  });
+
+  it('refreshes live shootout details every five seconds', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ updated: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const game = {
+      id: 'nhl-game',
+      league: 'nhl',
+      status: { type: 'STATUS_IN_PROGRESS', period: 5, completed: false },
+      homeTeam: { score: 1 },
+      awayTeam: { score: 1 },
+    };
+    renderHook(() => useGameDetail(game, null, 30));
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

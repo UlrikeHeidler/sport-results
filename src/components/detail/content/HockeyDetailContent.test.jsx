@@ -70,3 +70,60 @@ describe('HockeyDetailContent player stat tabs', () => {
     expect(screen.getByText('Player statistics unavailable.')).toBeInTheDocument();
   });
 });
+
+describe.each([
+  ['live', 'in', 'Last 10 Events'],
+  ['completed', 'post', 'Goal Positions'],
+])('HockeyDetailContent shootout tracker for %s games', (_state, state, rinkTitle) => {
+  it('shows each team’s results in the single-line tracker above the rink section', () => {
+    const awayTeam = { id: 'ott', abbreviation: 'OTT', displayName: 'Ottawa Senators' };
+    const homeTeam = { id: 'nyi', abbreviation: 'NYI', displayName: 'New York Islanders' };
+    const { container } = render(
+      <HockeyDetailContent
+        game={{
+          league: 'NHL',
+          status: { type: state === 'in' ? 'STATUS_IN_PROGRESS' : 'STATUS_FINAL', state },
+          awayTeam,
+          homeTeam,
+        }}
+        data={{
+          header: { competitions: [{ status: { type: { state } } }] },
+          plays: [
+            {
+              id: 'ott-save',
+              type: { text: 'Shot' },
+              text: 'Drake Batherson shot saved',
+              team: { id: 'ott' },
+              period: { number: 5, displayValue: 'SO' },
+            },
+            {
+              id: 'nyi-goal',
+              type: { text: 'Goal' },
+              text: 'Bo Horvat Goal',
+              scoreValue: 1,
+              scoringPlay: true,
+              team: { id: 'nyi' },
+              period: { number: 5, displayValue: 'SO' },
+            },
+            {
+              id: 'nyi-miss',
+              type: { text: 'Missed' },
+              text: 'Simon Holmstrom missed',
+              team: { id: 'nyi' },
+              period: { number: 5, displayValue: 'SO' },
+            },
+          ],
+          boxscore: { teams: [], players: [] },
+        }}
+      />
+    );
+
+    const tracker = screen.getByRole('group', { name: 'Shootout results' });
+    expect(tracker).toHaveTextContent('Shootout');
+    expect(tracker).toHaveTextContent('OTT✕0/1');
+    expect(tracker).toHaveTextContent('NYI✓✕1/2');
+    expect(tracker.compareDocumentPosition(screen.getByText(rinkTitle)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelectorAll('.shootout-attempt')).toHaveLength(3);
+    expect(container.querySelector('.shootout-tracker')).toHaveStyle({ flexWrap: 'nowrap' });
+  });
+});

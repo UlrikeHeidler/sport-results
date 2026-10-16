@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import BaseGameTile from './BaseGameTile';
 import './GameTiles.hockey.css';
 import { fetchGameSummary, normalizeGameSummary } from '../../services/sportsApi';
+import { isGameOngoing } from '../../config/constants';
+import { isShootoutInProgress, ShootoutTracker } from '../shared/ShootoutTracker';
 
 const HockeyGameTile = (props) => {
   const { game, refreshInterval = 30 } = props;
 
   // Hockey-specific additional info renderer
   const renderAdditionalInfo = () => {
-    if (!game.situation && !summary) return null;
+    if (!game.situation && !summary && !shootoutData) return null;
     const situation = game.situation || {};
     const shotHome = getShotCount(true);
     const shotAway = getShotCount(false);
@@ -32,26 +34,30 @@ const HockeyGameTile = (props) => {
 
     return (
       <div className="hockey-info">
-        <div className="hockey-last-play" aria-hidden>
-          {lastPlayMarker && (
-            <span className="hockey-last-play-marker" aria-hidden="true">
-              {lastPlayMarker}
-            </span>
+        {shootoutInProgress
+          ? <ShootoutTracker plays={shootoutData?.plays} game={game} compact />
+          : (
+            <div className="hockey-last-play" aria-hidden>
+              {lastPlayMarker && (
+                <span className="hockey-last-play-marker" aria-hidden="true">
+                  {lastPlayMarker}
+                </span>
+              )}
+              {eventLogo && (
+                <img
+                  src={eventLogo}
+                  alt={lastPlayTeam + ' logo'}
+                  className="nhl-timeline-logo"
+                  width={16}
+                  height={16}
+                  loading="lazy"
+                  decoding="async"
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              )}
+              {lastPlay && <span className="hockey-last-play-text">{lastPlay}</span>}
+            </div>
           )}
-          {eventLogo && (
-            <img
-              src={eventLogo}
-              alt={lastPlayTeam + ' logo'}
-              className="nhl-timeline-logo"
-              width={16}
-              height={16}
-              loading="lazy"
-              decoding="async"
-              onError={e => { e.target.style.display = 'none'; }}
-            />
-          )}
-          {lastPlay && <span className="hockey-last-play-text">{lastPlay}</span>}
-        </div>
         {(shotHome != null || shotAway != null) && (
           <div className="shots-on-goal">
             <div className="shots away">SOG: {shotAway != null ? shotAway : '-'}</div>
@@ -65,7 +71,9 @@ const HockeyGameTile = (props) => {
 
   // local state for on-demand summary
   const [summary, setSummary] = useState(null);
+  const [shootoutData, setShootoutData] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const shootoutInProgress = isShootoutInProgress(game, shootoutData?.header);
 
   const fetchSummary = useCallback(async (force = false) => {
     if ((!force && summary) || loadingSummary) return;
@@ -80,30 +88,33 @@ const HockeyGameTile = (props) => {
       // normalize into compact shape
       const normalized = normalizeGameSummary(data);
       setSummary(normalized);
+      setShootoutData({
+        plays: Array.isArray(data.plays) ? data.plays : [],
+        header: data.header,
+      });
     } catch (err) {
-      setSummaryError('Failed to load details');
+      console.error('Failed to load hockey game summary:', err);
     } finally {
       setLoadingSummary(false);
     }
   }, [game.id, game.league, loadingSummary, summary]);
 
   useEffect(() => {
-    const statusType = game?.status?.type || '';
-    const isLive = statusType === 'STATUS_IN_PROGRESS' || String(statusType).toLowerCase().includes('in_progress');
-    if (!isLive || !summary) return undefined;
+    if (!isGameOngoing(game?.status) || !shootoutData) return undefined;
 
-    const intervalMs = Math.max(5, Number(refreshInterval) || 30) * 1000;
+    const intervalSeconds = shootoutInProgress
+      ? 5
+      : Math.min(Math.max(5, Number(refreshInterval) || 30), 15);
+    const intervalMs = intervalSeconds * 1000;
     const interval = setInterval(() => fetchSummary(true), intervalMs);
     return () => clearInterval(interval);
-  }, [fetchSummary, game?.status?.type, refreshInterval, summary]);
+  }, [fetchSummary, game?.status, refreshInterval, shootoutData, shootoutInProgress]);
 
   // Only fetch summary when the tile becomes visible. Use IntersectionObserver
   // when available; otherwise fall back to immediate fetch for older browsers
   const containerRef = useRef(null);
   useEffect(() => {
-    const statusType = game?.status?.type || '';
-    const isLive = statusType === 'STATUS_IN_PROGRESS' || String(statusType).toLowerCase().includes('in_progress');
-    if (!isLive) return undefined;
+    if (!isGameOngoing(game?.status)) return undefined;
 
     const el = containerRef.current;
     if (!el) return undefined;
@@ -126,7 +137,7 @@ const HockeyGameTile = (props) => {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [fetchSummary, game?.status?.type]);
+  }, [fetchSummary, game?.status]);
 
   const renderSummarySection = () => {
     // If we already have parsed summary data, render goalie/EN info

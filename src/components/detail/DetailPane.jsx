@@ -61,7 +61,7 @@ const DetailPane = ({
     return `${s.currentBatter?.id}-${s.outs}-${s.inning}-${s.isTopInning}-${s.balls}-${s.strikes}`;
   }, [game.status, game.situation]);
 
-  const { data, displayGame, loading, error } = useGameDetail(game, refreshKey);
+  const { data, displayGame, loading, error } = useGameDetail(game, refreshKey, refreshInterval);
   const synchronizedGame = displayGame ?? game;
   const leagueLabel = (game.league || '').toUpperCase();
 
