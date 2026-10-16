@@ -9,15 +9,13 @@ const LiveClock = () => {
   return <span className="live-clock">{time.toLocaleTimeString()}</span>;
 };
 import { useRef } from 'react';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import ErrorBoundary from './components/ErrorBoundary';
-import GameTile from './components/game-tiles/GameTileFactory';
+import ActiveGameLayout from './components/layout/ActiveGameLayout';
 import LeagueSelector from './components/LeagueSelector';
 import Settings from './components/Settings';
 import IncrementalUpdatesMonitor from './components/IncrementalUpdatesMonitor';
 import Toast from './components/Toast';
 import InfoModal from './components/InfoModal';
-import DetailPane from './components/detail/DetailPane';
 import { useIncrementalUpdates } from './hooks/useIncrementalUpdates';
 import { useSettings } from './hooks/useSettings';
 import { useUIState } from './hooks/useUIState';
@@ -60,7 +58,7 @@ function App() {
   }, []);
 
   // Detail mode
-  const { detailGames, activeDetailKeys, toggleDetailMode, isInDetailMode } = useDetailMode();
+  const { activeDetailKeys, toggleDetailMode, isInDetailMode } = useDetailMode();
 
 
   // Incremental updates hook
@@ -409,154 +407,23 @@ function App() {
         )}
       </header>
 
-      <main className="container">
-        {currentLoading && (
-          <div className="loading">
-            <div className="loading-spinner">⏳</div>
-            Loading games... {useIncrementalMode ? '(Incremental Mode)' : '(Traditional Mode)'}
-          </div>
-        )}
-
-        {currentError && (
-          <div className="error">
-            <div className="error-icon">❌</div>
-            {currentError}
-            <button onClick={handleForceRefresh} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {!currentLoading && !currentError && (
-          <>
-            {filteredGames.length > 0 ? (() => {
-              // Games currently shown in the split detail panes
-              const detailGameObjects = activeDetailKeys
-                .map(key => filteredGames.find(g => `${g.league}-${g.id}` === key))
-                .filter(Boolean);
-
-              // Games that remain in the regular grid
-              const gridGames = filteredGames.filter(
-                g => !activeDetailKeys.includes(`${g.league}-${g.id}`)
-              );
-
-              const renderGrid = (games) => (
-                <DragDropContext>
-                  <Droppable droppableId="games">
-                    {(provided) => (
-                      <div
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                        className="games-grid"
-                      >
-                        {games.map((game, index) => {
-                          const gameKey = `${game.league}-${game.id}`;
-                          const overlay = recordsOverlay[gameKey];
-                          const enrichedGame = overlay ? {
-                            ...game,
-                            homeTeam: game.homeTeam ? { ...game.homeTeam, record: game.homeTeam.record ?? overlay.homeRecord } : game.homeTeam,
-                            awayTeam: game.awayTeam ? { ...game.awayTeam, record: game.awayTeam.record ?? overlay.awayRecord } : game.awayTeam,
-                          } : game;
-                          return (
-                            <GameTile
-                              key={gameKey}
-                              game={{ ...enrichedGame, refreshInterval: settings.refreshInterval }}
-                              index={index}
-                              colorCoding={settings.colorCoding}
-                              isDragDisabled={false}
-                              draggableId={gameKey}
-                              showTeamForm={settings.showTeamForm}
-                              isPinned={pinnedIds.has(gameKey)}
-                              onTogglePin={() => togglePin(gameKey)}
-                              isInDetailMode={isInDetailMode(gameKey)}
-                              onToggleDetailMode={() => toggleDetailMode(gameKey)}
-                            />
-                          );
-                        })}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-              );
-
-              if (detailGameObjects.length === 0) {
-                return renderGrid(filteredGames);
-              }
-
-              return (
-                <div className="split-layout">
-                  {/* Left: first detail pane */}
-                  <div className="split-left">
-                    <DetailPane
-                      game={detailGameObjects[0]}
-                      colorCoding={settings.colorCoding}
-                      showTeamForm={settings.showTeamForm}
-                      isPinned={pinnedIds.has(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
-                      onTogglePin={() => togglePin(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
-                      onClose={() => toggleDetailMode(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`)}
-                      refreshInterval={settings.refreshInterval}
-                      onRecordsUpdate={(h, a) => handleRecordsUpdate(`${detailGameObjects[0].league}-${detailGameObjects[0].id}`, h, a)}
-                    />
-                  </div>
-
-                  {/* Right: second detail pane OR the remaining grid */}
-                  <div className="split-right">
-                    {detailGameObjects.length >= 2 ? (
-                      <DetailPane
-                        game={detailGameObjects[1]}
-                        colorCoding={settings.colorCoding}
-                        showTeamForm={settings.showTeamForm}
-                        isPinned={pinnedIds.has(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
-                        onTogglePin={() => togglePin(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
-                        onClose={() => toggleDetailMode(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`)}
-                        refreshInterval={settings.refreshInterval}
-                        onRecordsUpdate={(h, a) => handleRecordsUpdate(`${detailGameObjects[1].league}-${detailGameObjects[1].id}`, h, a)}
-                      />
-                    ) : (
-                      <div className="split-grid-pane">
-                        {gridGames.length > 0
-                          ? renderGrid(gridGames)
-                          : <div className="no-games"><div className="no-games-icon">📋</div><p>No other games</p></div>
-                        }
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })() : (
-              <div className="no-games">
-                {settings.selectedLeagues.length === 0 ? (
-                  <div>
-                    <div className="no-games-icon">🏟️</div>
-                    <h3>Select a league to view games</h3>
-                    <p>Choose from NFL, NHL, FCS, FBS, MLB, or Bundesliga above to see live scores and schedules.</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="no-games-icon">📅</div>
-                    <h3>No games scheduled</h3>
-                    <p>There are no games scheduled for the selected leagues in the next 4 days.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        <div className="app-info">
-          <div className="refresh-info">
-            <p>
-              🔄 {useIncrementalMode
-                ? `Smart updates: ${updateFrequency}`
-                : `Updates every ${settings.refreshInterval} seconds`}
-            </p>
-            {useIncrementalMode && liveGamesCount > 0 && (
-              <p>🔴 {liveGamesCount} live game{liveGamesCount !== 1 ? 's' : ''} active</p>
-            )}
-          </div>
-        </div>
-      </main>
+      <ActiveGameLayout
+        filteredGames={filteredGames}
+        settings={settings}
+        loading={currentLoading}
+        error={currentError}
+        useIncrementalMode={useIncrementalMode}
+        updateFrequency={updateFrequency}
+        liveGamesCount={liveGamesCount}
+        onForceRefresh={handleForceRefresh}
+        recordsOverlay={recordsOverlay}
+        pinnedIds={pinnedIds}
+        activeDetailKeys={activeDetailKeys}
+        togglePin={togglePin}
+        isInDetailMode={isInDetailMode}
+        toggleDetailMode={toggleDetailMode}
+        onRecordsUpdate={handleRecordsUpdate}
+      />
 
       <Settings
         settings={settings}

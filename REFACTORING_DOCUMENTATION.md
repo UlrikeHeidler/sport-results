@@ -22,7 +22,7 @@ This document outlines the comprehensive refactoring performed on the Sports Res
 
 ### ✅ 2. Large File Decomposition
 
-**After:** Reusable layout components handle the game grid, while [`App.jsx`](src/App.jsx) composes the app and owns top-level state. ESPN requests live in [`sportsApi.js`](src/services/sportsApi.js), response mapping in focused normalizers, and display formatting in [`gamePresentation.js`](src/services/gamePresentation.js).
+**After:** [`ActiveGameLayout`](src/components/layout/ActiveGameLayout.jsx) owns the active game, grid, and detail-pane composition, while [`App.jsx`](src/App.jsx) composes the app and owns top-level state. ESPN requests live in [`sportsApi.js`](src/services/sportsApi.js), response mapping in focused normalizers, and display formatting in [`gamePresentation.js`](src/services/gamePresentation.js).
 
 ### ✅ 3. Code Harmonization
 
@@ -48,7 +48,8 @@ src/
 │   │   ├── ZoomControls.jsx      # Zoom functionality
 │   │   ├── ZoomControls.css
 │   │   ├── AppHeader.jsx         # Header management
-│   │   └── AppHeader.css
+│   │   ├── AppHeader.css
+│   │   └── ActiveGameLayout.jsx  # Games, loading/error, and detail layout
 │   └── game-tiles/
 │       ├── GameTileFactory.jsx   # Selects the sport-specific tile
 │       └── BaseGameTile.jsx      # Shared tile behavior

@@ -87,6 +87,22 @@ export const fetchGames = async (league, dateFilter = null) => {
   }
 };
 
+const fetchGamesByLeagueAndDates = async (leagues, dates) => {
+  const results = await Promise.all(
+    leagues.flatMap(league =>
+      dates.map(date =>
+        fetchGames(league, date).then(games => ({ league, games, date }))
+      )
+    )
+  );
+
+  return results.reduce((gamesByLeague, { league, games, date }) => {
+    if (!gamesByLeague[league]) gamesByLeague[league] = [];
+    gamesByLeague[league].push(...games.map(game => ({ ...game, _requestedDate: date })));
+    return gamesByLeague;
+  }, {});
+};
+
 /**
  * Get games for all supported leagues
  * @param {Array} selectedLeagues - Array of league names to fetch
@@ -107,30 +123,10 @@ export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = 
       return {};
     }
 
-    let promises;
-    
     if (includeMultipleDays) {
       // Fetch multiple days (legacy behavior)
       const dateRange = getDateRange();
-      const allPromises = [];
-
-      enabledLeagues.forEach(league => {
-        dateRange.forEach(date => {
-          allPromises.push(
-            fetchGames(league, date).then(games => ({ league, games, date }))
-          );
-        });
-      });
-
-      const results = await Promise.all(allPromises);
-      const gamesData = {};
-
-      results.forEach(({ league, games }) => {
-        if (!gamesData[league]) {
-          gamesData[league] = [];
-        }
-        gamesData[league].push(...games);
-      });
+      const gamesData = await fetchGamesByLeagueAndDates(enabledLeagues, dateRange);
 
       // Remove duplicates and filter by date range
       Object.keys(gamesData).forEach(league => {
@@ -144,38 +140,20 @@ export const fetchAllGames = async (selectedLeagues = [], includeMultipleDays = 
         const maxDate = new Date(today);
         maxDate.setDate(today.getDate() + 3);
         
-        gamesData[league] = uniqueGames.filter(game => {
-          const gameDate = new Date(game.date);
-          gameDate.setHours(0, 0, 0, 0);
-          return gameDate >= today && gameDate <= maxDate;
-        });
+        gamesData[league] = uniqueGames
+          .filter(game => {
+            const gameDate = new Date(game.date);
+            gameDate.setHours(0, 0, 0, 0);
+            return gameDate >= today && gameDate <= maxDate;
+          })
+          .map(({ _requestedDate, ...game }) => game);
       });
 
       return gamesData;
     } else {
       // Fetch yesterday's and today's games so late-night events crossing midnight are preserved.
       const dateFilters = [getYesterdayDateString(), getDateString(new Date())];
-      const allPromises = [];
-
-      enabledLeagues.forEach(league => {
-        dateFilters.forEach(date => {
-          allPromises.push(
-            fetchGames(league, date).then(games => ({ league, games, date }))
-          );
-        });
-      });
-
-      const results = await Promise.all(allPromises);
-      const gamesData = {};
-
-      results.forEach(({ league, games, date }) => {
-        if (!gamesData[league]) {
-          gamesData[league] = [];
-        }
-        const annotatedGames = games.map(game => ({ ...game, _requestedDate: date }));
-        gamesData[league].push(...annotatedGames);
-      });
-
+      const gamesData = await fetchGamesByLeagueAndDates(enabledLeagues, dateFilters);
 
       const today = getDateString(new Date());
       const yesterday = getYesterdayDateString();

@@ -191,19 +191,6 @@ export const isSoccerLeague = (league) => {
   return sport.toLowerCase() === 'soccer';
 };
 
-/**
- * Get date in current user's timezone
- * Utility function for timezone handling
- */
-export const getDateInCurrentUsersTimezone = (dateStr, serverTimezone) => {
-  let nowAsStringInServerTimezone = new Date().toLocaleString('en-US', { timeZone: serverTimezone });
-  let serverTimestamp = new Date(nowAsStringInServerTimezone).getTime();
-  let userTimestamp = Date.now();
-  let offset = userTimestamp - serverTimestamp;
-  let adjustedTimestamp = new Date(dateStr).getTime() + offset;
-  return new Date(adjustedTimestamp);
-};
-
 // Re-export utility functions from constants for convenience
 export {
   isGameFinal,
@@ -213,6 +200,7 @@ export {
 
 export {
   extractTeams,
+  getDateInCurrentUsersTimezone,
   isGameOngoing,
   isGameInBreak,
   isGameScheduled

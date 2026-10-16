@@ -177,6 +177,42 @@ describe('sportsApi.fetchAllGames', () => {
     expect(result.mlb.some((game) => game.id === 'mlb-today-1')).toBe(true);
   });
 
+  it('groups multiple-day games without exposing internal request-date metadata', async () => {
+    const fetchMock = vi.fn(url => {
+      const date = new URL(url).searchParams.get('dates');
+      const eventDate = new Date(
+        Number(date.slice(0, 4)),
+        Number(date.slice(4, 6)) - 1,
+        Number(date.slice(6, 8)),
+        12
+      );
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          events: [makeEvent({
+            id: `mlb-${date}`,
+            date: eventDate.toISOString(),
+            status: {
+              type: { name: 'STATUS_SCHEDULED', completed: false },
+              displayClock: '',
+              period: 0
+            },
+            home: { id: `home-${date}`, name: 'Home', score: 0 },
+            away: { id: `away-${date}`, name: 'Away', score: 0 }
+          })]
+        })
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await api.fetchAllGames(['mlb'], true);
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(result.mlb).toHaveLength(4);
+    expect(result.mlb.every(game => !('_requestedDate' in game))).toBe(true);
+  });
+
   it('rejects when a league scoreboard request fails instead of returning an empty league', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }));
 

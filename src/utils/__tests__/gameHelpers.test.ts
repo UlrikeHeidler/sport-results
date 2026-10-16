@@ -9,6 +9,7 @@ import {
   getDownSuffix,
   getDisplayStatus,
   extractTeams,
+  getDateInCurrentUsersTimezone,
   getGameWinner,
   isTeamWinner,
   getSafeTeamData,
@@ -22,8 +23,13 @@ import {
   isHockeyLeague,
   isSoccerLeague,
 } from '../gameHelpers';
+import { getDateInCurrentUsersTimezone as getDateInCurrentUsersTimezoneFromService } from '../../services/gameUtils';
 
 describe('gameHelpers', () => {
+  it('re-exports the shared timezone helper', () => {
+    expect(getDateInCurrentUsersTimezone).toBe(getDateInCurrentUsersTimezoneFromService);
+  });
+
   describe('getOrdinalSuffix', () => {
     it('should return correct ordinal suffixes', () => {
       expect(getOrdinalSuffix(1)).toBe('st');
